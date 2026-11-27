@@ -1,0 +1,1 @@
+"""Módulo voice del prototipo."""

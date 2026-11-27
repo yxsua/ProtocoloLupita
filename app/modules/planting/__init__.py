@@ -1,0 +1,1 @@
+"""Módulo planting del prototipo."""

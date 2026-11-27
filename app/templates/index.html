@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Prototipo local · datos sintéticos</p>
+      <h1>Mosca Estéril</h1>
+      <p class="subtitle">Atribución de filtraciones e inteligencia de amenazas</p>
+    </div>
+    <span class="status"><i></i> En ejecución local</span>
+  </header>
+  <main>
+    <section class="intro">
+      <h2>Panel de demostración</h2>
+      <p>Los módulos se conectarán aquí mediante contratos compartidos. No se reciben llamadas ni SMS reales.</p>
+    </section>
+    <section class="module-grid" aria-label="Módulos del prototipo">
+      <article class="module-card"><span>01</span><h3>Siembra y atribución</h3><p>Copias sintéticas y número trampa asociado.</p><b>En integración</b></article>
+      <article class="module-card"><span>02</span><h3>Doña Lupita</h3><p>Flujo de llamada con respaldo de texto.</p><b>En integración</b></article>
+      <article class="module-card"><span>03</span><h3>Indicadores y campañas</h3><p>Extracción, validación y correlación.</p><b>En integración</b></article>
+      <article class="module-card"><span>04</span><h3>Bandeja de SMS</h3><p>Análisis de mensajes y enlaces desactivados.</p><b>En integración</b></article>
+      <article class="module-card"><span>05</span><h3>Portal ciudadano</h3><p>Reporte, cruce y ruta guiada.</p><b>En integración</b></article>
+      <article class="module-card"><span>06</span><h3>Tablero y mapa</h3><p>Campañas y agregados municipales.</p><b>En integración</b></article>
+    </section>
+    <section class="runtime-card">
+      <div><p class="eyebrow">ESTADO DEL SERVIDOR</p><p id="health">Consultando…</p></div>
+      <a href="/docs">Ver API local</a>
+    </section>
+    <section class="scenarios-card">
+      <div class="scenario-heading">
+        <div><p class="eyebrow">VALIDACIÓN DEL PROTOTIPO</p><h2>Escenarios</h2></div>
+        <button id="run-all" type="button">Ejecutar todos</button>
+      </div>
+      <p id="scenario-status">Cargando catálogo…</p>
+      <ul id="scenario-list" class="scenario-list"></ul>
+    </section>
+  </main>
+  <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+</body>
+</html>

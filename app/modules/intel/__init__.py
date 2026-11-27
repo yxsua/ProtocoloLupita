@@ -1,0 +1,1 @@
+"""Módulo intel del prototipo."""

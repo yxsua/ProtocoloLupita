@@ -1,0 +1,1 @@
+"""Módulo map del prototipo."""
