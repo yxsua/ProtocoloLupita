@@ -1,0 +1,1 @@
+"""Módulo citizen del prototipo."""
