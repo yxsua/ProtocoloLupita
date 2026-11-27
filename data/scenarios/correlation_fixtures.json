@@ -1,0 +1,37 @@
+{
+  "dataset": "correlation_fixtures",
+  "synthetic": true,
+  "notes": "Eventos sintéticos de cruce ciudadano (E12 con E01), límite de tasa (E14) y control de origen secundario.",
+  "scenarios": [
+    {
+      "id": "E12",
+      "channel": "portal",
+      "trap_id": null,
+      "attribution_id": null,
+      "occurred_at": "2026-11-27T12:30:00Z",
+      "source_fingerprint": "portal:2026-11-27T12:rep-e12",
+      "text_sanitized": "Reporte ciudadano sanitizado: me llamaron amenazando y me pidieron depositar a la CLABE 999001000000000013.",
+      "expected": {
+        "correlates_with": "E01",
+        "status": "corroborada",
+        "detection_lead_hours": 2.5,
+        "never_confirmed_fraud": true
+      }
+    },
+    {
+      "id": "E14",
+      "channel": "portal",
+      "trap_id": null,
+      "attribution_id": null,
+      "occurred_at": "2026-11-27T16:00:00Z",
+      "source_fingerprint": "portal:rate-limited-e14",
+      "rate_limited": true,
+      "text_sanitized": "Reporte repetido contra el telefono comercial 4420007777 pidiendo transferencia.",
+      "expected": {
+        "status": "sin_verificar",
+        "match_reason": "unverified_override",
+        "published_in_bulletin": false
+      }
+    }
+  ]
+}
