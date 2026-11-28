@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Cola de alertas · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Revisión antifraude</p>
+    <h1>Cola de alertas</h1>
+    <p>
+      {% if reviewers_see_all %}
+      Para teléfonos con consentimiento actualizado se muestran todos los eventos. Los demás conservan la cola de alertas; no se muestra el feed ni la lista de teléfonos.
+      {% else %}
+      Solo se muestran eventos marcados y hasta tres mensajes previos del mismo remitente.
+      {% endif %}
+    </p>
+  </div>
+</div>
+{% if entries %}
+<section class="event-list">
+  {% for event in entries %}
+  <article class="card event-card">
+    <div class="feed-heading">
+      <h2>{{ event.nivel_riesgo|upper }} · {{ event.riesgo }}/100</h2>
+      <time>{{ event.fecha }}</time>
+    </div>
+    <p><strong>Remitente:</strong> {{ event.remitente or "No identificado" }}</p>
+    <p><strong>Aplicación:</strong> {{ event.app }} · {{ event.tipo }}</p>
+    <p class="message-text">{{ event.texto or "El contenido ya venció por retención." }}</p>
+    {% if event.razones_riesgo %}
+    <h3>Motivos</h3>
+    <ul>
+      {% for reason in event.razones_riesgo %}
+      <li>{{ reason.detalle }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if event.contexto %}
+    <details>
+      <summary>Contexto previo ({{ event.contexto|length }})</summary>
+      <ul>
+        {% for previous in event.contexto %}
+        <li><time>{{ previous.fecha }}</time> — {{ previous.texto or "Texto vencido" }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+    {% if not event.revision_estado %}
+    <form method="post" action="/revisiones/{{ event.id_evento }}/marcar" class="filter-actions">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="primary-button" name="estado" value="confirmado">Confirmado</button>
+      <button class="secondary-button" name="estado" value="falso_positivo">Falso positivo</button>
+      <button class="secondary-button" name="estado" value="necesita_contacto">Necesita contacto</button>
+    </form>
+    {% else %}
+    <p class="notice">Revisión: {{ event.revision_estado }}</p>
+    {% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% else %}
+<div class="empty-state card">
+  <h2>No hay alertas pendientes</h2>
+  <p>Los nuevos eventos que superen el umbral aparecerán aquí.</p>
+</div>
+{% endif %}
+{% endblock %}

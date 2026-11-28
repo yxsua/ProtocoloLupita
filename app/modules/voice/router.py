@@ -44,10 +44,10 @@ router = APIRouter(
     dependencies=[Depends(require_government_user)],
 )
 
-# Assets
 _ASSETS_DIR = Path(__file__).parent / "assets"
+_MAX_AUDIO_BYTES = 15 * 1024 * 1024
 
-# Sesiones activas (en memoria, por ID de sesión)
+# Sesiones activas en memoria
 _sessions: dict[str, VoiceService] = {}
 _call_metadata: dict[str, dict] = {}
 _scenario_runs: dict[str, dict] = {}
@@ -86,8 +86,11 @@ def _call_attribution(session_id: str) -> dict:
 
 
 def _get_or_create_engine() -> AudioEngine:
-    """Crea el AudioEngine para el contexto web."""
-    return AudioEngine.for_web(assets_dir=str(_ASSETS_DIR))
+    """Reutiliza el AudioEngine web para no recargar Whisper/Piper por petición."""
+    global _shared_engine
+    if _shared_engine is None:
+        _shared_engine = AudioEngine.for_web(assets_dir=str(_ASSETS_DIR))
+    return _shared_engine
 
 
 def _get_session(session_id: str) -> Optional[VoiceService]:
@@ -95,7 +98,7 @@ def _get_session(session_id: str) -> Optional[VoiceService]:
 
 
 # -----------------------------------------------------------------------
-# Endpoints
+# Vista principal
 # -----------------------------------------------------------------------
 
 @router.get("/", include_in_schema=False)
@@ -103,6 +106,10 @@ async def voice_page():
     """Envía el acceso anterior del simulador a su nueva ubicación privada."""
     return RedirectResponse(url="/gobierno/simulador", status_code=307)
 
+
+# -----------------------------------------------------------------------
+# Apartado A: Llamada Manual
+# -----------------------------------------------------------------------
 
 @router.post("/start")
 async def start_call():
@@ -251,7 +258,6 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
             )),
         })
 
-    # Procesar el turno
     result = await service.process_call(input_text)
 
     sanitized_input = sanitize_report(
@@ -368,13 +374,10 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
 
 @router.post("/hangup")
 async def hangup_call(session_id: str = Form(...)):
-    """Termina la llamada (el usuario cuelga)."""
+    """Termina la llamada manual (el usuario cuelga)."""
     service = _get_session(session_id)
     if service is None:
-        return JSONResponse(
-            status_code=404,
-            content={"error": "Sesión no encontrada."},
-        )
+        return JSONResponse(status_code=404, content={"error": "Sesión no encontrada."})
 
     result = service.colgar()
 
@@ -403,9 +406,94 @@ async def hangup_call(session_id: str = Form(...)):
     # Limpiar sesión
     _sessions.pop(session_id, None)
 
-    logger.info(f"[Router] Sesión terminada: {session_id}")
+    logger.info(f"[Router] Sesión manual terminada: {session_id}")
+    return JSONResponse(content={"result": _serialize_result(result)})
+
+
+# -----------------------------------------------------------------------
+# Apartado B: Simulación Automática (Bot Estafador vs. Doña Lupita)
+# -----------------------------------------------------------------------
+
+@router.get("/bot/scenarios")
+async def list_bot_scenarios():
+    """Devuelve los escenarios E01-E08 disponibles para el bot estafador."""
+    return JSONResponse(content={"scenarios": cargar_escenarios_voz()})
+
+
+@router.post("/bot/start")
+async def bot_start(
+    scenario_id: str = Form(default="E01"),
+    max_turns: int = Form(default=DEFAULT_BOT_MAX_TURNS, ge=1, le=6),
+    max_duration: float = Form(default=180.0, ge=30.0, le=300.0),
+    locked_avatar: AvatarId = Form(default=AvatarId.LUPITA),
+    locked_voice_profile: str = Form(default=""),
+):
+    """Inicia una simulación controlada Bot Estafador vs. Doña Lupita."""
+    bot_session_id = uuid.uuid4().hex[:12]
+    engine = _get_or_create_engine()
+
+    sim = BotEstafadorSimulator(
+        scenario_id=scenario_id,
+        max_turns=max_turns,
+        max_duration_seconds=max_duration,
+        audio_engine=engine,
+        locked_avatar=locked_avatar,
+        locked_voice_profile=_parse_locked_voice_profile(locked_voice_profile),
+    )
+    saludo = sim.iniciar()
+    _bot_sessions[bot_session_id] = sim
+
+    logger.info(f"[Router] Simulación Bot iniciada: {bot_session_id} ({scenario_id}, max_turns={sim.max_turns})")
+    response_data = await _build_turn_response(sim.voice_service, saludo, "")
+    response_data.update({
+        "bot_session_id": bot_session_id,
+        "scenario_id": sim.scenario_id,
+        "description": sim.description,
+        "turn_index": sim.turn_index,
+        "max_turns": sim.max_turns,
+        "can_advance": sim.puede_avanzar,
+        "audio_status": engine.status(),
+    })
+    return JSONResponse(content=response_data)
+
+
+@router.post("/bot/next")
+async def bot_next_turn(
+    bot_session_id: str = Form(...),
+):
+    """
+    Avanza un turno del guion educativo y obtiene la respuesta de Doña Lupita.
+    """
+    sim = _bot_sessions.get(bot_session_id)
+    if sim is None:
+        return JSONResponse(status_code=404, content={"error": "Simulación no encontrada."})
+
+    attacker_text, result = await sim.siguiente_turno()
+    response_data = await _build_turn_response(sim.voice_service, result, attacker_text or "")
+    response_data.update({
+        "attacker_text": attacker_text,
+        "turn_index": sim.turn_index,
+        "max_turns": sim.max_turns,
+        "can_advance": sim.puede_avanzar,
+    })
+
+    if not sim.puede_avanzar and not sim.voice_service.activa:
+        _bot_sessions.pop(bot_session_id, None)
+
+    return JSONResponse(content=response_data)
+
+
+@router.post("/bot/stop")
+async def bot_stop(bot_session_id: str = Form(...)):
+    """Detiene manualmente la simulación automática."""
+    sim = _bot_sessions.pop(bot_session_id, None)
+    if sim is None:
+        return JSONResponse(status_code=404, content={"error": "Simulación no encontrada."})
+
+    result = sim.detener()
     return JSONResponse(content={
         "result": _serialize_result(result),
+        "can_advance": False,
     })
 
 
@@ -535,10 +623,47 @@ async def serve_audio(filename: str):
 # Helpers
 # -----------------------------------------------------------------------
 
+async def _build_turn_response(
+    service: VoiceService,
+    result: CallResult,
+    input_text: str,
+) -> dict:
+    """Construye la respuesta JSON del turno e incluye TTS dinámico si aplica."""
+    tts_audio_b64 = None
+    if (
+        result.tts_texto
+        and service.locked_voice_profile.citizen.provider == "piper"
+        and service.audio_engine.piper_disponible
+    ):
+        wav_data = await service.audio_engine.sintetizar_dinamico(result.tts_texto)
+        if wav_data:
+            tts_audio_b64 = base64.b64encode(wav_data).decode("ascii")
+
+    data = {
+        "result": _serialize_result(result),
+        "transcripcion_usuario": input_text,
+    }
+    if tts_audio_b64:
+        data["tts_audio_b64"] = tts_audio_b64
+    return data
+
+
+def _parse_locked_voice_profile(raw_profile: str) -> Optional[LockedVoiceProfile]:
+    """Valida la configuración fijada por el navegador para toda la llamada."""
+    if not raw_profile:
+        return None
+    try:
+        return LockedVoiceProfile.model_validate(json.loads(raw_profile))
+    except (json.JSONDecodeError, ValidationError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="El perfil de voz fijado no tiene un formato válido.",
+        ) from exc
+
+
 def _serialize_result(result: CallResult) -> dict:
-    """Serializa CallResult a dict para JSON response."""
+    """Serializa CallResult a dict para JSON response (sin audio crudo)."""
     data = result.model_dump(mode="json")
-    # Eliminar campos internos innecesarios para el frontend
     data.pop("evento_ref", None)
     return data
 

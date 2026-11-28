@@ -1,5 +1,5 @@
 /**
- * voice.js — Frontend del módulo de voz (Doña Lupita)
+ * voice.js — Frontend de voz de Protocolo Lupita
  *
  * Funcionalidades:
  *   1. Reconocimiento de voz:
@@ -21,10 +21,26 @@ const state = {
     active: false,
     recording: false,
     processing: false,
+    playbackBusy: false,
     startTime: null,
     maxDuration: 300,
     timerInterval: null,
     audioStatus: { microfono: true, whisper: false, piper: false },
+    mode: 'manual',
+    botSessionId: null,
+    botTurnIndex: 0,
+    botMaxTurns: 5,
+    botCanAdvance: false,
+    botRunning: false,
+    micAudioContext: null,
+    micAnalyser: null,
+    micMeterFrame: null,
+    micPeak: 0,
+    micMeterAvailable: false,
+    generation: 0,
+    lockedAvatar: null,
+    lockedVoiceProfile: null,
+    starting: false,
 
     // Grabación WAV (modo Whisper servidor)
     mediaRecorder: null,
@@ -61,7 +77,169 @@ const els = {
     badgeWhisper:   $('badgeWhisper'),
     badgePiper:     $('badgePiper'),
     cfgMaxDuration: $('cfgMaxDuration'),
+    manualStartPanel: $('manualStartPanel'),
+    botStartPanel: $('botStartPanel'),
+    tabManual: $('tabManual'),
+    tabBot: $('tabBot'),
+    cfgScenario: $('cfgScenario'),
+    cfgBotTurns: $('cfgBotTurns'),
+    botControls: $('botControls'),
+    botTurnCount: $('botTurnCount'),
+    btnStopBot: $('btnStopBot'),
+    speakingIndicator: $('speakingIndicator'),
+    clabeSummary: $('clabeSummary'),
+    micMeterWrap: $('micMeterWrap'),
+    micMeter: $('micMeter'),
+    micMeterLabel: $('micMeterLabel'),
+    processingText: $('processingText'),
+    endPanel: $('endPanel'),
+    endSummary: $('endSummary'),
+    btnRecall: $('btnRecall'),
+    btnExit: $('btnExit'),
+    cfgAvatar:     $('cfgAvatar'),
+    avatarLockNotice: $('avatarLockNotice'),
+    startAvatarName: $('startAvatarName'),
+    startAvatarIcon: $('startAvatarIcon'),
+    activeAvatarName: $('activeAvatarName'),
+    activeAvatarIcon: $('activeAvatarIcon'),
 };
+
+const AVATAR_PROFILES = Object.freeze({
+    lupita: Object.freeze({
+        name: 'Doña Lupita', icon: '🧓', voiceKind: 'female',
+        voicePreference: /sabina|dalia|paulina|google espa[nñ]ol/i, rate: 0.88, pitch: 1.0,
+    }),
+    ramiro: Object.freeze({
+        name: 'Don Ramiro', icon: '👴', voiceKind: 'male',
+        voicePreference: /jorge|raul|diego|miguel|pablo|antonio/i, rate: 0.92, pitch: 0.9,
+    }),
+    carmen: Object.freeze({
+        name: 'Sra. Carmen', icon: '👵', voiceKind: 'female',
+        voicePreference: /helena|laura|monica|lucia|sofia|elena/i, rate: 0.88, pitch: 1.02,
+    }),
+    hector: Object.freeze({
+        name: 'Profe Héctor', icon: '👨‍🏫', voiceKind: 'male',
+        voicePreference: /pablo|diego|miguel|jorge|raul|antonio/i, rate: 0.96, pitch: 0.94,
+    }),
+});
+
+function currentAvatarId() {
+    return state.lockedAvatar || els.cfgAvatar.value || 'lupita';
+}
+
+function updateAvatarIdentity(avatarId = currentAvatarId(), updateActive = true) {
+    const avatar = AVATAR_PROFILES[avatarId] || AVATAR_PROFILES.lupita;
+    els.startAvatarName.textContent = avatar.name;
+    els.startAvatarIcon.textContent = avatar.icon;
+    if (updateActive) {
+        els.activeAvatarName.textContent = avatar.name;
+        els.activeAvatarIcon.textContent = avatar.icon;
+    }
+}
+
+function setAvatarSelectorLocked(locked) {
+    els.cfgAvatar.disabled = locked;
+    els.avatarLockNotice.classList.toggle('hidden', !locked);
+}
+
+function localeRank(voice) {
+    const lang = voice.lang.toLowerCase();
+    if (lang.startsWith('es-mx')) return 0;
+    if (lang.startsWith('es-419')) return 1;
+    if (lang.startsWith('es-es')) return 2;
+    return 3;
+}
+
+async function getSpanishVoicesForLock() {
+    if (!('speechSynthesis' in window)) return [];
+    const synthesis = window.speechSynthesis;
+    const current = synthesis.getVoices();
+    if (current.some(voice => voice.lang.toLowerCase().startsWith('es'))) return current;
+
+    return new Promise(resolve => {
+        let settled = false;
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            synthesis.removeEventListener('voiceschanged', finish);
+            resolve(synthesis.getVoices());
+        };
+        const timeout = setTimeout(finish, 1200);
+        synthesis.addEventListener('voiceschanged', finish, { once: true });
+    });
+}
+
+function selectVoiceForLock(voices, voiceKind, excludedVoiceURI = '', preferredNames = null) {
+    const spanish = voices.filter(voice => voice.lang.toLowerCase().startsWith('es'));
+    const genderPattern = voiceKind === 'female'
+        ? /female|mujer|femenin|sabina|dalia|paulina|helena|laura|monica|lucia|sofia|elena|google espa[nñ]ol/i
+        : /male|hombre|masculin|jorge|raul|diego|miguel|pablo|antonio/i;
+    const matchingGender = spanish.filter(voice => genderPattern.test(voice.name));
+    const matchingName = matchingGender.filter(voice => preferredNames && preferredNames.test(voice.name));
+    const candidates = (matchingName.length ? matchingName : matchingGender.length ? matchingGender : spanish)
+        .slice()
+        .sort((a, b) => localeRank(a) - localeRank(b));
+    return candidates.find(voice => voice.voiceURI !== excludedVoiceURI) || candidates[0] || null;
+}
+
+async function lockCallIdentity(avatarId) {
+    const avatar = AVATAR_PROFILES[avatarId] || AVATAR_PROFILES.lupita;
+    const voices = await getSpanishVoicesForLock();
+    const citizenVoice = selectVoiceForLock(
+        voices,
+        avatar.voiceKind,
+        '',
+        avatar.voicePreference,
+    );
+    const attackerVoice = selectVoiceForLock(
+        voices,
+        'male',
+        citizenVoice ? citizenVoice.voiceURI : '',
+    );
+    const voiceProfile = Object.freeze({
+        citizen: Object.freeze({
+            provider: 'speechSynthesis',
+            voice_uri: citizenVoice ? citizenVoice.voiceURI : '',
+            voice_name: citizenVoice ? citizenVoice.name : '',
+            lang: citizenVoice ? citizenVoice.lang : 'es-MX',
+            rate: avatar.rate,
+            pitch: avatar.pitch,
+        }),
+        attacker: Object.freeze({
+            provider: 'speechSynthesis',
+            voice_uri: attackerVoice ? attackerVoice.voiceURI : '',
+            voice_name: attackerVoice ? attackerVoice.name : '',
+            lang: attackerVoice ? attackerVoice.lang : 'es-MX',
+            rate: 1.08,
+            pitch: 0.88,
+        }),
+    });
+
+    state.lockedAvatar = avatarId;
+    state.lockedVoiceProfile = voiceProfile;
+    voicePlayer.lockProfile(voiceProfile, {
+        citizen: citizenVoice,
+        attacker: attackerVoice,
+    });
+    updateAvatarIdentity(avatarId);
+    setAvatarSelectorLocked(true);
+    return voiceProfile;
+}
+
+function releaseVoiceLock() {
+    voicePlayer.unlockProfile();
+    state.lockedVoiceProfile = null;
+    setAvatarSelectorLocked(false);
+}
+
+els.cfgAvatar.addEventListener('change', () => {
+    updateAvatarIdentity(
+        els.cfgAvatar.value,
+        els.callScreen.classList.contains('hidden'),
+    );
+});
+updateAvatarIdentity(els.cfgAvatar.value || 'lupita');
 
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -69,6 +247,9 @@ const els = {
 // ═══════════════════════════════════════════════════════════════════════
 
 async function startCall() {
+    if (state.active || state.starting) return;
+    state.starting = true;
+    state.generation += 1;
     const maxDur = parseInt(els.cfgMaxDuration.value) || 300;
     state.maxDuration = maxDur;
     els.btnStart.disabled = true;
@@ -78,6 +259,10 @@ async function startCall() {
     form.append('max_duration', maxDur);
 
     try {
+        const avatarId = els.cfgAvatar.value || 'lupita';
+        const lockedVoiceProfile = await lockCallIdentity(avatarId);
+        form.append('locked_avatar', avatarId);
+        form.append('locked_voice_profile', JSON.stringify(lockedVoiceProfile));
         const res = await fetch('/voice/start', { method: 'POST', body: form });
         const responseText = await res.text();
         let data = null;
@@ -98,6 +283,9 @@ async function startCall() {
         }
 
         state.sessionId = data.session_id;
+        state.lockedAvatar = data.result.locked_avatar || avatarId;
+        state.mode = 'manual';
+        state.botSessionId = null;
         state.active = true;
         state.startTime = Date.now();
         state.audioStatus = data.audio_status || state.audioStatus;
@@ -112,10 +300,8 @@ async function startCall() {
 
         // Agregar saludo de Lupita y reproducir su voz
         addMessage('lupita', data.result.respuesta_texto, data.result.ultima_intencion);
-        playLupitaVoice(data.result, null);
-
-        // Iniciar temporizador
         startTimer();
+        await playLupitaVoice(data.result, data.tts_audio_b64);
         els.textInput.focus();
 
     } catch (err) {
@@ -186,10 +372,16 @@ function startNewCall() {
 
 
 async function hangup() {
-    if (!state.sessionId) return;
+    if (state.mode === 'bot') {
+        await stopBotSimulation();
+        return;
+    }
+    if (!state.sessionId || !state.active) return;
 
+    state.active = false;
     stopRecording();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    voicePlayer.stop();
+    setSpeaking('lupita', false);
 
     const form = new FormData();
     form.append('session_id', state.sessionId);
@@ -210,8 +402,15 @@ async function hangup() {
 
 function endCall(result) {
     state.active = false;
+    state.botRunning = false;
+    state.sessionId = null;
+    state.botSessionId = null;
     stopTimer();
     stopRecording();
+    voicePlayer.stop();
+    releaseVoiceLock();
+    setSpeaking('lupita', false);
+    stopMicMeter();
 
     els.callStatus.textContent = 'Llamada terminada';
     els.textInput.disabled = true;
@@ -234,7 +433,7 @@ function endCall(result) {
 
 async function sendText() {
     const text = els.textInput.value.trim();
-    if (!text || !state.active || state.processing) return;
+    if (!text || !state.active || state.processing || state.playbackBusy) return;
 
     els.textInput.value = '';
     addMessage('atacante', text);
@@ -248,6 +447,7 @@ async function sendText() {
 // ═══════════════════════════════════════════════════════════════════════
 
 async function toggleMic() {
+    if (state.processing || state.playbackBusy || !state.active) return;
     if (state.recording) {
         stopRecording();
     } else {
@@ -266,17 +466,37 @@ async function startRecording() {
 
     // Camino con Whisper en servidor (o grabación WAV directa)
     try {
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+            throw new Error('El navegador no soporta grabación de audio.');
+        }
         const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 sampleRate: 16000,
                 channelCount: 1,
                 echoCancellation: true,
                 noiseSuppression: true,
+                autoGainControl: true,
             }
         });
 
         state.audioStream = stream;
-        state.audioChunks = [];
+        const recordingGeneration = state.generation;
+        state.micPeak = 0;
+        state.micMeterAvailable = false;
+        startMicMeter(stream);
+        stream.getAudioTracks().forEach(track => {
+            track.addEventListener('ended', () => {
+                if (recordingGeneration === state.generation && state.recording && state.active) {
+                    addSystemMessage('⚠️ El micrófono se desconectó. Puedes continuar escribiendo.');
+                    if (state.mediaRecorder && state.mediaRecorder.state === 'recording') {
+                        state.mediaRecorder.stop();
+                    }
+                    setRecordingUI(false, 'En llamada...');
+                }
+            }, { once: true });
+        });
+        const recordingChunks = [];
+        state.audioChunks = recordingChunks;
 
         const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
             ? 'audio/webm;codecs=opus'
@@ -285,19 +505,31 @@ async function startRecording() {
         state.mediaRecorder = new MediaRecorder(stream, { mimeType });
 
         state.mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) state.audioChunks.push(e.data);
+            if (e.data.size > 0) recordingChunks.push(e.data);
         };
 
         state.mediaRecorder.onstop = async () => {
-            const blob = new Blob(state.audioChunks, { type: mimeType });
-            const wavBlob = await convertToWav(blob);
-
-            addMessage('atacante', '🎤 (Audio enviado — transcribiendo...)');
-            await processInput({ audio: wavBlob });
-
-            if (state.audioStream) {
-                state.audioStream.getTracks().forEach(t => t.stop());
-                state.audioStream = null;
+            const blob = new Blob(recordingChunks, { type: mimeType });
+            if (recordingGeneration === state.generation) stopMicMeter();
+            try {
+                if (!state.active || recordingGeneration !== state.generation) return;
+                if (state.micMeterAvailable && state.micPeak < 0.004) {
+                    addSystemMessage('⚠️ No se detectó voz. Intenta de nuevo o escribe tu mensaje.');
+                    return;
+                }
+                els.callStatus.textContent = 'Procesando audio...';
+                const wavBlob = await convertToWav(blob);
+                addMessage('atacante', '🎤 (Audio enviado — transcribiendo...)');
+                await processInput({ audio: wavBlob });
+            } finally {
+                recordingChunks.length = 0;
+                if (state.audioChunks === recordingChunks) state.audioChunks = [];
+                if (state.audioStream === stream) {
+                    stream.getTracks().forEach(t => t.stop());
+                    state.audioStream = null;
+                } else {
+                    stream.getTracks().forEach(t => t.stop());
+                }
             }
         };
 
@@ -373,6 +605,7 @@ async function installLocalSpeech() {
 
 function startBrowserSpeechRecognition(SpeechRec, resume = false) {
     try {
+        const recordingGeneration = state.generation;
         const recognition = new SpeechRec();
         recognition.lang = state.speechLanguage;
         recognition.processLocally = true;
@@ -405,6 +638,7 @@ function startBrowserSpeechRecognition(SpeechRec, resume = false) {
         };
 
         recognition.onerror = (event) => {
+            if (recordingGeneration !== state.generation) return;
             console.warn('SpeechRecognition error:', event.error);
             if (event.error === 'no-speech') {
                 // Algunos navegadores cierran la sesión si hay una pausa al empezar.
@@ -430,6 +664,7 @@ function startBrowserSpeechRecognition(SpeechRec, resume = false) {
         };
 
         recognition.onend = async () => {
+            if (recordingGeneration !== state.generation) return;
             const finalText = state.speechTranscript.trim();
             state.speechRecognition = null;
 
@@ -474,6 +709,7 @@ function stopRecording() {
     if (state.mediaRecorder && state.recording) {
         state.mediaRecorder.stop();
     }
+    if (!state.mediaRecorder || !state.recording) stopMicMeter();
     setRecordingUI(false, 'En llamada...');
 }
 
@@ -481,8 +717,49 @@ function stopRecording() {
 function setRecordingUI(isRecording, statusText) {
     state.recording = isRecording;
     els.btnMic.classList.toggle('recording', isRecording);
-    els.btnMic.textContent = isRecording ? '⏹' : '🎤';
+    els.btnMic.textContent = isRecording ? '⏹ Soltar y enviar' : '🎤 Hablar';
     els.callStatus.textContent = statusText;
+}
+
+function startMicMeter(stream) {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const context = new AudioContextClass();
+        const analyser = context.createAnalyser();
+        analyser.fftSize = 512;
+        context.createMediaStreamSource(stream).connect(analyser);
+        state.micAudioContext = context;
+        state.micAnalyser = analyser;
+        state.micMeterAvailable = true;
+        els.micMeterWrap.classList.remove('hidden');
+        els.micMeterLabel.textContent = 'Grabando — nivel de micrófono';
+        const samples = new Float32Array(analyser.fftSize);
+        const updateLevel = () => {
+            if (!state.micAnalyser) return;
+            analyser.getFloatTimeDomainData(samples);
+            const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
+            state.micPeak = Math.max(state.micPeak, rms);
+            els.micMeter.value = Math.min(1, rms * 8);
+            state.micMeterFrame = requestAnimationFrame(updateLevel);
+        };
+        updateLevel();
+    } catch (err) {
+        console.warn('No se pudo iniciar el medidor del micrófono:', err);
+    }
+}
+
+function stopMicMeter() {
+    if (state.micMeterFrame) cancelAnimationFrame(state.micMeterFrame);
+    state.micMeterFrame = null;
+    state.micAnalyser = null;
+    els.micMeter.value = 0;
+    els.micMeterWrap.classList.add('hidden');
+    if (state.micAudioContext) {
+        const context = state.micAudioContext;
+        state.micAudioContext = null;
+        context.close().catch(err => console.warn('Error cerrando AudioContext:', err));
+    }
 }
 
 
@@ -494,29 +771,32 @@ async function convertToWav(blob) {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
             sampleRate: 16000
         });
-        const arrayBuffer = await blob.arrayBuffer();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        try {
+            const arrayBuffer = await blob.arrayBuffer();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-        const channelData = audioBuffer.getChannelData(0);
-        const sampleRate = audioBuffer.sampleRate;
+            const channelData = audioBuffer.getChannelData(0);
+            const sampleRate = audioBuffer.sampleRate;
 
-        let samples = channelData;
-        if (sampleRate !== 16000) {
-            const ratio = 16000 / sampleRate;
-            const newLength = Math.round(channelData.length * ratio);
-            samples = new Float32Array(newLength);
-            for (let i = 0; i < newLength; i++) {
-                const srcIdx = i / ratio;
-                const idx0 = Math.floor(srcIdx);
-                const idx1 = Math.min(idx0 + 1, channelData.length - 1);
-                const frac = srcIdx - idx0;
-                samples[i] = channelData[idx0] * (1 - frac) + channelData[idx1] * frac;
+            let samples = channelData;
+            if (sampleRate !== 16000) {
+                const ratio = 16000 / sampleRate;
+                const newLength = Math.round(channelData.length * ratio);
+                samples = new Float32Array(newLength);
+                for (let i = 0; i < newLength; i++) {
+                    const srcIdx = i / ratio;
+                    const idx0 = Math.floor(srcIdx);
+                    const idx1 = Math.min(idx0 + 1, channelData.length - 1);
+                    const frac = srcIdx - idx0;
+                    samples[i] = channelData[idx0] * (1 - frac) + channelData[idx1] * frac;
+                }
             }
-        }
 
-        const wavBuffer = encodeWav(samples, 16000);
-        audioCtx.close();
-        return new Blob([wavBuffer], { type: 'audio/wav' });
+            const wavBuffer = encodeWav(samples, 16000);
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        } finally {
+            await audioCtx.close();
+        }
 
     } catch (err) {
         console.error('Error convirtiendo a WAV:', err);
@@ -572,17 +852,14 @@ function writeString(view, offset, string) {
 async function processInput({ text, audio }) {
     if (!state.active || state.processing) return;
 
+    const generation = state.generation;
+    const sessionId = state.sessionId;
     state.processing = true;
-    setProcessing(true);
-
-    // Reproducir audio de espera/relleno mientras procesa audio (ej. Whisper)
-    if (audio) {
-        const idx = Math.floor(Math.random() * 4) + 1;
-        playAudioRef(`espera_0${idx}.mp3`);
-    }
+    const citizenName = AVATAR_PROFILES[currentAvatarId()].name;
+    setProcessing(true, audio ? 'Transcribiendo con Whisper...' : `${citizenName} está pensando...`);
 
     const form = new FormData();
-    form.append('session_id', state.sessionId);
+    form.append('session_id', sessionId);
 
     if (audio) form.append('audio', audio, 'recording.wav');
     if (text) form.append('text', text);
@@ -590,6 +867,7 @@ async function processInput({ text, audio }) {
     try {
         const res = await fetch('/voice/process', { method: 'POST', body: form });
         const data = await res.json();
+        if (generation !== state.generation || !state.active) return;
 
         if (data.error) {
             addSystemMessage('No pudimos continuar. Vuelve a iniciar el ejemplo.');
@@ -610,7 +888,7 @@ async function processInput({ text, audio }) {
 
         // Mostrar respuesta de Lupita y reproducir su voz de inmediato
         addMessage('lupita', result.respuesta_texto, result.ultima_intencion);
-        playLupitaVoice(result, data.tts_audio_b64);
+        await playLupitaVoice(result, data.tts_audio_b64);
 
         if (result.indicadores && result.indicadores.length > 0) {
             addSystemMessage('Se encontró una señal que puede ayudar a revisar la situación.');
@@ -628,11 +906,15 @@ async function processInput({ text, audio }) {
         }
 
     } catch (err) {
-        console.error('Error procesando:', err);
-        addSystemMessage('⚠️ Error de comunicación con el servidor');
+        if (generation === state.generation && state.active) {
+            console.error('Error procesando:', err);
+            addSystemMessage('⚠️ Error de comunicación con el servidor');
+        }
     } finally {
-        state.processing = false;
-        setProcessing(false);
+        if (generation === state.generation) {
+            state.processing = false;
+            setProcessing(false);
+        }
     }
 }
 
@@ -641,86 +923,234 @@ async function processInput({ text, audio }) {
 //  5. AUDIO — Voz de Lupita (WAV pregrabado, Piper base64 o SpeechSynthesis)
 // ═══════════════════════════════════════════════════════════════════════
 
-function playLupitaVoice(result, ttsAudioB64) {
-    if (!result) return;
-
-    // 1. Si Piper sintetizó audio dinámico en el servidor
-    if (ttsAudioB64) {
-        playBase64Audio(ttsAudioB64, result.respuesta_texto);
-        return;
+function setSpeaking(role, active) {
+    state.playbackBusy = active;
+    const citizenName = AVATAR_PROFILES[currentAvatarId()].name;
+    els.speakingIndicator.classList.toggle('hidden', !active);
+    els.speakingIndicator.textContent = role === 'atacante'
+        ? '🔊 Estafador hablando...'
+        : `🔊 ${citizenName} hablando...`;
+    if (active) {
+        els.callStatus.textContent = role === 'atacante'
+            ? 'Estafador hablando...'
+            : `${citizenName} hablando...`;
+    } else if (state.active) {
+        els.callStatus.textContent = state.mode === 'bot'
+            ? 'Simulación educativa continua'
+            : 'En llamada...';
     }
-
-    // 2. Si hay fragmento pregrabado en /voice/audio/
-    if (result.audio_ref) {
-        playAudioRef(result.audio_ref, result.respuesta_texto);
-        return;
-    }
-
-    // 3. Contenido dinámico sin Piper (ej. repetir dígitos) → voz del navegador
-    if (result.tts_texto || result.respuesta_texto) {
-        speakBrowserVoice(result.tts_texto || result.respuesta_texto);
-    }
+    updateInputControls();
 }
 
+class VoicePlayer {
+    constructor(audioElement) {
+        this.audio = audioElement;
+        this.queue = [];
+        this.running = false;
+        this.generation = 0;
+        this.finishActive = null;
+        this.lockedProfile = null;
+        this.lockedVoices = Object.freeze({ citizen: null, attacker: null });
+    }
 
-function playAudioRef(filename, fallbackText = null) {
-    if (!filename) return;
-    try {
-        els.audioPlayer.pause();
-        els.audioPlayer.src = `/voice/audio/${filename}`;
-        els.audioPlayer.play().catch(() => {
-            if (fallbackText) speakBrowserVoice(fallbackText);
+    lockProfile(profile, voices) {
+        this.lockedProfile = profile;
+        this.lockedVoices = Object.freeze({
+            citizen: voices.citizen || null,
+            attacker: voices.attacker || null,
         });
-    } catch (_) {
-        if (fallbackText) speakBrowserVoice(fallbackText);
     }
-}
 
+    unlockProfile() {
+        this.lockedProfile = null;
+        this.lockedVoices = Object.freeze({ citizen: null, attacker: null });
+    }
 
-function playBase64Audio(b64data, fallbackText = null) {
-    if (!b64data) return;
-    try {
-        const binary = atob(b64data);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+    enqueue(play) {
+        return new Promise(resolve => {
+            this.queue.push({ play, resolve, generation: this.generation });
+            void this.drain();
+        });
+    }
+
+    async drain() {
+        if (this.running) return;
+        this.running = true;
+        while (this.queue.length) {
+            const item = this.queue.shift();
+            if (item.generation === this.generation) {
+                try {
+                    await item.play();
+                } catch (err) {
+                    console.warn('Error reproduciendo audio:', err);
+                }
+            }
+            item.resolve();
         }
-        const blob = new Blob([bytes], { type: 'audio/wav' });
-        const url = URL.createObjectURL(blob);
-        els.audioPlayer.pause();
-        els.audioPlayer.src = url;
-        els.audioPlayer.play().catch(() => {
-            if (fallbackText) speakBrowserVoice(fallbackText);
+        this.running = false;
+    }
+
+    say(text, role = 'lupita') {
+        return this.enqueue(() => this.speak(text, role));
+    }
+
+    sayLupita(result, ttsAudioB64) {
+        if (!result) return Promise.resolve();
+        const text = result.tts_texto || result.respuesta_texto;
+        return this.enqueue(async () => {
+            if (this.lockedProfile && this.lockedProfile.citizen.provider === 'speechSynthesis') {
+                await this.speak(text, 'lupita');
+                return;
+            }
+            if (ttsAudioB64) {
+                try {
+                    const binary = atob(ttsAudioB64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                    const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
+                    try {
+                        await this.playUrl(url, text);
+                    } finally {
+                        URL.revokeObjectURL(url);
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('Audio de Piper inválido; se usará la voz del navegador.', err);
+                }
+            }
+            if (result.audio_ref) {
+                await this.playUrl(`/voice/audio/${encodeURIComponent(result.audio_ref)}`, text);
+                return;
+            }
+            await this.speak(text, 'lupita');
         });
-        els.audioPlayer.onended = () => URL.revokeObjectURL(url);
-    } catch (err) {
-        console.error('Error reproduciendo TTS:', err);
-        if (fallbackText) speakBrowserVoice(fallbackText);
+    }
+
+    playRef(filename) {
+        if (!filename) return Promise.resolve();
+        return this.enqueue(() => this.playUrl(`/voice/audio/${encodeURIComponent(filename)}`, ''));
+    }
+
+    async playUrl(url, fallbackText) {
+        const generation = this.generation;
+        let failed = false;
+        await new Promise(resolve => {
+            let settled = false;
+            let timeout;
+            const finish = error => {
+                if (settled) return;
+                settled = true;
+                failed = Boolean(error);
+                clearTimeout(timeout);
+                this.audio.onended = null;
+                this.audio.onerror = null;
+                if (this.finishActive === cancel) this.finishActive = null;
+                setSpeaking('lupita', false);
+                resolve();
+            };
+            const cancel = () => finish(true);
+            this.finishActive = cancel;
+            this.audio.pause();
+            this.audio.onended = () => finish(false);
+            this.audio.onerror = () => finish(true);
+            this.audio.src = url;
+            setSpeaking('lupita', true);
+            timeout = setTimeout(cancel, 30000);
+            try {
+                Promise.resolve(this.audio.play()).catch(() => finish(true));
+            } catch (_) {
+                finish(true);
+            }
+        });
+        if (failed && fallbackText && generation === this.generation) {
+            await this.speak(fallbackText, 'lupita');
+        }
+    }
+
+    async speak(text, role) {
+        const prepared = prepareSpeechText(text);
+        if (!prepared) return;
+        if (!('speechSynthesis' in window)) {
+            addSystemMessage('⚠️ SpeechSynthesis no está disponible en este navegador; se conserva el texto.');
+            return;
+        }
+        await new Promise(resolve => {
+            let settled = false;
+            let timeout;
+            const finish = () => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timeout);
+                if (this.finishActive === finish) this.finishActive = null;
+                setSpeaking(role, false);
+                resolve();
+            };
+            const utterance = new SpeechSynthesisUtterance(prepared);
+            const speaker = role === 'atacante' ? 'attacker' : 'citizen';
+            const profile = this.lockedProfile && this.lockedProfile[speaker];
+            if (profile) {
+                utterance.lang = profile.lang;
+                utterance.voice = this.lockedVoices[speaker];
+                utterance.rate = profile.rate;
+                utterance.pitch = profile.pitch;
+            } else {
+                utterance.lang = 'es-MX';
+                utterance.rate = role === 'atacante' ? 1.08 : 0.88;
+                utterance.pitch = role === 'atacante' ? 0.88 : 1.0;
+            }
+            utterance.onend = finish;
+            utterance.onerror = finish;
+            const timeoutMs = Math.max(12000, Math.min(60000, prepared.length * 140 + 6000));
+            timeout = setTimeout(() => {
+                window.speechSynthesis.cancel();
+                finish();
+            }, timeoutMs);
+            this.finishActive = () => {
+                window.speechSynthesis.cancel();
+                finish();
+            };
+            setSpeaking(role, true);
+            try {
+                window.speechSynthesis.speak(utterance);
+            } catch (err) {
+                console.warn('SpeechSynthesis no pudo iniciar:', err);
+                finish();
+            }
+        });
+    }
+
+    stop() {
+        this.generation += 1;
+        this.queue.splice(0).forEach(item => item.resolve());
+        if (this.finishActive) this.finishActive();
+        this.finishActive = null;
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        this.audio.pause();
+        this.audio.removeAttribute('src');
+        this.audio.load();
+        setSpeaking('lupita', false);
     }
 }
 
+function prepareSpeechText(text) {
+    if (!text) return '';
+    const digits = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+    return String(text)
+        .replace(/\bCLABE\b/gi, 'clabe')
+        .replace(/\b\d{4,}\b/g, value => value.split('').map(digit => digits[Number(digit)]).join(', '))
+        .replace(/[;:]\s*/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
-function speakBrowserVoice(text) {
-    if (!text || !('speechSynthesis' in window)) return;
-    try {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'es-MX';
-        utter.rate = 0.98;
-        utter.pitch = 1.02;
+const voicePlayer = new VoicePlayer(els.audioPlayer);
 
-        const voices = window.speechSynthesis.getVoices();
-        const natural = voices.find(v =>
-            v.lang.startsWith('es-MX') && /Dalia|Natural|Online|Google/i.test(v.name)
-        );
-        const sabina = voices.find(v => v.lang.startsWith('es-MX') || v.name.includes('Sabina'));
-        const spanish = natural || sabina || voices.find(v => v.lang.startsWith('es'));
-        if (spanish) utter.voice = spanish;
+function playLupitaVoice(result, ttsAudioB64) {
+    return voicePlayer.sayLupita(result, ttsAudioB64);
+}
 
-        window.speechSynthesis.speak(utter);
-    } catch (err) {
-        console.warn('Error en speechSynthesis:', err);
-    }
+function delay(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
 
@@ -829,6 +1259,9 @@ function updateBadges(status) {
 
     const hasBrowserSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
     const hasBrowserTTS = 'speechSynthesis' in window;
+    const voiceProvider = state.lockedVoiceProfile
+        ? state.lockedVoiceProfile.citizen.provider
+        : 'speechSynthesis';
 
     set(els.badgeMic, status.microfono);
     set(els.badgeWhisper, status.whisper || hasBrowserSpeech);
@@ -863,4 +1296,16 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && state.active) {
         hangup();
     }
+});
+
+window.addEventListener('pagehide', () => {
+    state.active = false;
+    state.botRunning = false;
+    voicePlayer.stop();
+    stopRecording();
+    if (state.audioStream) {
+        state.audioStream.getTracks().forEach(track => track.stop());
+        state.audioStream = null;
+    }
+    stopMicMeter();
 });

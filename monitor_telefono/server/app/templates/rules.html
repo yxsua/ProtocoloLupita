@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Reglas antifraude · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">CSV configurable</p><h1>Reglas antifraude</h1><p>{{ rules_path }}</p></div>
+</div>
+{% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+<section class="card">
+  <h2>Actualizar reglas</h2>
+  <p>Columnas requeridas: <code>rule_id,kind,value,entity,score,reason,enabled</code>. Tipos: sender, domain, phrase, regex, entity.</p>
+  <form method="post" action="/reglas" enctype="multipart/form-data" class="registration-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="rules-file">Archivo CSV UTF-8 (máximo 1 MB)</label>
+    <input id="rules-file" name="rules_csv" type="file" accept=".csv,text/csv" required>
+    <button class="primary-button" type="submit">Validar y guardar CSV</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Reglas activas ({{ rules|length }})</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Tipo</th><th>Coincidencia</th><th>Puntos</th><th>Motivo</th></tr></thead>
+    <tbody>{% for rule in rules %}
+      <tr><td>{{ rule.rule_id }}</td><td>{{ rule.kind }}</td><td>{{ rule.value }}</td><td>{{ rule.score }}</td><td>{{ rule.reason }}</td></tr>
+    {% else %}<tr><td colspan="5">No hay reglas en el CSV.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+<section class="card">
+  <h2>Resultados por regla</h2>
+  <p>La precisión considera confirmados frente a falsos positivos; “necesita contacto” no se cuenta como decisión.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Regla</th><th>Revisiones</th><th>Confirmados</th><th>Falsos positivos</th><th>Precisión</th></tr></thead>
+    <tbody>{% for row in stats %}
+      <tr><td>{{ row.etiqueta }}</td><td>{{ row.revisiones }}</td><td>{{ row.confirmados }}</td><td>{{ row.falsos_positivos }}</td><td>{{ (row.precision * 100)|round(1) if row.precision is not none else "—" }}{% if row.precision is not none %}%{% endif %}</td></tr>
+    {% else %}<tr><td colspan="5">Aún no hay etiquetas revisadas.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

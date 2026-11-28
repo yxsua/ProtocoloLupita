@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Revisores · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Administración</p>
+    <h1>Cuentas revisoras</h1>
+    <p>Las cuentas revisoras solo pueden acceder a la cola de alertas.</p>
+  </div>
+</div>
+{% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+<section class="card">
+  <h2>Agregar revisor</h2>
+  <form method="post" action="/cuentas/revisores" class="registration-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="reviewer-username">Usuario</label>
+    <input id="reviewer-username" name="username" pattern="[A-Za-z0-9._-]{3,64}" maxlength="64" required>
+    <label for="reviewer-password">Contraseña (mínimo 12 caracteres)</label>
+    <input id="reviewer-password" name="password" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required>
+    <label for="reviewer-totp">Secreto TOTP Base32 (opcional)</label>
+    <input id="reviewer-totp" name="totp_secret" maxlength="64" autocomplete="off">
+    <button class="primary-button" type="submit">Crear revisor</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Cuentas existentes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th>Acción</th></tr></thead>
+      <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.usuario }}</td><td>{{ user.rol }}</td>
+          <td>{{ "Activa" if user.activa else "Desactivada" }}</td>
+          <td>{{ user.ultimo_acceso or "Nunca" }}</td>
+          <td>
+          {% if user.rol == "revisor" %}
+            <form method="post" action="/cuentas/revisores/{{ user.id }}/estado">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="active" value="{{ 'false' if user.activa else 'true' }}">
+              <button class="secondary-button" type="submit">{{ "Desactivar" if user.activa else "Activar" }}</button>
+            </form>
+          {% else %}Administrador{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

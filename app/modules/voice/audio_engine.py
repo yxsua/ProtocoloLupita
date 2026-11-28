@@ -27,9 +27,11 @@ import asyncio
 import io
 import json
 import logging
+import os
 import struct
 import subprocess
 import tempfile
+import threading
 import wave
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -237,29 +239,34 @@ class WhisperSTT(SpeechToText):
         self._model = None
         self._available = False
         self._loading = False
+        self._load_lock = threading.Lock()
 
     def load_model(self) -> bool:
         """Carga el modelo Whisper. Llamar una sola vez al inicio."""
-        if self._model is not None:
-            return True
-        try:
-            import whisper  # type: ignore[import-untyped]
-            logger.info(f"[Whisper] Cargando modelo '{self._model_name}' en {self._device}...")
-            self._model = whisper.load_model(self._model_name, device=self._device)
-            self._available = True
-            logger.info(f"[Whisper] Modelo '{self._model_name}' cargado exitosamente")
-            return True
-        except ImportError:
-            logger.error(
-                "[Whisper] openai-whisper no está instalado. "
-                "Instálalo con: pip install openai-whisper"
-            )
-            self._available = False
-            return False
-        except Exception as e:
-            logger.error(f"[Whisper] Error cargando modelo: {e}")
-            self._available = False
-            return False
+        with self._load_lock:
+            if self._model is not None:
+                return True
+            self._loading = True
+            try:
+                import whisper  # type: ignore[import-untyped]
+                logger.info(f"[Whisper] Cargando modelo '{self._model_name}' en {self._device}...")
+                self._model = whisper.load_model(self._model_name, device=self._device)
+                self._available = True
+                logger.info(f"[Whisper] Modelo '{self._model_name}' cargado exitosamente")
+                return True
+            except ImportError:
+                logger.error(
+                    "[Whisper] openai-whisper no está instalado. "
+                    "Instálalo con: pip install openai-whisper"
+                )
+                self._available = False
+                return False
+            except Exception:
+                logger.exception("[Whisper] Error cargando modelo")
+                self._available = False
+                return False
+            finally:
+                self._loading = False
 
     async def transcribe(self, audio_data: bytes) -> str:
         """
@@ -276,7 +283,7 @@ class WhisperSTT(SpeechToText):
         if not audio_data:
             return ""
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         try:
             result = await loop.run_in_executor(None, self._transcribe_sync, audio_data)
             return result
@@ -326,33 +333,43 @@ class WhisperSTT(SpeechToText):
                 n_frames = wf.getnframes()
                 raw = wf.readframes(n_frames)
 
-            # Convertir a int16
+            if n_channels < 1 or framerate < 1 or n_frames < 1:
+                return None
+
             if sampwidth == 2:
-                samples = np.frombuffer(raw, dtype=np.int16)
+                audio_float = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+            elif sampwidth == 1:
+                audio_float = (
+                    np.frombuffer(raw, dtype=np.uint8).astype(np.float32) - 128.0
+                ) / 128.0
             elif sampwidth == 4:
-                samples = np.frombuffer(raw, dtype=np.int32).astype(np.int16)
+                audio_float = (
+                    np.frombuffer(raw, dtype=np.int32).astype(np.float32) / 2147483648.0
+                )
             else:
-                # Intentar como int16
-                samples = np.frombuffer(raw, dtype=np.int16)
+                logger.warning(
+                    "[Whisper] Formato WAV no soportado: %s bytes por muestra",
+                    sampwidth,
+                )
+                return None
 
-            # Si es estéreo, tomar solo canal izquierdo
             if n_channels > 1:
-                samples = samples[::n_channels]
+                if len(audio_float) % n_channels:
+                    return None
+                audio_float = audio_float.reshape(-1, n_channels).mean(axis=1)
 
-            # Normalizar a float32 [-1, 1]
-            audio_float = samples.astype(np.float32) / 32768.0
-
-            # Resamplear a 16 kHz si es necesario
             if framerate != SAMPLE_RATE:
-                duration = len(audio_float) / framerate
-                target_len = int(duration * SAMPLE_RATE)
-                indices = np.linspace(0, len(audio_float) - 1, target_len).astype(int)
-                audio_float = audio_float[indices]
+                target_len = max(1, round(len(audio_float) * SAMPLE_RATE / framerate))
+                audio_float = np.interp(
+                    np.linspace(0, len(audio_float) - 1, target_len),
+                    np.arange(len(audio_float)),
+                    audio_float,
+                ).astype(np.float32)
 
             return audio_float
 
-        except Exception as e:
-            logger.error(f"[Whisper] Error decodificando WAV: {e}")
+        except Exception:
+            logger.exception("[Whisper] Error decodificando WAV")
             return None
 
     def is_available(self) -> bool:
@@ -439,7 +456,7 @@ class SounddevicePlayer(AudioPlayer):
             import sounddevice as sd  # type: ignore[import-untyped]
             import numpy as np  # type: ignore[import-untyped]
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, self._play_file_sync, str(path))
         except ImportError:
             logger.warning("[Player] sounddevice no disponible para reproducción")
@@ -483,7 +500,7 @@ class SounddevicePlayer(AudioPlayer):
             import sounddevice as sd  # type: ignore[import-untyped]
             import numpy as np  # type: ignore[import-untyped]
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, self._play_bytes_sync, wav_data)
         except ImportError:
             logger.warning("[Player] sounddevice no disponible")
@@ -601,7 +618,7 @@ class PiperTTS(TextToSpeech):
         speaker_id: Optional[int] = None,
         length_scale: float = 1.0,
     ) -> None:
-        self._model_path = model_path
+        self._model_path = model_path or os.getenv("PIPER_MODEL_PATH")
         self._piper_cmd: list[str] = [piper_binary]
         self._speaker_id = speaker_id
         self._length_scale = length_scale
@@ -634,11 +651,9 @@ class PiperTTS(TextToSpeech):
                 binary_ok = False
 
         # Verificar modelo
-        model_ok = True
-        if self._model_path:
-            model_ok = Path(self._model_path).exists()
-            if not model_ok:
-                logger.warning(f"[Piper] Modelo no encontrado: {self._model_path}")
+        model_ok = bool(self._model_path and Path(self._model_path).is_file())
+        if not model_ok:
+            logger.info("[Piper] Configura PIPER_MODEL_PATH para habilitar síntesis local")
 
         self._available = binary_ok and model_ok
         if self._available:
@@ -657,7 +672,7 @@ class PiperTTS(TextToSpeech):
             logger.warning("[Piper] No disponible, no se puede sintetizar")
             return b""
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         try:
             return await loop.run_in_executor(None, self._synthesize_sync, text)
         except Exception as e:
@@ -696,9 +711,15 @@ class PiperTTS(TextToSpeech):
                 return b""
 
             output = Path(output_path)
-            if output.exists():
+            if output.is_file():
                 wav_data = output.read_bytes()
-                output.unlink(missing_ok=True)
+                try:
+                    with wave.open(io.BytesIO(wav_data), "rb") as wav:
+                        if wav.getnchannels() < 1 or wav.getframerate() < 1 or wav.getnframes() < 1:
+                            raise wave.Error("WAV de Piper vacío o inválido")
+                except (wave.Error, EOFError):
+                    logger.error("[Piper] El audio sintetizado no es un WAV válido")
+                    return b""
                 logger.info(f"[Piper] Sintetizado: {len(wav_data)} bytes, texto: '{text[:50]}'")
                 return wav_data
             else:

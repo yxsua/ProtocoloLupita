@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Eventos · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Feed privado</p>
+    <h1>Eventos en vivo</h1>
+    <p>Notificaciones, SMS y llamadas reportados por los dispositivos vinculados.</p>
+  </div>
+  <a class="secondary-button" href="/dispositivos">Gestionar dispositivos</a>
+</div>
+
+<section class="card filters-card" aria-labelledby="filters-heading">
+  <h2 id="filters-heading">Filtrar eventos</h2>
+  <form id="filters-form" class="filters">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Dispositivo
+      <select name="dispositivo">
+        <option value="">Todos</option>
+        {% for device in devices %}
+        <option value="{{ device.id }}">{{ device.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Aplicación
+      <select name="app">
+        <option value="">Todas</option>
+        {% for app_name in apps %}
+        <option value="{{ app_name }}">{{ app_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Tipo
+      <select name="tipo">
+        <option value="">Todos</option>
+        <option value="notificacion">Notificación</option>
+        <option value="sms">SMS</option>
+        <option value="llamada">Llamada</option>
+      </select>
+    </label>
+    <label class="search-field">
+      Buscar texto o remitente
+      <input name="texto" type="search" maxlength="200" placeholder="Buscar…">
+    </label>
+    <div class="filter-actions">
+      <button class="primary-button" type="submit">Aplicar filtros</button>
+      <button class="secondary-button" id="clear-filters" type="button">Limpiar</button>
+    </div>
+  </form>
+</section>
+
+<section class="feed-section" aria-labelledby="feed-heading">
+  <div class="feed-heading">
+    <h2 id="feed-heading">Actividad</h2>
+    <p id="connection-state" class="connection-state" role="status">Conectando…</p>
+  </div>
+  <p id="feed-status" class="muted" role="status" aria-live="polite"></p>
+  <ol id="event-list" class="event-list" aria-live="polite" aria-relevant="additions text"></ol>
+  <div id="empty-state" class="empty-state card" hidden>
+    <h3>Aún no hay eventos</h3>
+    <p>Registra un dispositivo en <a href="/dispositivos">Dispositivos</a> y usa el simulador o la app Android para enviar el primer evento.</p>
+  </div>
+  <button id="load-more" class="secondary-button load-more" type="button" hidden>Cargar más</button>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="/static/feed.js" defer></script>
+{% endblock %}

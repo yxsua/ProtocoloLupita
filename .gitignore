@@ -12,3 +12,4 @@ data/*.sqlite3-wal
 .pytest_cache/
 *.log
 data/planting/seed_copies.json
+**/local.properties

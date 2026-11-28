@@ -1,0 +1,6 @@
+rule_id,kind,value,entity,score,reason,enabled
+claim.safe-account,phrase,cuenta de resguardo,,24,Promete proteger dinero en una cuenta supuestamente segura,true
+claim.gift-card,phrase,tarjeta de regalo,,20,Pide un medio de pago difícil de rastrear o revertir,true
+impersonation.bbva,entity,bbva,bbva.mx,24,Menciona BBVA con un enlace ajeno a sus dominios oficiales,true
+impersonation.banorte,entity,banorte,banorte.com.mx,24,Menciona Banorte con un enlace ajeno a sus dominios oficiales,true
+impersonation.santander,entity,santander,santander.com.mx,24,Menciona Santander con un enlace ajeno a sus dominios oficiales,true
