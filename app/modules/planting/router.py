@@ -45,19 +45,14 @@ def _resolve_base_template() -> str:
 
 @router.get("/planting", response_class=HTMLResponse)
 def planting_page(request: Request, seed_period: Optional[str] = Query(default=None)) -> HTMLResponse:
-    """Renderiza la vista interna de siembra y probador de atribución."""
-    ensure_seeded()
-    copies = get_seeded_copies(seed_period=seed_period)
-    manifest_hash = get_seed_manifest_hash()
+    """Explica en lenguaje público cómo se producen los avisos del prototipo."""
     return templates.TemplateResponse(
         request,
         "planting/index.html",
         {
             "base_template": _resolve_base_template(),
-            "page_title": "Siembra y Atribución — Mosca Estéril",
-            "copies": copies,
-            "manifest_hash": manifest_hash,
-            "active_period": seed_period or "",
+            "page_title": "De dónde vienen los avisos · Protocolo Lupita",
+            "active_page": "",
         },
     )
 

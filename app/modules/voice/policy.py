@@ -149,7 +149,7 @@ _REGLAS_INTENCION: list[tuple[Intencion, list[re.Pattern[str]]]] = [
     ]),
     # Prioridad 2: amenaza / urgencia → asustarse
     (Intencion.ASUSTARSE, [
-        re.compile(r"(urgente|inmediata|bloquea|cancel|peligro|hackea|rob[aoó]|fraude|carg[oó])", re.I),
+        re.compile(r"(urgente|inmediata|bloque\w*|cancel\w*|peligro|hackea|rob[aoó]|fraude|carg[oó])", re.I),
     ]),
     # Prioridad 3: preguntar por cuenta
     (Intencion.PREGUNTAR_CUENTA_DEPOSITO, [

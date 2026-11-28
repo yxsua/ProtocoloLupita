@@ -1,1 +1,1 @@
-"""Paquete principal de la aplicación ProtocoloLupita / Mosca Estéril."""
+"""Paquete principal de la aplicación Protocolo Lupita."""

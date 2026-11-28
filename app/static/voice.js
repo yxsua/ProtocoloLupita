@@ -116,7 +116,7 @@ async function hangup() {
         const res = await fetch('/voice/hangup', { method: 'POST', body: form });
         const data = await res.json();
 
-        addSystemMessage('📵 Llamada terminada por el usuario');
+        addSystemMessage('El ejemplo terminó.');
         endCall(data.result);
 
     } catch (err) {
@@ -138,11 +138,10 @@ function endCall(result) {
     els.btnHangup.disabled = true;
 
     if (result && result.indicadores && result.indicadores.length > 0) {
-        addSystemMessage('📋 Resumen de indicadores recopilados:');
-        result.indicadores.forEach(ind => addIndicatorCard(ind));
+        addSystemMessage('Se encontraron señales que pueden ayudar a revisar la situación.');
     }
 
-    addSystemMessage(`⏱️ Duración total: ${formatTime(getElapsedSeconds())}`);
+    addSystemMessage('Puedes revisar un mensaje o enviar un reporte desde el menú.');
 }
 
 
@@ -403,7 +402,7 @@ async function processInput({ text, audio }) {
         const data = await res.json();
 
         if (data.error) {
-            addSystemMessage(`⚠️ ${data.error}`);
+            addSystemMessage('No pudimos continuar. Vuelve a iniciar el ejemplo.');
             return;
         }
 
@@ -421,23 +420,18 @@ async function processInput({ text, audio }) {
         addMessage('lupita', result.respuesta_texto, result.ultima_intencion);
         playLupitaVoice(result, data.tts_audio_b64);
 
-        // Mostrar indicadores nuevos
         if (result.indicadores && result.indicadores.length > 0) {
-            result.indicadores.forEach(ind => {
-                if (!document.querySelector(`[data-indicator-id="${ind.id}"]`)) {
-                    addIndicatorCard(ind);
-                }
-            });
+            addSystemMessage('Se encontró una señal que puede ayudar a revisar la situación.');
         }
 
         // Verificar fin de llamada
         if (result.status !== 'active') {
             const statusMsg = {
-                'timeout': '⏱️ Llamada terminada automáticamente (tiempo límite)',
-                'completed': '✅ Llamada completada',
-                'user_hangup': '📵 Llamada terminada por el usuario',
+                'timeout': 'El ejemplo terminó por límite de tiempo.',
+                'completed': 'El ejemplo terminó.',
+                'user_hangup': 'El ejemplo terminó.',
             };
-            addSystemMessage(statusMsg[result.status] || `Estado: ${result.status}`);
+            addSystemMessage(statusMsg[result.status] || 'El ejemplo terminó.');
             endCall(result);
         }
 
@@ -597,13 +591,10 @@ function formatTime(totalSeconds) {
 function addMessage(role, text, intent) {
     const div = document.createElement('div');
     div.className = `message ${role}`;
-
-    let html = `<span class="text">${escapeHtml(text)}</span>`;
-    if (intent) {
-        html += `<div class="meta"><span class="intent-tag">${intent}</span></div>`;
-    }
-
-    div.innerHTML = html;
+    const content = document.createElement('span');
+    content.className = 'text';
+    content.textContent = text;
+    div.appendChild(content);
     els.chatContainer.appendChild(div);
     scrollToBottom();
 }
@@ -613,32 +604,6 @@ function addSystemMessage(text) {
     const div = document.createElement('div');
     div.className = 'message system';
     div.textContent = text;
-    els.chatContainer.appendChild(div);
-    scrollToBottom();
-}
-
-
-function addIndicatorCard(indicator) {
-    const div = document.createElement('div');
-    div.className = 'indicator-card';
-    div.setAttribute('data-indicator-id', indicator.id);
-
-    const dvIcon = indicator.digito_verificador_ok === true ? '✅'
-        : indicator.digito_verificador_ok === false ? '❌' : '⏳';
-
-    const confClass = indicator.confianza === 'alta' ? 'alta'
-        : indicator.confianza === 'media' ? 'media' : 'baja';
-
-    div.innerHTML = `
-        <div class="label">📋 ${indicator.tipo.toUpperCase()} detectada</div>
-        <div class="value">${escapeHtml(indicator.valor_enmascarado || indicator.valor)}</div>
-        <span class="conf ${confClass}">${indicator.confianza}</span>
-        <span style="margin-left: 8px; font-size: 11px; color: var(--text-muted)">
-            DV: ${dvIcon} · Fuentes: ${indicator.fuentes ? indicator.fuentes.length : 0}
-            ${indicator.fuentes && indicator.fuentes.length <= 1 ? ' ⚠️ fuente única' : ''}
-        </span>
-    `;
-
     els.chatContainer.appendChild(div);
     scrollToBottom();
 }
@@ -674,13 +639,9 @@ function updateBadges(status) {
     set(els.badgeMic, status.microfono);
     set(els.badgeWhisper, status.whisper || hasBrowserSpeech);
     set(els.badgePiper, status.piper || hasBrowserTTS);
-
-    if (!status.whisper && hasBrowserSpeech) {
-        els.badgeWhisper.textContent = '🗣 Voz Web';
-    }
-    if (!status.piper && hasBrowserTTS) {
-        els.badgePiper.textContent = '🔊 Voz Lupita';
-    }
+    els.badgeMic.textContent = status.microfono ? 'Micrófono disponible' : 'Micrófono no disponible';
+    els.badgeWhisper.textContent = (status.whisper || hasBrowserSpeech) ? 'Dictado disponible' : 'Usa el teclado';
+    els.badgePiper.textContent = (status.piper || hasBrowserTTS) ? 'Respuesta con voz' : 'Respuesta en texto';
 }
 
 
@@ -690,12 +651,6 @@ function scrollToBottom() {
     });
 }
 
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 
 // ═══════════════════════════════════════════════════════════════════════

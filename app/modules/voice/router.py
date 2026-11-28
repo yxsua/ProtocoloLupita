@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/voice", tags=["voice"])
 
 # Templates
-_TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates" / "voice"
+_TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # Assets
@@ -59,8 +59,8 @@ async def voice_page(request: Request):
     """Página principal de la interfaz de llamada."""
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
-        context={"title": "Doña Lupita — Simulador de Llamada"},
+        name="voice/index.html",
+        context={"title": "Conversación de ejemplo · Protocolo Lupita", "active_page": "voice"},
     )
 
 
@@ -195,11 +195,17 @@ async def audio_status():
 @router.get("/audio/{filename}")
 async def serve_audio(filename: str):
     """Sirve fragmentos de audio pregrabados (.mp3 o .wav)."""
+    if Path(filename).name != filename or filename in {".", ".."}:
+        return JSONResponse(status_code=404, content={"error": "Audio no encontrado"})
     file_path = _ASSETS_DIR / filename
-    if not file_path.exists() or file_path.suffix not in (".wav", ".mp3"):
+    if not file_path.is_file() or file_path.suffix not in (".wav", ".mp3"):
         return JSONResponse(status_code=404, content={"error": "Audio no encontrado"})
     media_type = "audio/mpeg" if file_path.suffix == ".mp3" else "audio/wav"
-    return FileResponse(str(file_path), media_type=media_type)
+    return FileResponse(
+        str(file_path),
+        media_type=media_type,
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 # -----------------------------------------------------------------------

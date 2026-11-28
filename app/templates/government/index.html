@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Seguimiento en vivo de la llamada de demostración y su atribución.">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/government.css">
+</head>
+<body data-page="live">
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <header class="gov-header">
+    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
+      <span class="gov-brand-name">Protocolo Lupita</span>
+      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
+    </a>
+    <nav class="gov-nav" aria-label="Navegación del panel">
+      <a href="/gobierno" aria-current="page">Llamada en vivo</a>
+      <a href="/gobierno/escenarios">Escenarios</a>
+      <a href="/">Vista ciudadana</a>
+    </nav>
+  </header>
+
+  <main id="main-content" class="gov-main">
+    <div class="gov-title-row">
+      <div>
+        <h1>Llamadas y resultados en vivo</h1>
+        <p class="intro-copy">Sigue la llamada de prueba, revisa qué copia recibió la llamada y prepara un borrador de reporte.</p>
+      </div>
+      <div class="demo-label">Número de prueba · una llamada a la vez</div>
+    </div>
+
+    <div id="connection-status" class="connection-status" role="status" aria-live="polite">Conectando con el servidor…</div>
+
+    <div class="live-layout">
+      <section class="live-section" aria-labelledby="live-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="live-title">Actividad de la llamada</h2>
+            <p id="call-caption" class="muted">En espera de una llamada al número de prueba.</p>
+          </div>
+          <span id="call-state" class="state-pill waiting">En espera</span>
+        </div>
+        <ol id="call-timeline" class="call-timeline" aria-label="Conversación y eventos de la llamada" aria-live="polite">
+          <li class="timeline-empty">Cuando entre una llamada, aquí aparecerá su actividad.</li>
+        </ol>
+      </section>
+
+      <aside class="trace-section" aria-labelledby="trace-title">
+        <h2 id="trace-title">Rastreo del número</h2>
+        <p class="muted">La atribución se determina por el número al que se llamó.</p>
+        <dl class="trace-list">
+          <div><dt>Agente que respondió</dt><dd id="trace-agent">—</dd></div>
+          <div><dt>Origen de la llamada</dt><dd><span id="trace-caller">—</span><small id="caller-note">El identificador no está verificado.</small></dd></div>
+          <div><dt>Número de prueba</dt><dd id="trace-number">—</dd></div>
+          <div><dt>Copia relacionada</dt><dd id="trace-copy">En espera</dd></div>
+          <div><dt>Fuente y periodo</dt><dd id="trace-source">—</dd></div>
+        </dl>
+        <div class="indicator-area">
+          <h3>Señales encontradas</h3>
+          <ul id="indicator-list" class="indicator-list"><li>Aún no hay señales.</li></ul>
+        </div>
+        <div class="report-area">
+          <h3>Borrador para revisión</h3>
+          <p id="report-note">Se prepara a partir de los resultados visibles. No se envía automáticamente.</p>
+          <button id="report-button" type="button" disabled>Preparar borrador</button>
+        </div>
+      </aside>
+    </div>
+    <p class="gov-footnote">Demostración con llamada de prueba y datos sembrados de ejemplo. El número de origen se presenta como no verificado.</p>
+  </main>
+  <script src="/static/government.js" defer></script>
+</body>
+</html>

@@ -1,128 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bandeja SMS Sintetica — Analisis Seguro</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, sans-serif; color: #0f172a; background: #f8fafc; }
-    body { margin: 0; padding: 1.5rem; max-width: 1080px; margin-inline: auto; }
-    nav { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.75rem; }
-    nav a { text-decoration: none; font-weight: 600; color: #1d4ed8; }
-    .banner { background: #fef3c7; border: 1px solid #f59e0b; padding: 0.85rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-    .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; }
-    .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-warn { background: #fef3c7; color: #92400e; }
-    .badge-muted { background: #e2e8f0; color: #334155; }
-    .defanged-url { display: inline-block; background: #f1f5f9; border: 1px dashed #64748b; padding: 0.25rem 0.5rem; border-radius: 6px; font-family: monospace; user-select: all; }
-    textarea, input { width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 0.35rem; margin-bottom: 0.75rem; }
-    button { background: #1d4ed8; color: #fff; border: none; padding: 0.65rem 1.1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    button.secondary { background: #475569; font-size: 0.85rem; padding: 0.4rem 0.75rem; }
-    .hidden { display: none; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Revisar un mensaje · Protocolo Lupita</title>
+  <link rel="stylesheet" href="/static/public.css">
 </head>
 <body>
-  <nav>
-    <a href="/sms">Bandeja SMS</a>
-    <a href="/citizen">Portal Ciudadano</a>
-  </nav>
+  {% include "_public_header.html" %}
+  <main id="main-content" class="public-main" tabindex="-1">
+    <h1>Revisa un mensaje</h1>
+    <p class="intro-copy">Pega aquí el mensaje que te preocupa. Te diremos si encontramos señales que conviene revisar.</p>
+    <p class="demo-note"><strong>Por seguridad:</strong> no abras sus enlaces, no respondas y no compartas contraseñas ni códigos. Este es un ejemplo de demostración; no presenta una denuncia.</p>
 
-  <h1>Bandeja de SMS Sinteticos y Analizador</h1>
-  <div class="banner">
-    <strong>Proteccion activa:</strong> Esta aplicacion <strong>nunca abre enlaces</strong> ni responde SMS.
-    Todos los enlaces se muestran desactivados (<code>hxxp</code>) y marcados como <em>No abierto</em>.
-  </div>
+    <form id="sms-analyze-form" class="public-card">
+      <label for="sms-body">Mensaje recibido</label>
+      <textarea id="sms-body" name="body" rows="6" required aria-describedby="sms-help" placeholder="Pega aquí el texto del mensaje"></textarea>
+      <p id="sms-help" class="help-text">No incluyas contraseñas, códigos de verificación ni datos de tu cuenta.</p>
+      <label for="sms-sender">¿Quién lo envió? <span class="help-text">(opcional)</span></label>
+      <input id="sms-sender" name="sender" type="text" autocomplete="off" placeholder="Por ejemplo, el nombre o número que aparece en el teléfono">
+      <button id="sms-submit" type="submit">Revisar mensaje</button>
+    </form>
 
-  <div class="grid">
-    <section>
-      <h2>Mensajes en bandeja (fixtures)</h2>
-      {% for item in items %}
-      <article class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
-          <strong>{{ item.raw.message_id }} · Remitente: {{ item.raw.sender }}</strong>
-          {% if item.analysis.verification_status == "campana_corroborada" %}
-            <span class="badge badge-danger">Campana corroborada</span>
-          {% elif item.analysis.is_suspicious %}
-            <span class="badge badge-warn">Indicio / Sospechoso</span>
-          {% else %}
-            <span class="badge badge-muted">Sin verificar / Informativo</span>
-          {% endif %}
-        </div>
-        <p style="margin:0.5rem 0; color:#334155;">{{ item.raw.body }}</p>
-        <p style="font-size:0.875rem; color:#475569;">
-          <strong>Entidad:</strong> {{ item.analysis.impersonated_entity }} ·
-          <strong>Tipo:</strong> {{ item.analysis.scam_type }} ·
-          <strong>Confianza motor:</strong> {{ (item.analysis.engine_confidence * 100)|round|int }}%
-        </p>
-        {% if item.analysis.indicators.defanged_urls %}
-        <div>
-          {% for url in item.analysis.indicators.defanged_urls %}
-            <span class="defanged-url">{{ url }}</span>
-            <span class="badge badge-muted">Enlace desactivado · No abierto</span>
-          {% endfor %}
-        </div>
-        {% endif %}
-        <div style="margin-top:0.75rem;">
-          <button
-            type="button"
-            class="secondary js-load-sms"
-            data-sender="{{ item.raw.sender }}"
-            data-municipality="{{ item.raw.municipality or '' }}"
-            data-body="{{ item.raw.body }}"
-          >Analizar en detalle</button>
-        </div>
-      </article>
-      {% endfor %}
+    <section id="sms-result-card" class="result-box" aria-live="polite" aria-atomic="true" tabindex="-1" hidden>
+      <h2 id="sms-res-status">Resultado</h2>
+      <p id="sms-res-warning" class="status-message warning" hidden></p>
+      <p id="sms-res-explanation"></p>
+      <div id="sms-res-advice"></div>
     </section>
-
-    <section>
-      <h2>Pegar SMS sospechoso</h2>
-      <form id="sms-analyze-form" class="card">
-        <label for="sms-sender">Remitente (opcional)</label>
-        <input id="sms-sender" name="sender" type="text" placeholder="Ej. 5589012345 o SAT-AVISO" />
-
-        <label for="sms-municipality">Municipio (opcional)</label>
-        <input id="sms-municipality" name="municipality" type="text" placeholder="Ej. Guadalajara" />
-
-        <label for="sms-body">Texto del SMS</label>
-        <textarea id="sms-body" name="body" rows="5" required placeholder="Pega aqui el mensaje recibido..."></textarea>
-
-        <button type="submit">Analizar SMS sin abrir enlaces</button>
-      </form>
-
-      <div id="sms-result-card" class="card hidden" aria-live="polite">
-        <h3 style="margin-top:0;">Resultado del analisis</h3>
-        <p id="sms-res-warning" style="font-weight:700; color:#991b1b;"></p>
-        <p id="sms-res-status"></p>
-        <p id="sms-res-explanation"></p>
-        <div id="sms-res-circular"></div>
-        <div id="sms-res-urls"></div>
-        <div id="sms-res-indicators"></div>
-        <div id="sms-res-route"></div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-top:0;">Analisis circular y base historica</h3>
-        <p style="font-size:0.875rem; color:#475569;">
-          Base local cargada: <strong>{{ dataset_stats.spam_messages }}</strong> mensajes de estafa conocidos
-          (de {{ dataset_stats.total_messages }} totales en <code>spam.csv</code>).
-        </p>
-        <ul id="sms-circular-alerts-list">
-          {% if circular_alerts %}
-            {% for alert in circular_alerts %}
-              <li><strong>{{ alert.impersonated_entity }}</strong> ({{ alert.report_count }} reporte(s)): {{ alert.safe_excerpt }}</li>
-            {% endfor %}
-          {% else %}
-            <li>Aun no hay alertas ciudadanas nuevas en esta sesion; los reportes saneados alimentaran esta lista automaticamente.</li>
-          {% endif %}
-        </ul>
-      </div>
-    </section>
-  </div>
-
-  <script src="/static/citizen.js"></script>
+  </main>
+  <footer class="public-footer">No abras enlaces ni entregues códigos recibidos por mensaje.</footer>
+  <script src="/static/citizen.js" defer></script>
 </body>
 </html>

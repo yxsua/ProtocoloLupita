@@ -1,4 +1,4 @@
-"""Modulo ciudadano — formulario, saneamiento, limite de tasa, ruta guiada y mapa."""
+"""Módulo ciudadano con exports perezosos para interoperar con SMS."""
 
 from app.modules.citizen.schemas import (
     CitizenReportRaw,
@@ -7,7 +7,6 @@ from app.modules.citizen.schemas import (
     MunicipalAggregate,
     ReportInput,
 )
-from app.modules.citizen.service import get_map_aggregates, submit_report
 
 __all__ = [
     "CitizenReportRaw",
@@ -18,3 +17,11 @@ __all__ = [
     "get_map_aggregates",
     "submit_report",
 ]
+
+
+def __getattr__(name: str):
+    if name in {"get_map_aggregates", "submit_report"}:
+        from app.modules.citizen import service
+
+        return getattr(service, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

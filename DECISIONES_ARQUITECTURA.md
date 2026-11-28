@@ -1,6 +1,6 @@
 # Decisiones iniciales de arquitectura
 
-Estado: decisiones de arranque para el prototipo del hackathon. Se pueden revisar antes de congelar las interfaces, pero los cinco módulos deben compartirlas mientras tanto.
+Estado: decisiones de arranque para el prototipo y decisiones aplicadas a la integración inicial con llamada móvil y panel gubernamental.
 
 ## Decisiones cerradas para desbloquear trabajo
 
@@ -74,6 +74,34 @@ La app actual no tiene autenticación ni autorización registradas y `app/main.p
 - Fuente del GeoJSON de municipios; empaquetar un archivo local y evitar mapas de teselas en línea.
 - Lista final de entidades/campos particulares de cada módulo. Se añaden en el módulo dueño; el núcleo solo guarda datos normalizados y no contenido crudo.
 - Si el equipo requiere un instalador portable además del comando `uv`; decidirlo tras iniciar la app en la laptop de demo.
+- Proveedor telefónico, disponibilidad y configuración del número de prueba, URL pública, certificado TLS y validación de firmas de webhook.
+- Método de acceso al panel gubernamental y cuenta de demostración; no debe compartir permisos con la vista ciudadana.
+- Voz del actor que interpretará al atacante, límites de retención y campos que aparecerán en vivo en el panel.
+
+## Integración inicial: llamada móvil y panel gubernamental
+
+Este alcance complementa el prototipo actual. La demo se realizará desde un celular que llama al número de prueba. Una persona del equipo interpreta al atacante; el sistema contesta con el perfil de agente asociado al número receptor. El servidor admite una llamada simultánea.
+
+- Mantener la experiencia ciudadana existente. Añadir un panel gubernamental en rutas y APIs protegidas, con una vista de resultados en vivo y una consola de escenarios cerrados.
+- El proveedor envía la llamada a un adaptador telefónico por webhook HTTPS. Para el piloto, Twilio hace el reconocimiento de voz con Gather y entrega el texto transcrito al servicio de voz; el servidor responde con clips pregrabados o voz dinámica acotada. Usar Media Streams/WSS y reconocimiento propio queda para la siguiente etapa.
+- Resolver la atribución por el número receptor: `número de prueba → trampa/copia sembrada → fuente y periodo → perfil de agente`. El identificador de origen se muestra como no verificado y no determina la atribución.
+- El panel gubernamental recibe eventos de inicio, turnos reconocidos, intenciones, indicadores, atribución y borrador de reporte. Usar Server-Sent Events (SSE) para actualizar la pantalla; no necesita un canal de control bidireccional.
+- La consola ejecuta únicamente escenarios JSON aprobados, sin chat libre. Usa el mismo orquestador y flujo de eventos que la llamada; cada resultado conserva `source_mode` (`telephony` o `scenario`) y `scenario_id` cuando aplique.
+- Separar los resultados de escenario de las llamadas del número de prueba. Toda alerta derivada de fixtures y todo reporte de la demo lleva una marca visible de “simulación” o “borrador”; no se envía automáticamente a una autoridad.
+- El flujo de llamada transforma audio a texto para procesarlo. No guardar audio completo ni transcripción íntegra por defecto; conservar metadatos mínimos, indicadores enmascarados y evidencia aprobada para la demostración.
+- Al alcanzar el límite de una llamada activa, rechazar una segunda llamada con un mensaje breve de ocupado. No agregar cola, balanceador ni escalamiento horizontal en esta etapa.
+
+### Secuencia de demo propuesta
+
+1. Desde el celular, una persona llama al número de prueba e interpreta el guion de atacante.
+2. El perfil asignado al número responde con una voz natural y controlada.
+3. En el panel gubernamental se observan el estado de llamada, el texto reconocido de forma transitoria, la intención, indicadores enmascarados y la atribución a la copia sembrada.
+4. El operador revisa el borrador de reporte, etiquetado como simulación; la autoridad receptora y cualquier envío real quedan fuera de esta demo.
+5. Desde la consola se ejecuta un escenario fijo para mostrar un resultado repetible, claramente separado de la llamada móvil.
+
+### Escalamiento posterior
+
+El piloto documenta como siguiente paso habilitar más números y perfiles, varias llamadas concurrentes, almacenamiento compartido de sesiones, workers de voz separados y alta disponibilidad. Ninguno de esos elementos es requisito de la demo de una llamada.
 
 ## Brechas que bloqueaban empezar y resolución
 
@@ -84,8 +112,8 @@ La app actual no tiene autenticación ni autorización registradas y `app/main.p
 
 ## Pendientes que requieren confirmación del equipo
 
-1. ¿Todos pueden ejecutar `uv` y Python 3.11 o posterior en la laptop asignada?
-2. ¿La laptop de demo tiene micrófono y los modelos locales ya descargados? Si no, dejar lista la ruta textual hasta confirmar.
-3. ¿Quién compartirá el GeoJSON local de los 18 municipios y los 14 JSON de escenario esperados?
-4. Acordar si cada módulo se integrará mediante ramas o un checkout compartido. No editar en paralelo `app/main.py`, `app/core/schemas.py` ni `app/core/db.py`; Integrante 1 mantiene esos archivos.
-
+1. Confirmar proveedor, número de prueba, webhook, webhook HTTPS público y acceso a credenciales antes de iniciar la integración.
+2. Confirmar que el servidor puede cargar los modelos de voz una vez y sostener una llamada; si no, definir un fallback de audio pregrabado.
+3. Definir autenticación mínima para el panel gubernamental y el acceso a la consola de escenarios.
+4. Acordar qué indicadores y metadatos se muestran en vivo, y el formato del borrador de reporte.
+5. Acordar si cada módulo se integrará mediante ramas o un checkout compartido. No editar en paralelo `app/main.py`, `app/core/schemas.py` ni `app/core/db.py`; Integrante 1 mantiene esos archivos.

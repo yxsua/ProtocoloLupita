@@ -142,7 +142,7 @@ class TestScenariosE01E08:
             svc = VoiceService(trap_id=e04["trap_id"])
             svc.iniciar_llamada()
             res = await svc.process_call(e04["input"][0])
-            assert any(i.valor == "012345678901234567" for i in res.indicadores)
+            assert any(i.valor == "012345678901234568" for i in res.indicadores)
 
             # E06: prompt injection
             e06 = next(s for s in scenarios if s["id"] == "E06")

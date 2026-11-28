@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ejecuta escenarios controlados de llamada y consulta sus resultados.">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/government.css">
+</head>
+<body data-page="scenarios">
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <header class="gov-header">
+    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
+      <span class="gov-brand-name">Protocolo Lupita</span>
+      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
+    </a>
+    <nav class="gov-nav" aria-label="Navegación del panel">
+      <a href="/gobierno">Llamada en vivo</a>
+      <a href="/gobierno/escenarios" aria-current="page">Escenarios</a>
+      <a href="/">Vista ciudadana</a>
+    </nav>
+  </header>
+
+  <main id="main-content" class="gov-main scenario-main">
+    <h1>Ejecutar un escenario de llamada</h1>
+    <p class="intro-copy">Elige una prueba predefinida para repetir el mismo flujo del agente. Esta pantalla no recibe una llamada ni permite escribir mensajes.</p>
+    <div class="scenario-layout">
+      <section class="scenario-controls" aria-labelledby="scenario-heading">
+        <h2 id="scenario-heading">Prueba controlada</h2>
+        <label for="scenario-select">Escenario</label>
+        <select id="scenario-select"><option value="">Cargando escenarios…</option></select>
+        <p class="help-text">Las entradas del escenario son sintéticas. Su resultado se etiqueta como simulación y no se mezcla con llamadas del teléfono.</p>
+        <button id="scenario-run" type="button" disabled>Ejecutar escenario</button>
+        <div id="scenario-status" class="scenario-status" role="status" aria-live="polite">Cargando…</div>
+      </section>
+      <section class="scenario-results" aria-labelledby="result-heading">
+        <h2 id="result-heading">Resultado</h2>
+        <div id="scenario-result" class="scenario-result empty-result">El resultado de la última prueba aparecerá aquí.</div>
+        <h3>Actividad de la simulación</h3>
+        <ol id="scenario-timeline" class="call-timeline" aria-label="Actividad de escenarios" aria-live="polite">
+          <li class="timeline-empty">Aún no se ha ejecutado un escenario.</li>
+        </ol>
+      </section>
+    </div>
+    <p class="gov-footnote">Una simulación comprueba el comportamiento del prototipo; no equivale a un reporte real ni a una investigación.</p>
+  </main>
+  <script src="/static/government-scenarios.js" defer></script>
+</body>
+</html>

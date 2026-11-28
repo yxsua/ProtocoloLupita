@@ -1,7 +1,6 @@
-"""Modulo SMS — parser, reglas, comparacion de dominios y contrato analyze_sms."""
+"""Módulo SMS con exports perezosos para evitar ciclos con ciudadanía."""
 
 from app.modules.sms.schemas import DomainSignal, ExtractedIndicators, SmsAnalysis, SmsInput
-from app.modules.sms.service import analyze_sms, load_sms_inbox
 
 __all__ = [
     "DomainSignal",
@@ -11,3 +10,11 @@ __all__ = [
     "analyze_sms",
     "load_sms_inbox",
 ]
+
+
+def __getattr__(name: str):
+    if name in {"analyze_sms", "load_sms_inbox"}:
+        from app.modules.sms import service
+
+        return getattr(service, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

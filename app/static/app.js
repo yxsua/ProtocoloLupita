@@ -30,7 +30,7 @@ async function loadScenarios() {
       const state = document.createElement("span");
       state.className = "scenario-state";
       const result = latest.get(scenario.id);
-      state.textContent = result ? (result.passed ? "Aprobado" : "Falló") : "Pendiente";
+      state.textContent = result ? (result.passed ? "Aprobado" : (result.actual?.error ? "Sin ejecutor" : "Falló")) : "Pendiente";
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = "Ejecutar";
@@ -51,7 +51,7 @@ async function runScenario(id, button, state) {
     const response = await fetch(`/api/scenarios/${encodeURIComponent(id)}/run`, { method: "POST" });
     if (!response.ok) throw new Error("No se pudo ejecutar el escenario");
     const result = await response.json();
-    state.textContent = result.passed ? "Aprobado" : "Falló";
+    state.textContent = result.passed ? "Aprobado" : (result.actual?.error ? "Sin ejecutor" : "Falló");
   } catch {
     state.textContent = "Error";
   } finally {

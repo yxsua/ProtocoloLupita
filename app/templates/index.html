@@ -4,43 +4,45 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  <link rel="stylesheet" href="/static/public.css">
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">Prototipo local · datos sintéticos</p>
-      <h1>Mosca Estéril</h1>
-      <p class="subtitle">Atribución de filtraciones e inteligencia de amenazas</p>
-    </div>
-    <span class="status"><i></i> En ejecución local</span>
-  </header>
-  <main>
-    <section class="intro">
-      <h2>Panel de demostración</h2>
-      <p>Los módulos se conectarán aquí mediante contratos compartidos. No se reciben llamadas ni SMS reales.</p>
+  {% include "_public_header.html" %}
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section aria-labelledby="welcome-title">
+      <h1 id="welcome-title">¿Recibiste un mensaje o una llamada sospechosa?</h1>
+      <p class="intro-copy">Aquí puedes revisar un mensaje o una llamada y recibir consejos fáciles de seguir.</p>
+      <p class="demo-note"><strong>Es una demostración:</strong> no recibe llamadas reales ni presenta avisos oficiales. Si estás en peligro inmediato, busca ayuda de una persona de confianza o de los servicios de emergencia.</p>
     </section>
-    <section class="module-grid" aria-label="Módulos del prototipo">
-      <article class="module-card"><span>01</span><h3>Siembra y atribución</h3><p>Copias sintéticas y número trampa asociado.</p><b>En integración</b></article>
-      <article class="module-card"><span>02</span><h3>Doña Lupita</h3><p>Flujo de llamada con respaldo de texto.</p><b>En integración</b></article>
-      <article class="module-card"><span>03</span><h3>Indicadores y campañas</h3><p>Extracción, validación y correlación.</p><b>En integración</b></article>
-      <article class="module-card"><span>04</span><h3>Bandeja de SMS</h3><p>Análisis de mensajes y enlaces desactivados.</p><b>En integración</b></article>
-      <article class="module-card"><span>05</span><h3>Portal ciudadano</h3><p>Reporte, cruce y ruta guiada.</p><b>En integración</b></article>
-      <article class="module-card"><span>06</span><h3>Tablero y mapa</h3><p>Campañas y agregados municipales.</p><b>En integración</b></article>
-    </section>
-    <section class="runtime-card">
-      <div><p class="eyebrow">ESTADO DEL SERVIDOR</p><p id="health">Consultando…</p></div>
-      <a href="/docs">Ver API local</a>
-    </section>
-    <section class="scenarios-card">
-      <div class="scenario-heading">
-        <div><p class="eyebrow">VALIDACIÓN DEL PROTOTIPO</p><h2>Escenarios</h2></div>
-        <button id="run-all" type="button">Ejecutar todos</button>
+    <section aria-label="Qué necesitas hacer">
+      <div class="action-grid">
+        <a class="action-card" href="/sms">
+          <strong>Quiero revisar un mensaje</strong>
+          <span>Pega el SMS y te diremos si vemos señales de engaño. Los enlaces se mantienen cerrados.</span>
+          <b>Revisar un SMS</b>
+        </a>
+        <a class="action-card" href="/citizen">
+          <strong>Quiero contar qué pasó</strong>
+          <span>Cuéntanos sobre una llamada o mensaje para recibir recomendaciones.</span>
+          <b>Hacer un reporte</b>
+        </a>
+        <a class="action-card" href="/dashboard">
+          <strong>Quiero ver avisos</strong>
+          <span>Consulta recomendaciones y señales agrupadas por zona.</span>
+          <b>Ver avisos</b>
+        </a>
       </div>
-      <p id="scenario-status">Cargando catálogo…</p>
-      <ul id="scenario-list" class="scenario-list"></ul>
+    </section>
+    <section class="public-card" aria-labelledby="how-title">
+      <h2 id="how-title">¿Cómo funciona?</h2>
+      <ol class="steps-list">
+        <li><strong>Cuéntanos</strong><br>Comparte el mensaje o describe la llamada. No escribas contraseñas ni códigos.</li>
+        <li><strong>Revisamos señales</strong><br>Buscamos patrones que podrían indicar un intento de engaño.</li>
+        <li><strong>Te orientamos</strong><br>Recibes pasos seguros para verificar por un canal oficial.</li>
+      </ol>
+      <p class="help-text">Una coincidencia es una señal preventiva que debe revisarse antes de tomar decisiones.</p>
     </section>
   </main>
-  <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+  <footer class="public-footer">Protocolo Lupita · Demostración para aprender a reconocer y reportar engaños.</footer>
 </body>
 </html>

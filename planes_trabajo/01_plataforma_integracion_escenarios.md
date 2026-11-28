@@ -17,7 +17,7 @@ Entregar la aplicación local con dos secciones: **Ciudadanía pública** para o
 - Separar rutas públicas (`/ciudadania`, `/api/public/*`) y privadas (`/gobierno`, `/api/gobierno/*`). Toda ruta privada requiere autenticación y autorización comprobadas en backend; la sección ciudadana solo recibe DTOs públicos con allowlist y agregación segura.
 - Para la demo, implementar un rol de gobierno local y una sesión de servidor; no es un sistema de identidad real. El QR del celular contiene un token de corta duración que solo habilita la sesión telefónica asignada.
 - Cada integrante es dueño de su módulo y de sus archivos; se integra mediante los contratos de este documento, no editando el módulo de otra persona.
-- Todos los datos y números del prototipo son sintéticos y se muestran como tales.
+- Los fixtures, identidades, cuentas y atribuciones de demostración son sintéticos y se muestran como tales. El piloto usa un número de prueba real y recibe metadatos del proveedor; el identificador del llamante se rotula como no verificado y se enmascara.
 - Los modelos locales y archivos del mapa deben estar disponibles antes de desconectar internet.
 
 ## Contratos comunes — congelar en la primera hora
@@ -25,6 +25,7 @@ Entregar la aplicación local con dos secciones: **Ciudadanía pública** para o
 Publicar `app/core/schemas.py` y compartirlos con el equipo antes de que cada quien avance:
 
 - `Scenario`: `id`, `channel` (`call|sms|portal`), `trap_id`, `input`, `expected`.
+- `CallInput`: origen (`telephony|scenario`), número receptor/trap, perfil de agente y sesión del proveedor o escenario; los adaptadores entregan turnos o audio al mismo servicio de voz.
 - `Event`: `id`, `occurred_at`, `channel`, `trap_id`, `attribution_id`, `indicator_ids`, `campaign_id`, `confidence`, `status`, `evidence_hash`.
 - `Indicator`: `id`, `type`, `value_masked`, `source_event_id`, `confidence`, `status`.
 - `AttributionResult`: `trap_id`, `copy_id`, `provider`, `seed_period`, `synthetic`.
@@ -37,6 +38,8 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 - `app/main.py`, `app/core/schemas.py`, `app/core/db.py`, `app/core/config.py`
 - `app/core/scenario_runner.py`, `app/core/seed_data.py`
 - `app/templates/base.html`, `app/static/app.css`, `app/static/app.js`
+- Vistas y endpoints gubernamentales protegidos; SSE para enviar eventos de llamada a la pantalla de resultados.
+- Adaptador de llamada del proveedor y control de una sesión telefónica activa.
 - `data/scenarios/*.json`, consolidando escenarios aportados por los demás
 - Integración de routers y dependencias entre módulos; no reescribir su lógica interna.
 
@@ -63,9 +66,12 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 - Se puede navegar por todos los módulos y seguir un evento desde la trampa hasta tablero y ruta ciudadana.
 - Los 14 JSON se cargan y el runner registra esperado y obtenido sin inventar porcentajes.
 - Los registros de reporte almacenados no incluyen datos personales del formulario original.
-- Existe una demo ensayada y un video local reproducible.
+- Existe una demo ensayada desde un celular y un video de respaldo reproducible.
+
+## Fuera de esta integración inicial
+
+Más números, llamadas simultáneas, alta disponibilidad, envío automático a instituciones y un sistema de telefonía de producción. Se documentan como paso posterior, no como recortes del flujo de demo.
 
 ## Uso de herramientas de codificación con IA
 
 Delegar cambios por archivo y contrato. Pedir primero un diff pequeño y revisión de imports; no permitir que un agente cambie esquemas congelados sin avisar. Integrar cada módulo cuando entregue una función importable y un ejemplo JSON, no esperar hasta la hora 12.
-

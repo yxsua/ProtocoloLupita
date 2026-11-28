@@ -20,10 +20,15 @@ Implementar una llamada enteramente simulada desde la sección pública Ciudadan
 - El resultado final permite generar un expediente de demostración imprimible/descargable con cronología, datos sintéticos, indicadores enmascarados, atribución, nivel de confianza y hashes de evidencia. Rotularlo “SIMULADO — sin validez oficial”; no transmitirlo a autoridades.
 - La persona nunca revela datos reales, amenaza, insulta ni afirma ser autoridad. Usar ficha y cuentas ficticias.
 
+## Configuración de prueba
+
+Usar `.env.example` como referencia, asignar los valores reales en el entorno del servidor y mantener secretos fuera del repositorio. Configurar la URL de voz del DID como `POST /api/telephony/voice`, y el callback de estado como `POST /api/telephony/status`. `PUBLIC_BASE_URL` debe ser HTTPS y coincidir con la URL pública que Twilio usa al firmar las solicitudes. La trampa sembrada de Doña Lupita es `+52 442 000 0102`.
+
 ## Archivos bajo responsabilidad
 
-- `app/modules/voice/` — captura, transcripción, política de intención, reproducción y estado de llamada.
-- `app/modules/voice/assets/` — fragmentos de audio, inventario y configuración de voces locales.
+- `app/modules/telephony/` — webhooks, sesiones y adaptación Twilio.
+- `app/modules/voice/` — política conversacional, extracción, fragmentos pregrabados y Piper.
+- `app/modules/voice/assets/` — fragmentos de audio, inventario y voces locales.
 - `app/templates/voice/`, `app/static/voice.js`.
 - Vista pública del simulador y vista privada de monitoreo coordinada desde `app/modules/dashboard/` o una vista dedicada; coordinar con Integrante 1 los prefijos y controles backend.
 - `app/modules/evidence/` y `app/modules/intel/` para persistir metadatos saneados, correlacionar indicadores y construir el expediente simulado.
