@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -73,9 +74,52 @@ def get_sms_inbox_api() -> dict[str, Any]:
     }
 
 
+_BODY_KEYS = ("body", "message", "mensaje", "text", "texto", "sms")
+_SENDER_KEYS = ("sender", "from", "number", "numero", "remitente", "phone")
+
+
+def _pick(data: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        val = data.get(key)
+        if val is not None and str(val).strip():
+            return str(val)
+    return ""
+
+
+async def _parse_device_payload(request: Request) -> dict[str, Any]:
+    """Acepta JSON, formulario, query string o texto plano (MacroDroid puede mandar cualquiera)."""
+    data: dict[str, Any] = dict(request.query_params)
+    content_type = request.headers.get("content-type", "").lower()
+    raw = await request.body()
+    text = raw.decode("utf-8", errors="replace").strip()
+
+    if "form" in content_type:
+        form = await request.form()
+        data.update({k: str(v) for k, v in form.items()})
+    elif text:
+        try:
+            parsed = json.loads(text, strict=False)
+            if isinstance(parsed, dict):
+                data.update(parsed)
+            else:
+                data.setdefault("body", str(parsed))
+        except json.JSONDecodeError:
+            # JSON roto (comillas o saltos de linea en el SMS) o texto plano
+            data.setdefault("body", text)
+
+    return {
+        "body": _pick(data, _BODY_KEYS),
+        "sender": _pick(data, _SENDER_KEYS),
+        "municipality": _pick(data, ("municipality", "municipio")),
+    }
+
+
 @router.post("/api/device-webhook")
-def receive_device_sms_api(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+async def receive_device_sms_api(request: Request) -> dict[str, Any]:
     """Endpoint para recibir SMS desde automatizacion del telefono (MacroDroid / iOS Atajos)."""
+    payload = await _parse_device_payload(request)
+    if not payload["body"].strip():
+        return {"status": "ignored", "reason": "SMS vacio", "links_disabled": True}
     entry = ingest_device_sms(payload)
     analysis = entry["analysis"]
     return {
