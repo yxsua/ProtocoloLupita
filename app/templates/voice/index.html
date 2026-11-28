@@ -60,6 +60,12 @@
             font-size: 16px;
             font-weight: 600;
         }
+        .header-info .citizen-name {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 2px;
+        }
         .header-info .subtitle {
             font-size: 12px;
             color: var(--text-muted);
@@ -136,7 +142,7 @@
             border-bottom-left-radius: 4px;
         }
         .message.lupita::before {
-            content: '🧓 Lupita';
+            content: attr(data-speaker);
             display: block;
             font-size: 11px;
             font-weight: 600;
@@ -151,7 +157,7 @@
             border-bottom-right-radius: 4px;
         }
         .message.atacante::before {
-            content: '🎭 Atacante';
+            content: attr(data-speaker);
             display: block;
             font-size: 11px;
             font-weight: 600;
@@ -336,6 +342,48 @@
         }
         .start-screen h2 { font-size: 24px; }
         .start-screen p  { color: var(--text-muted); max-width: 480px; line-height: 1.6; }
+        .brand-nav {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand-nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .avatar-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 20px 0;
+        }
+        .avatar-control label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .avatar-control select {
+            background: var(--bg-card-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        .avatar-control select:disabled { opacity: .7; cursor: not-allowed; }
+        .avatar-lock-notice {
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .trap-note { font-size: 12px; }
 
         .config-row {
             display: flex;
@@ -353,6 +401,49 @@
             width: 70px;
             text-align: center;
         }
+        .mode-tabs, .bot-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .mode-tabs button, .btn-secondary {
+            background: var(--bg-card-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .mode-tabs button.selected { border-color: var(--accent); color: var(--accent); }
+        .mode-panel { display: grid; justify-items: center; gap: 18px; }
+        .bot-controls {
+            justify-content: space-between;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+        }
+        .bot-controls p, .speaking-indicator { color: var(--warning); font-size: 13px; }
+        .speaking-indicator { padding: 6px 20px; font-weight: 600; }
+        .bot-controls .btn { padding: 8px 12px; }
+        .mic-meter { padding: 0 20px 8px; color: var(--text-muted); font-size: 12px; }
+        .mic-meter progress { width: min(320px, 55vw); height: 10px; accent-color: var(--success); }
+        .end-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 18px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+        }
+        .input-bar .btn-mic { width: auto; height: auto; border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+        select, .config-row select {
+            background: var(--bg-card-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 10px;
+        }
 
         /* ---- CALL SCREEN & HIDDEN / VISIBLE ---- */
         #callScreen {
@@ -366,21 +457,55 @@
 </head>
 <body>
 
+<nav class="brand-nav" aria-label="Navegación principal">
+    <a href="/" onclick="exitToMain(); return false;">Protocolo Lupita</a>
+    <span>Número trampa: +52 442 XXX XXXX (ficticio)</span>
+</nav>
+<div class="avatar-control">
+    <label for="cfgAvatar">Avatar ciudadano:
+        <select id="cfgAvatar">
+            <option value="lupita">Doña Lupita</option>
+            <option value="ramiro">Don Ramiro</option>
+            <option value="carmen">Sra. Carmen</option>
+            <option value="hector">Profe Héctor</option>
+        </select>
+    </label>
+    <span class="avatar-lock-notice hidden" id="avatarLockNotice" role="status">
+        🔒 Voz y avatar fijados durante esta llamada
+    </span>
+</div>
+
 <!-- ============= START SCREEN ============= -->
 <div id="startScreen" class="start-screen">
-    <div class="avatar-big">🧓</div>
-    <h2>Doña Lupita</h2>
-    <p>
-        Simulador de llamada anti-fraude. Lupita mantendrá al atacante en la línea
-        usando respuestas controladas mientras recopila indicadores como la CLABE.
-    </p>
+    <div class="avatar-big" id="startAvatarIcon">🧓</div>
+    <h2>Protocolo Lupita</h2>
+    <strong id="startAvatarName">Doña Lupita</strong>
+    <p>Demo educativa anti-fraude. La simulación automática usa guiones ficticios y acotados; no introduzcas datos bancarios reales.</p>
+    <p class="trap-note">No se realizan llamadas ni se envían mensajes reales.</p>
+    <div class="mode-tabs" role="tablist" aria-label="Modo de llamada">
+        <button class="btn selected" id="tabManual" role="tab" aria-selected="true" onclick="selectStartMode('manual')">Llamada Manual</button>
+        <button class="btn" id="tabBot" role="tab" aria-selected="false" onclick="selectStartMode('bot')">Simulación Automática</button>
+    </div>
     <div class="config-row">
         <label>Duración máxima (seg):</label>
         <input type="number" id="cfgMaxDuration" value="300" min="30" max="600">
     </div>
-    <button class="btn btn-start" id="btnStart" onclick="startCall()">
-        📞 Iniciar Llamada
-    </button>
+    <div id="manualStartPanel" class="mode-panel">
+        <button class="btn btn-start" id="btnStart" onclick="startCall()">📞 Iniciar llamada manual</button>
+    </div>
+    <div id="botStartPanel" class="mode-panel hidden">
+        <div class="config-row">
+            <label for="cfgScenario">Escenario:</label>
+            <select id="cfgScenario">
+                {% for scenario in scenarios %}
+                <option value="{{ scenario.id }}">{{ scenario.id }} — {{ scenario.description }}</option>
+                {% endfor %}
+            </select>
+            <label for="cfgBotTurns">Turnos (máx. 6):</label>
+            <input type="number" id="cfgBotTurns" value="6" min="1" max="6">
+        </div>
+        <button class="btn btn-start" id="btnBotStart" onclick="startBotSimulation()">▶ Iniciar simulación</button>
+    </div>
 </div>
 
 <!-- ============= CALL SCREEN ============= -->
@@ -389,9 +514,10 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <div class="header-avatar">🧓</div>
+            <div class="header-avatar" id="activeAvatarIcon">🧓</div>
             <div class="header-info">
-                <h1>Doña Lupita</h1>
+                <h1>Protocolo Lupita</h1>
+                <span class="citizen-name" id="activeAvatarName">Doña Lupita</span>
                 <div class="subtitle" id="callStatus">En llamada...</div>
             </div>
         </div>
@@ -408,6 +534,18 @@
         </div>
     </div>
 
+    <div class="bot-controls hidden" id="botControls">
+        <p>Simulación educativa continua. Máximo 6 turnos.</p>
+        <span id="botTurnCount">Turno 0 / 6</span>
+        <button class="btn btn-hangup" id="btnStopBot" onclick="stopBotSimulation()">Detener simulación</button>
+    </div>
+    <div class="speaking-indicator hidden" id="speakingIndicator" aria-live="polite">🔊 Doña Lupita hablando...</div>
+    <div class="speaking-indicator hidden" id="clabeSummary" aria-live="polite"></div>
+    <div class="mic-meter hidden" id="micMeterWrap">
+        <label id="micMeterLabel" for="micMeter">Micrófono</label>
+        <progress id="micMeter" max="1" value="0"></progress>
+    </div>
+
     <!-- CHAT -->
     <div class="chat-container" id="chatContainer">
         <!-- Los mensajes se inyectan aquí -->
@@ -416,19 +554,24 @@
     <!-- PROCESSING -->
     <div class="processing" id="processing">
         <div class="dots"><span></span><span></span><span></span></div>
-        <span>Lupita está pensando...</span>
+        <span id="processingText">Lupita está pensando...</span>
     </div>
 
     <!-- INPUT BAR -->
     <div class="input-bar">
-        <button class="btn btn-mic" id="btnMic" onclick="toggleMic()" title="Grabar audio">
-            🎤
+        <button class="btn btn-mic" id="btnMic" onclick="toggleMic()" title="Hablar y soltar para enviar">
+            🎤 Hablar
         </button>
         <input type="text" id="textInput" placeholder="Escribe lo que dice el atacante..."
                onkeydown="if(event.key==='Enter')sendText()">
         <button class="btn btn-send" id="btnSend" onclick="sendText()">
             Enviar ➤
         </button>
+    </div>
+    <div class="end-panel hidden" id="endPanel" role="status">
+        <strong id="endSummary">Llamada finalizada</strong>
+        <button class="btn btn-start" id="btnRecall" onclick="recallCall()">Volver a llamar</button>
+        <button class="btn btn-secondary" id="btnExit" onclick="exitToMain()">Salir</button>
     </div>
 </div>
 

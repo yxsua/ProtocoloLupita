@@ -11,9 +11,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
@@ -40,6 +40,37 @@ class CallStatus(str, Enum):
     TIMEOUT = "timeout"
     USER_HANGUP = "user_hangup"
     COMPLETED = "completed"
+
+
+class AvatarId(str, Enum):
+    """Identidades ciudadanas disponibles para una llamada."""
+
+    LUPITA = "lupita"
+    RAMIRO = "ramiro"
+    CARMEN = "carmen"
+    HECTOR = "hector"
+
+
+class SpeakerVoiceProfile(BaseModel):
+    """Configuración exacta de voz fijada para un interlocutor."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    provider: Literal["speechSynthesis", "piper", "pregrabado"] = "speechSynthesis"
+    voice_uri: str = Field(default="", max_length=512)
+    voice_name: str = Field(default="", max_length=256)
+    lang: str = Field(default="es-MX", max_length=32)
+    rate: float = Field(default=0.9, ge=0.5, le=2.0)
+    pitch: float = Field(default=1.0, ge=0.5, le=2.0)
+
+
+class LockedVoiceProfile(BaseModel):
+    """Perfiles inmutables de ciudadano y Bot Estafador para una sesión."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    citizen: SpeakerVoiceProfile
+    attacker: SpeakerVoiceProfile
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +139,8 @@ class TurnoConversacion(BaseModel):
 
 class EstadoConversacion(BaseModel):
     """Estado mutable de la conversación activa."""
+    locked_avatar: AvatarId = AvatarId.LUPITA
+    locked_voice_profile: Optional[LockedVoiceProfile] = None
     turnos: list[TurnoConversacion] = Field(default_factory=list)
     indicadores: list[IndicadorCandidato] = Field(default_factory=list)
     clabe_pendiente: Optional[str] = Field(
@@ -151,6 +184,8 @@ class CallResult(BaseModel):
     indicadores: list[IndicadorCandidato] = Field(default_factory=list)
     duracion_segundos: float = 0.0
     status: CallStatus = CallStatus.ACTIVE
+    locked_avatar: AvatarId = AvatarId.LUPITA
+    locked_voice_profile: Optional[LockedVoiceProfile] = None
     trap_id: Optional[str] = Field(
         default=None,
         description="Identificador del número trampa receptor para atribución"

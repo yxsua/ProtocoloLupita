@@ -108,11 +108,11 @@ def detectar_prompt_injection(texto: str) -> bool:
     return False
 
 
-def respuesta_anti_injection() -> str:
+def respuesta_anti_injection(citizen_name: str = "Doña Lupita") -> str:
     """Respuesta en personaje ante intento de manipulación."""
     return (
         "¿Mande? No le entendí, joven. "
-        "Yo soy Lupita, la señora de la colonia. "
+        f"Yo soy {citizen_name}. "
         "¿Me decía algo de mi cuenta?"
     )
 
