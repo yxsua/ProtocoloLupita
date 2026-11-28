@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Dispositivos · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Vinculación</p>
+    <h1>Dispositivos</h1>
+    <p>Vincula teléfonos con un QR o enlace de un solo uso, sin copiar claves.</p>
+  </div>
+  <a class="secondary-button" href="/">Volver al feed</a>
+</div>
+
+{% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+{% if enrollment_error %}<p class="notice error" role="alert">{{ enrollment_error }}</p>{% endif %}
+{% if pending_enrollment %}
+<section class="card token-panel enrollment-result" aria-labelledby="enrollment-result-heading">
+  <div>
+    <p class="eyebrow">Código válido por 15 minutos</p>
+    <h2 id="enrollment-result-heading">Escanea o comparte el enlace</h2>
+    <p>El token del dispositivo se entregará una sola vez a la app después de que la persona revise y acepte el consentimiento.</p>
+    <p><strong>Teléfono sugerido:</strong> {{ pending_enrollment.nombre_sugerido }}</p>
+    <p><strong>Apps sugeridas:</strong> {{ pending_enrollment.apps_sugeridas|join(", ") if pending_enrollment.apps_sugeridas else "Ninguna" }}</p>
+    <label for="enrollment-code">Código para escribir manualmente</label>
+    <div class="copy-row">
+      <input id="enrollment-code" type="text" value="{{ pending_enrollment.code }}" readonly autocomplete="off">
+      <button class="secondary-button" type="button" data-copy-target="enrollment-code">Copiar código</button>
+    </div>
+    <label for="enrollment-url">Enlace de enrolamiento</label>
+    <div class="copy-row">
+      <input id="enrollment-url" type="url" value="{{ pending_enrollment.url }}" readonly>
+      <button class="secondary-button" type="button" data-copy-target="enrollment-url">Copiar enlace</button>
+    </div>
+    <p id="copy-status" class="muted" role="status"></p>
+    <p><strong>Caduca:</strong> <time data-local-time="{{ pending_enrollment.expira_en }}">{{ pending_enrollment.expira_en }}</time></p>
+  </div>
+  <img class="enrollment-qr" src="data:image/svg+xml;base64,{{ pending_enrollment.qr_data }}" alt="Código QR de enrolamiento para {{ pending_enrollment.nombre_sugerido }}">
+</section>
+{% endif %}
+
+<section class="card enrollment-card" aria-labelledby="enrollment-heading">
+  <h2 id="enrollment-heading">Agregar teléfono</h2>
+  <p>Genera un QR y un código de un solo uso. Vencen en 15 minutos y solo se pueden canjear una vez.</p>
+  <form method="post" action="/enrolamientos" class="registration-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="suggested-device-name">Nombre sugerido</label>
+    <input id="suggested-device-name" name="nombre_sugerido" type="text" maxlength="80" placeholder="Teléfono de Ana" value="Teléfono nuevo" required>
+    <fieldset class="app-suggestions">
+      <legend>Aplicaciones sugeridas (la persona podrá cambiarlas en el teléfono)</legend>
+      {% for package, label in [
+        ("com.whatsapp", "WhatsApp"),
+        ("org.telegram.messenger", "Telegram"),
+        ("com.google.android.apps.messaging", "Mensajes de Google"),
+        ("com.android.messaging", "Mensajes"),
+        ("com.facebook.orca", "Messenger"),
+        ("com.instagram.android", "Instagram"),
+        ("com.google.android.gm", "Gmail")
+      ] %}
+      <label class="app-suggestion">
+        <input type="checkbox" name="apps_sugeridas" value="{{ package }}" {% if package in ["com.whatsapp", "org.telegram.messenger", "com.google.android.apps.messaging"] %}checked{% endif %}>
+        <span>{{ label }} <code>{{ package }}</code></span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    <button class="primary-button" type="submit">Generar QR y código</button>
+  </form>
+</section>
+
+{% if created_device and new_token %}
+<section class="card token-panel" aria-labelledby="token-heading">
+  <h2 id="token-heading">Clave de dispositivo — se muestra una sola vez</h2>
+  <p>Guarda esta clave de forma segura y configúrala en el emisor. El servidor solo conserva su hash.</p>
+  <label for="device-token">X-Device-Key</label>
+  <div class="copy-row">
+    <input id="device-token" type="text" value="{{ new_token }}" readonly autocomplete="off">
+    <button class="secondary-button" type="button" data-copy-target="device-token">Copiar clave</button>
+  </div>
+  <p id="copy-status" class="muted" role="status"></p>
+  <p><strong>Identificador:</strong> {{ created_device.nombre }}</p>
+  <p class="notice warning">El número ingresado se usa como etiqueta. No verifica que controles ese número ni conecta por sí solo un teléfono Android; la app Android real se implementará en la Fase 2.</p>
+  <h3>URL y ejemplo de ingesta</h3>
+  <label for="ingest-url">POST</label>
+  <div class="copy-row">
+    <input id="ingest-url" type="url" value="{{ ingest_url }}" readonly>
+    <button class="secondary-button" type="button" data-copy-target="ingest-url">Copiar URL</button>
+  </div>
+  <pre class="code-block">curl -X POST "{{ ingest_url }}" `
+  -H "X-Device-Key: {{ new_token }}" `
+  -H "Content-Type: application/json" `
+  -d "{\"id_evento\":\"00000000-0000-4000-8000-000000000001\",\"tipo\":\"notificacion\",\"app\":\"com.whatsapp\",\"remitente\":\"Contacto\",\"texto\":\"Mensaje de prueba\"}"</pre>
+</section>
+{% endif %}
+
+<section class="card registration-card" aria-labelledby="register-heading">
+  <h2 id="register-heading">Alta manual heredada</h2>
+  <p class="help-text">Usa el flujo QR para vincular la app Android. Esta opción solo sirve para integraciones manuales antiguas que requieren copiar un token.</p>
+  <form method="post" action="/dispositivos" class="registration-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="device-name">Número de teléfono asociado</label>
+    <input id="device-name" name="nombre" type="tel" inputmode="tel" autocomplete="tel" maxlength="80" placeholder="+52 442 123 4567" required>
+    <p class="help-text">Se guarda como nombre identificador y debe tener entre 7 y 15 dígitos. No se envía un SMS ni se comprueba la titularidad.</p>
+    <button class="primary-button" type="submit">Registrar y generar clave</button>
+  </form>
+</section>
+
+<section class="devices-section" aria-labelledby="devices-heading">
+  <div class="feed-heading">
+    <h2 id="devices-heading">Dispositivos registrados</h2>
+    <form method="post" action="/datos/borrar" data-confirm="¿Borrar definitivamente todos los eventos almacenados?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="danger-button" type="submit">Borrar todos los datos</button>
+    </form>
+  </div>
+  <p id="device-refresh-state" class="muted" role="status" aria-live="polite"></p>
+  {% if devices %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Identificador</th><th>Vínculo / conexión</th><th>Eventos</th><th>Último contacto</th><th>Apps permitidas</th><th>Acciones</th></tr></thead>
+      <tbody>
+      {% for device in devices %}
+        <tr data-device-id="{{ device.id }}">
+          <td>{{ device.nombre }}</td>
+          <td>
+            <span class="status-pill status-{{ device.estado }}">{{ device.estado }}</span>
+            <span class="status-pill status-{{ 'online' if device.en_linea else 'offline' }}" data-device-connectivity>
+              {{ "En línea" if device.en_linea else "Sin conexión" }}
+            </span>
+          </td>
+          <td>{{ device.total_eventos }}</td>
+          <td>
+            {% if device.ultimo_contacto %}
+              <time data-local-time="{{ device.ultimo_contacto }}">{{ device.ultimo_contacto }}</time>
+            {% else %}
+              Nunca
+            {% endif %}
+          </td>
+          <td>{{ device.apps_permitidas|join(", ") if device.apps_permitidas else "No especificadas" }}</td>
+          <td class="action-cell">
+            {% if device.estado == "activo" %}
+            <form method="post" action="/dispositivos/{{ device.id }}/revocar" data-confirm="¿Revocar la clave de este dispositivo?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="secondary-button" type="submit">Revocar</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/dispositivos/{{ device.id }}/eliminar" data-confirm="¿Eliminar este dispositivo y borrar definitivamente sus eventos?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="danger-button" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <h3>No hay dispositivos registrados</h3>
+    <p>Ingresa el número asociado al teléfono para crear una clave de ingesta. El alta no verifica el número ni conecta el hardware.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="/static/devices.js" defer></script>
+{% endblock %}

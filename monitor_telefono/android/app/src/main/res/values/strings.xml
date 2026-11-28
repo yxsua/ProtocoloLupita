@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Monitor de teléfono</string>
+    <string name="notification_listener_label">Monitor de teléfono (acceso a notificaciones)</string>
+</resources>

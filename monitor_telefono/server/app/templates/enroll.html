@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Vincular teléfono · Monitor de teléfono{% endblock %}
+{% block content %}
+<section class="card public-enrollment" aria-labelledby="enroll-heading">
+  <p class="eyebrow">Vinculación segura</p>
+  <h1 id="enroll-heading">Vincular teléfono</h1>
+  {% if error %}
+  <p class="notice error" role="alert">{{ error }}</p>
+  <p>Vuelve a escanear un QR vigente o pide al administrador que genere un código nuevo.</p>
+  {% elif enrollment %}
+  <p>Instala la app Monitor de teléfono y abre el enlace para revisar las apps sugeridas y dar tu consentimiento desde el teléfono.</p>
+  <p><strong>Nombre sugerido:</strong> {{ enrollment.nombre_sugerido }}</p>
+  <p><strong>Apps sugeridas:</strong> {{ enrollment.apps_sugeridas|join(", ") if enrollment.apps_sugeridas else "Ninguna" }}</p>
+  <p><strong>Este código caduca:</strong> <time data-local-time="{{ enrollment.expira_en }}">{{ enrollment.expira_en }}</time></p>
+  <div class="enrollment-actions">
+    <a class="primary-button" href="{{ app_link }}">Abrir en la app</a>
+    {% if download_url %}
+    <a class="secondary-button" href="{{ download_url }}" rel="noopener">Descargar app Android</a>
+    {% else %}
+    <p class="help-text">Si aún no tienes la app, solicita al administrador el enlace oficial de descarga.</p>
+    {% endif %}
+  </div>
+  <p class="help-text">En una computadora u otro dispositivo, abre esta página desde Android o escanea el QR con la app. No compartas el código con otras personas.</p>
+  {% endif %}
+</section>
+{% endblock %}

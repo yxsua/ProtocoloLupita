@@ -1,0 +1,15 @@
+.env
+.venv
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.gradle
+**/.kotlin
+**/build
+**/local.properties
+**/*.sqlite
+**/*.sqlite3
+**/*.sqlite-shm
+**/*.sqlite-wal
+backups/
+downloads/

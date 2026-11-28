@@ -1,0 +1,71 @@
+services:
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MONITOR_PASSWORD: ${MONITOR_PASSWORD:?Define MONITOR_PASSWORD en .env}
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en .env}
+      RETENCION_DIAS: ${RETENCION_DIAS:-30}
+      PUERTO: "8100"
+      DATABASE_PATH: /data/monitor.sqlite3
+      BASE_URL_PUBLICA: ${BASE_URL_PUBLICA:?Define BASE_URL_PUBLICA con el origen HTTPS}
+      ANDROID_DOWNLOAD_URL: ${ANDROID_DOWNLOAD_URL:-}
+      COOKIE_SECURE: "true"
+    volumes:
+      - monitor_data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/api/salud', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      monitor:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?Define DOMAIN en .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./downloads:/srv/downloads:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      monitor:
+        condition: service_healthy
+    user: "0:0"
+    environment:
+      DATABASE_PATH: /data/monitor.sqlite3
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - monitor_data:/data
+      - ./backups:/backups
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "while true; do python /usr/local/bin/backup_sqlite.py; sleep 86400; done"
+
+volumes:
+  monitor_data:
+  caddy_data:
+  caddy_config:

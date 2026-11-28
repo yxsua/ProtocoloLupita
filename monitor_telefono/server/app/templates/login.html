@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión · Monitor de teléfono{% endblock %}
+{% block content %}
+<section class="login-card card">
+  <h1>Monitor de teléfono</h1>
+  <p>Inicia sesión para ver los eventos de tus dispositivos.</p>
+  {% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="/login" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="password">Contraseña del monitor</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="primary-button" type="submit">Iniciar sesión</button>
+  </form>
+</section>
+{% endblock %}

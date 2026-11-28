@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.modules.mensajes.router import router as mensajes_router
 from app.modules.voice.router import router as voice_router
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -29,6 +30,7 @@ app.mount(
 )
 
 app.include_router(voice_router)
+app.include_router(mensajes_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -54,6 +56,7 @@ async def root():
         <h1>Protocolo Lupita</h1>
         <p>Demo educativa para practicar la detección de señales de fraude telefónico.</p>
         <a href="/voice/">Abrir módulo de voz</a>
+        <a href="/mensajes">Mensajes, SMS y llamadas</a>
       </main>
     </body>
     </html>

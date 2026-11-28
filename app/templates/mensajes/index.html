@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Mensajes y llamadas | Protocolo Lupita</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --fondo: #f7f7f4;
+      --tarjeta: #fff;
+      --texto: #202522;
+      --suave: #69736d;
+      --linea: #dfe4e0;
+      --acento: #28775f;
+      --llamada: #b3261e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fondo: #101820;
+        --tarjeta: #1a1f2e;
+        --texto: #e8eaed;
+        --suave: #9aa4a0;
+        --linea: #303943;
+        --acento: #5cc2a6;
+        --llamada: #ff9188;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px max(16px, calc((100% - 760px) / 2));
+      background: var(--tarjeta);
+      border-bottom: 1px solid var(--linea);
+    }
+    nav a { color: var(--texto); font-weight: 700; text-decoration: none; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    h1 { font-size: 1.35rem; margin: 0; }
+    #estado { color: var(--suave); font-size: .875rem; white-space: nowrap; }
+    #estado.conectado { color: var(--acento); }
+    ul { list-style: none; margin: 16px 0 0; padding: 0; }
+    li { padding: 14px 0; border-top: 1px solid var(--linea); overflow-wrap: anywhere; }
+    .fila { display: flex; justify-content: space-between; gap: 12px; }
+    .app { font-weight: 700; }
+    .app.llamada { color: var(--llamada); }
+    .hora, .dispositivo { color: var(--suave); font-size: .8125rem; }
+    .remitente { margin-top: 3px; }
+    .texto { margin: 3px 0 0; color: var(--suave); white-space: pre-wrap; }
+    #vacio { margin-top: 32px; color: var(--suave); max-width: 58ch; }
+    :focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+    @media (max-width: 480px) {
+      nav { align-items: flex-start; flex-direction: column; }
+      header { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <nav aria-label="Navegación principal">
+    <a href="/">Protocolo Lupita</a>
+    <a href="/voice/">Módulo de voz</a>
+  </nav>
+  <main>
+    <header>
+      <h1>Mensajes, SMS y llamadas</h1>
+      <span id="estado" role="status" aria-live="polite">Conectando…</span>
+    </header>
+    <p id="vacio">
+      Aún no hay eventos. En el teléfono propio, concede los permisos de SMS y
+      registro de llamadas y activa el acceso a notificaciones para Lupita. El
+      dispositivo y este navegador deben poder acceder al servidor.
+    </p>
+    <ul id="lista" aria-live="polite"></ul>
+  </main>
+  <script>
+    "use strict";
+    const nombresApp = {
+      "com.whatsapp": "WhatsApp",
+      "com.whatsapp.w4b": "WhatsApp Business",
+      "org.telegram.messenger": "Telegram",
+      "com.facebook.orca": "Messenger",
+      "com.instagram.android": "Instagram",
+      "com.google.android.apps.messaging": "Mensajes",
+      "com.samsung.android.messaging": "Mensajes",
+      "com.android.dialer": "Teléfono",
+      "com.google.android.dialer": "Teléfono",
+      "com.samsung.android.dialer": "Teléfono",
+      "com.android.phone": "Teléfono",
+      "com.samsung.android.incallui": "Teléfono"
+    };
+    const lista = document.getElementById("lista");
+    const vacio = document.getElementById("vacio");
+    const estado = document.getElementById("estado");
+
+    function crearElemento(tag, clase, texto) {
+      const elemento = document.createElement(tag);
+      if (clase) elemento.className = clase;
+      if (texto !== null && texto !== undefined && texto !== "") {
+        elemento.textContent = String(texto);
+      }
+      return elemento;
+    }
+
+    function pintar(evento) {
+      vacio.hidden = true;
+      const item = document.createElement("li");
+      const fila = crearElemento("div", "fila");
+      let nombre = nombresApp[evento.app] || evento.app || "Aplicación desconocida";
+      if (evento.tipo === "llamada") nombre = `Llamada · ${nombre}`;
+      if (evento.tipo === "sms") nombre = `SMS · ${nombre}`;
+      fila.append(
+        crearElemento("span", `app${evento.tipo === "llamada" ? " llamada" : ""}`, nombre),
+        crearElemento("span", "hora", new Date(evento.fecha).toLocaleString("es-MX"))
+      );
+      item.append(fila);
+
+      if (evento.remitente) item.append(crearElemento("div", "remitente", evento.remitente));
+      if (evento.tipo === "llamada") {
+        const partes = [];
+        const direcciones = { entrante: "Entrante", saliente: "Saliente", perdida: "Perdida" };
+        if (direcciones[evento.direccion]) partes.push(direcciones[evento.direccion]);
+        if (evento.duracion_s !== null && evento.duracion_s !== undefined) {
+          const minutos = Math.floor(evento.duracion_s / 60);
+          const segundos = String(evento.duracion_s % 60).padStart(2, "0");
+          partes.push(`Duración ${minutos}:${segundos}`);
+        }
+        if (partes.length) item.append(crearElemento("p", "texto", partes.join(" · ")));
+      } else if (evento.texto) {
+        item.append(crearElemento("p", "texto", evento.texto));
+      }
+      item.append(crearElemento("div", "dispositivo", `Dispositivo: ${evento.dispositivo}`));
+      lista.prepend(item);
+    }
+
+    function conectar() {
+      const protocolo = location.protocol === "https:" ? "wss:" : "ws:";
+      const socket = new WebSocket(`${protocolo}//${location.host}/ws/eventos`);
+      socket.onopen = () => {
+        estado.textContent = "En vivo";
+        estado.classList.add("conectado");
+      };
+      socket.onmessage = (mensaje) => {
+        try {
+          pintar(JSON.parse(mensaje.data));
+        } catch {
+          estado.textContent = "Se recibió un evento inválido";
+          estado.classList.remove("conectado");
+        }
+      };
+      socket.onerror = () => socket.close();
+      socket.onclose = () => {
+        estado.textContent = "Reconectando…";
+        estado.classList.remove("conectado");
+        window.setTimeout(conectar, 2000);
+      };
+    }
+
+    conectar();
+  </script>
+</body>
+</html>
