@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Ciudadano — Reporte Seguro de SMS o Llamada</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, sans-serif; color: #0f172a; background: #f8fafc; }
+    body { margin: 0; padding: 1.5rem; max-width: 1080px; margin-inline: auto; }
+    nav { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.75rem; }
+    nav a { text-decoration: none; font-weight: 600; color: #1d4ed8; }
+    .privacy-box { background: #ecfdf5; border: 1px solid #10b981; padding: 0.85rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; }
+    .grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.25rem; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.9rem; font-weight: 600; margin-top: 0.5rem; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 0.25rem; }
+    button { margin-top: 1rem; background: #1d4ed8; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .defanged-url { display: inline-block; background: #f1f5f9; border: 1px dashed #64748b; padding: 0.25rem 0.5rem; border-radius: 6px; font-family: monospace; }
+    .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; background: #e2e8f0; color: #334155; }
+    .hidden { display: none; }
+    details { margin-top: 0.75rem; background: #f8fafc; padding: 0.65rem; border-radius: 6px; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/sms">Bandeja SMS</a>
+    <a href="/citizen">Portal Ciudadano</a>
+  </nav>
+
+  <h1>Portal Ciudadano — Reporte de SMS o Llamada Sospechosa</h1>
+  <div class="privacy-box">
+    <strong>Privacidad antes de guardar:</strong> Tu nombre, CURP, telefono personal y correo se
+    <strong>descartan automaticamente</strong> antes de almacenar el reporte o enviarlo al motor de inteligencia.
+    Los enlaces reportados se desactivan (<code>hxxp</code>) y nunca se abren.
+  </div>
+
+  <div class="grid">
+    <section>
+      <form id="citizen-report-form" class="card">
+        <h2 style="margin-top:0;">Enviar reporte</h2>
+
+        <label for="rep-channel">Canal del incidente</label>
+        <select id="rep-channel" name="channel">
+          <option value="sms">SMS</option>
+          <option value="llamada">Llamada telefonica</option>
+        </select>
+
+        <label for="rep-municipality">Municipio</label>
+        <input id="rep-municipality" name="municipality" type="text" required placeholder="Ej. Guadalajara" />
+
+        <label for="rep-sender">Numero o remitente reportado (presunto atacante)</label>
+        <input id="rep-sender" name="reported_sender_or_phone" type="text" placeholder="Ej. 5511223344 o SAT-AVISO" />
+
+        <label for="rep-url">Enlace recibido (opcional, se guardara desactivado)</label>
+        <input id="rep-url" name="reported_url" type="text" placeholder="Ej. https://ejemplo-falso.xyz/pago" />
+
+        <label for="rep-account">Cuenta o CLABE reportada (opcional)</label>
+        <input id="rep-account" name="reported_account" type="text" placeholder="Ej. 012180009988776655" />
+
+        <label for="rep-business">Comercio o entidad senalada (opcional, no se publica si esta sin verificar)</label>
+        <input id="rep-business" name="reported_business_name" type="text" placeholder="Ej. Gestoria Express" />
+
+        <label for="rep-desc">Que ocurrio? (evita incluir tus datos personales)</label>
+        <textarea id="rep-desc" name="description" rows="4" required placeholder="Describe el mensaje o llamada recibida..."></textarea>
+
+        <details>
+          <summary style="cursor:pointer; font-weight:600;">Campos personales opcionales (se descartan antes de guardar)</summary>
+          <label for="rep-pii-name">Nombre (se descarta)</label>
+          <input id="rep-pii-name" name="reporter_name" type="text" />
+
+          <label for="rep-pii-curp">CURP (se descarta)</label>
+          <input id="rep-pii-curp" name="reporter_curp" type="text" />
+
+          <label for="rep-pii-phone">Telefono personal (se descarta)</label>
+          <input id="rep-pii-phone" name="reporter_phone" type="text" />
+
+          <label for="rep-pii-email">Correo personal (se descarta)</label>
+          <input id="rep-pii-email" name="reporter_email" type="email" />
+        </details>
+
+        <button type="submit">Enviar reporte anonimizado</button>
+      </form>
+    </section>
+
+    <aside>
+      <div id="citizen-result-card" class="card hidden" aria-live="polite">
+        <h2 style="margin-top:0;">Respuesta del sistema</h2>
+        <p id="cit-res-warning" style="font-weight:700; color:#991b1b;"></p>
+        <p id="cit-res-status"></p>
+        <p id="cit-res-explanation"></p>
+        <p id="cit-res-pii"></p>
+        <div id="cit-res-circular"></div>
+        <div id="cit-res-urls"></div>
+        <div id="cit-res-route"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;">Alertas circulares para prevenir a otros</h2>
+        <p style="font-size:0.875rem; color:#475569;">
+          Patrones anonimizados aprendidos de reportes ciudadanos + <strong>{{ dataset_stats.spam_messages }}</strong> estafas de la base historica.
+        </p>
+        <ul id="citizen-circular-alerts-list">
+          {% if circular_alerts %}
+            {% for alert in circular_alerts %}
+              <li><strong>{{ alert.impersonated_entity }}</strong> ({{ alert.report_count }} reporte(s)): {{ alert.safe_excerpt }}</li>
+            {% endfor %}
+          {% else %}
+            <li>Los reportes validos que subas se anonimizan y alertan aqui a otras personas.</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;">Agregado municipal (umbral &ge; {{ aggregates.threshold }})</h2>
+        <p style="font-size:0.9rem; color:#475569;">
+          Total agregado registrado: <strong id="map-total-reports">{{ aggregates.total_reports }}</strong>
+        </p>
+        <ul id="map-municipalities-list">
+          {% if aggregates.visible_municipalities %}
+            {% for item in aggregates.visible_municipalities %}
+              <li>{{ item.municipality }}: {{ item.count }} reportes</li>
+            {% endfor %}
+          {% else %}
+            <li>Ningun municipio alcanza aun el umbral minimo de {{ aggregates.threshold }} reportes.</li>
+          {% endif %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/static/citizen.js"></script>
+</body>
+</html>

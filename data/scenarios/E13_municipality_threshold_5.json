@@ -1,0 +1,16 @@
+{
+  "scenario_id": "E13",
+  "title": "Umbral municipal de 5 reportes conservando total agregado",
+  "owner": "Integrante 5",
+  "type": "map_aggregate",
+  "inputs": [
+    { "municipality": "Guadalajara", "count": 5 },
+    { "municipality": "Tlaquepaque", "count": 4 }
+  ],
+  "expected": {
+    "threshold": 5,
+    "visible_municipalities": [{ "municipality": "Guadalajara", "count": 5 }],
+    "hidden_municipalities": ["Tlaquepaque"],
+    "total_reports": 9
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "scenario_id": "E12",
+  "title": "Saneamiento de PII ciudadano antes de guardar y cruce con E01",
+  "owner": "Integrante 5",
+  "type": "citizen_report",
+  "input": {
+    "channel": "llamada",
+    "municipality": "Guadalajara",
+    "reported_sender_or_phone": "5511223344",
+    "reported_url": "https://banco-seguro-ayuda.xyz/verificacion",
+    "reported_account": "012180009988776655",
+    "description": "Me llamaron diciendo ser del banco por un cargo no reconocido. Me llamo Ana Lopez, mi CURP es LOPA900101HDFRRL09 y mi telefono es 3312345678.",
+    "reporter_name": "Ana Lopez",
+    "reporter_curp": "LOPA900101HDFRRL09",
+    "reporter_phone": "3312345678",
+    "reporter_email": "ana.lopez@ejemplo.mx",
+    "reporter_address": "Av. Vallarta 1234",
+    "session_token": "demo-e12"
+  },
+  "expected": {
+    "pii_absent_from_store_and_engine": [
+      "Ana Lopez",
+      "LOPA900101HDFRRL09",
+      "3312345678",
+      "ana.lopez@ejemplo.mx",
+      "Av. Vallarta 1234"
+    ],
+    "crossed_campaign_id": "CAMP-E01",
+    "verification_status": "campana_corroborada",
+    "links_disabled": true
+  }
+}

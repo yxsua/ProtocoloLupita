@@ -1,0 +1,19 @@
+{
+  "scenario_id": "E10",
+  "title": "Paquete retenido con enlace acortado",
+  "owner": "Integrante 5",
+  "type": "sms",
+  "input": {
+    "message_id": "E10-SMS",
+    "sender": "+523319988776",
+    "municipality": "Zapopan",
+    "body": "Estafeta: su paquete retenido en aduana espera confirmacion de direccion. Pague $39 MXN en https://bit.ly/aduana-mx-44 para liberar envio."
+  },
+  "expected": {
+    "impersonated_entity": "paqueteria",
+    "scam_type": "paquete_retenido",
+    "shortener_detected": true,
+    "defanged_urls": ["hxxps://bit.ly/aduana-mx-44"],
+    "links_disabled": true
+  }
+}
