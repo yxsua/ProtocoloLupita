@@ -1,0 +1,133 @@
+{% extends base_template %}
+
+{% block content %}
+<section class="card">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="margin:0 0 6px;">Siembra y Atribución de Trampas <span class="badge badge-synthetic">FICTICIO / RESGUARDO CONTRALORÍA</span></h1>
+      <p class="muted" style="margin:0;">
+        Mapeo determinista 1 a 1 entre copias de bases de datos y números trampa ficticios (+52 442).
+        El mapeo completo permanece restringido a esta vista interna; solo el hash de integridad es público.
+      </p>
+    </div>
+    <button id="btn-reseed" class="btn" type="button">Regenerar lote determinista (2026-10)</button>
+  </div>
+  <div style="margin-top:12px; padding:10px; background:#f8fafc; border:1px solid #d8e0ea; border-radius:6px;">
+    <span class="muted">Hash público del manifiesto (SHA-256):</span>
+    <div id="manifest-hash" class="mono">{{ manifest_hash }}</div>
+  </div>
+</section>
+
+<section class="card">
+  <h2 style="margin-top:0;">Probador de atribución por número trampa receptor</h2>
+  <p class="muted">La atribución se realiza exclusivamente por el número trampa que recibió la llamada o SMS, nunca por el número de origen.</p>
+  <form id="attribute-form" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <input id="trap-input" type="text" placeholder="Ej. +52 442 XXX 0101 (ficticio)" value="+52 442 XXX 0101 (ficticio)" style="min-width:280px;" />
+    <button class="btn" type="submit">Atribuir copia</button>
+    <button class="btn btn-secondary quick-trap" type="button" data-trap="+52 442 XXX 0101 (ficticio)">E01 (Llamada)</button>
+    <button class="btn btn-secondary quick-trap" type="button" data-trap="+52 442 000 0102">E09 (SMS)</button>
+    <button class="btn btn-secondary quick-trap" type="button" data-trap="4420000103">E10 (Solo dígitos)</button>
+    <button class="btn btn-secondary quick-trap" type="button" data-trap="+52 442 999 9999">No sembrado</button>
+  </form>
+  <div id="attribute-result" style="margin-top:12px; padding:12px; border-radius:6px; background:#f8fafc; border:1px solid #d8e0ea;">
+    <span class="muted">Ingresa o selecciona un número trampa ficticio para consultar su copia atribuida.</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2 style="margin-top:0;">Catálogo de copias y trampas sembradas ({{ copies | length }})</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Copia</th>
+        <th>Proveedor y base</th>
+        <th>Periodo</th>
+        <th>Personaje ficticio</th>
+        <th>Número trampa receptor</th>
+        <th>Canales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in copies %}
+      <tr>
+        <td class="mono">{{ item.copy_id }}</td>
+        <td><strong>{{ item.provider }}</strong> — {{ item.dataset_name }}</td>
+        <td>{{ item.seed_period }}</td>
+        <td>{{ item.persona_alias }} <span class="badge badge-synthetic">Ficticio</span></td>
+        <td><span class="mono">{{ item.trap_display }}</span></td>
+        <td>{{ item.channel_scope }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="muted">No hay copias sintéticas sembradas todavía.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById("attribute-form");
+  const input = document.getElementById("trap-input");
+  const resultBox = document.getElementById("attribute-result");
+  const reseedBtn = document.getElementById("btn-reseed");
+  const hashEl = document.getElementById("manifest-hash");
+
+  async function runAttribution(trapValue) {
+    resultBox.textContent = "Consultando atribución...";
+    const encoded = encodeURIComponent(trapValue || "");
+    const res = await fetch(`/api/planting/attribute?trap_id=${encoded}`);
+    const data = await res.json();
+    resultBox.innerHTML = "";
+    const title = document.createElement("div");
+    const statusLabel = document.createElement("strong");
+    statusLabel.textContent = "Estado: ";
+    const synthLabel = document.createElement("strong");
+    synthLabel.textContent = " · Sintético: ";
+    title.appendChild(statusLabel);
+    title.appendChild(document.createTextNode(String(data.status || "")));
+    title.appendChild(synthLabel);
+    title.appendChild(document.createTextNode(data.synthetic ? "Sí" : "No"));
+    const details = document.createElement("div");
+    details.className = "muted";
+    details.style.marginTop = "4px";
+    details.textContent = data.status === "atribuido"
+      ? `Copia: ${data.copy_id} | Origen filtrado: ${data.provider} | Periodo: ${data.seed_period} | Personaje: ${data.persona_alias || "-"}`
+      : `Sin copia asignada para "${data.trap_display || trapValue}"`;
+    resultBox.appendChild(title);
+    resultBox.appendChild(details);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    runAttribution(input.value);
+  });
+
+  document.querySelectorAll(".quick-trap").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      input.value = btn.getAttribute("data-trap") || "";
+      runAttribution(input.value);
+    });
+  });
+
+  reseedBtn.addEventListener("click", async function () {
+    reseedBtn.disabled = true;
+    try {
+      const res = await fetch("/api/planting/seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seed_period: "2026-10", total_copies: 15, seed: 2026 })
+      });
+      const payload = await res.json();
+      hashEl.textContent = payload.manifest_hash;
+      window.location.reload();
+    } finally {
+      reseedBtn.disabled = false;
+    }
+  });
+})();
+</script>
+{% endblock %}
