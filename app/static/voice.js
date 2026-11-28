@@ -34,6 +34,8 @@ const state = {
     // Reconocimiento en navegador (respaldo cuando Whisper no está instalado)
     speechRecognition: null,
     speechTranscript: '',
+    speechRestartTimer: null,
+    speechLanguage: 'es-MX',
 };
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -43,6 +45,7 @@ const state = {
 const $ = (id) => document.getElementById(id);
 
 const els = {
+    btnStart:       $('btnStart'),
     startScreen:    $('startScreen'),
     callScreen:     $('callScreen'),
     chatContainer:  $('chatContainer'),
@@ -68,13 +71,31 @@ const els = {
 async function startCall() {
     const maxDur = parseInt(els.cfgMaxDuration.value) || 300;
     state.maxDuration = maxDur;
+    els.btnStart.disabled = true;
+    $('incomingNotice').textContent = 'Contestando la llamada…';
 
     const form = new FormData();
     form.append('max_duration', maxDur);
 
     try {
         const res = await fetch('/voice/start', { method: 'POST', body: form });
-        const data = await res.json();
+        const responseText = await res.text();
+        let data = null;
+        try {
+            data = responseText ? JSON.parse(responseText) : {};
+        } catch (_) {
+            data = {
+                detail: responseText.trim() === 'Internal Server Error'
+                    ? `Error interno del servidor (${res.status}). Revisa el registro de la aplicación.`
+                    : responseText.slice(0, 180),
+            };
+        }
+        if (!res.ok) {
+            throw new Error(data.detail || `El servidor respondió con error (${res.status}).`);
+        }
+        if (!data.session_id || !data.result) {
+            throw new Error('El servidor devolvió una respuesta incompleta. Reinicia la simulación.');
+        }
 
         state.sessionId = data.session_id;
         state.active = true;
@@ -84,6 +105,7 @@ async function startCall() {
         // Mostrar pantalla de llamada
         els.startScreen.classList.add('hidden');
         els.callScreen.classList.remove('hidden');
+        $('btnAfterCall').classList.add('hidden');
 
         // Actualizar badges
         updateBadges(state.audioStatus);
@@ -98,8 +120,68 @@ async function startCall() {
 
     } catch (err) {
         console.error('Error iniciando llamada:', err);
-        alert('Error al iniciar la llamada. Verifica que el servidor esté corriendo.');
+        $('incomingNotice').textContent = err.message || 'No se pudo contestar la llamada. Intenta de nuevo.';
+        els.btnStart.disabled = false;
     }
+}
+
+
+async function cancelIncoming() {
+    const declineButton = $('btnDecline');
+    declineButton.disabled = true;
+    els.btnStart.disabled = true;
+    $('incomingNotice').textContent = 'Cancelando cualquier sesión activa…';
+
+    try {
+        const response = await fetch('/voice/cancel-active', { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `No se pudo cancelar (${response.status}).`);
+
+        els.startScreen.classList.add('rejected');
+        $('incomingNotice').textContent = data.status === 'cancelled'
+            ? 'Llamada activa cancelada. Puedes iniciar otra simulación.'
+            : 'Llamada entrante rechazada. Puedes iniciar otra simulación.';
+        $('simulatorNotice').textContent = data.status === 'cancelled'
+            ? 'Se cerró la sesión que seguía activa en el servidor y el dashboard recibió su evento de cierre.'
+            : 'La llamada se rechazó; no había una sesión activa en el servidor.';
+        declineButton.classList.add('hidden');
+        els.btnStart.classList.add('hidden');
+        $('btnNewCall').classList.remove('hidden');
+    } catch (error) {
+        $('incomingNotice').textContent = error.message || 'No se pudo cancelar la llamada. Intenta de nuevo.';
+        declineButton.disabled = false;
+        els.btnStart.disabled = false;
+    }
+}
+
+
+function newIncomingCall() {
+    els.startScreen.classList.remove('rejected');
+    $('incomingNotice').textContent = 'La llamada está entrando en el simulador.';
+    $('simulatorNotice').textContent = 'Puedes rechazar la llamada entrante o cancelar la conversación en cualquier momento.';
+    $('btnDecline').classList.remove('hidden');
+    els.btnStart.classList.remove('hidden');
+    els.btnStart.disabled = false;
+    $('btnNewCall').classList.add('hidden');
+}
+
+
+function startNewCall() {
+    state.sessionId = null;
+    state.active = false;
+    state.processing = false;
+    state.startTime = null;
+    stopTimer();
+    els.chatContainer.replaceChildren();
+    els.textInput.value = '';
+    els.textInput.disabled = false;
+    els.btnSend.disabled = false;
+    els.btnMic.disabled = false;
+    els.btnHangup.disabled = false;
+    $('btnAfterCall').classList.add('hidden');
+    els.callScreen.classList.add('hidden');
+    els.startScreen.classList.remove('hidden');
+    newIncomingCall();
 }
 
 
@@ -136,6 +218,7 @@ function endCall(result) {
     els.btnSend.disabled = true;
     els.btnMic.disabled = true;
     els.btnHangup.disabled = true;
+    $('btnAfterCall').classList.remove('hidden');
 
     if (result && result.indicadores && result.indicadores.length > 0) {
         addSystemMessage('Se encontraron señales que pueden ayudar a revisar la situación.');
@@ -174,11 +257,10 @@ async function toggleMic() {
 
 
 async function startRecording() {
-    // Si Whisper NO está activo en el servidor y el navegador soporta Web Speech API,
-    // usamos reconocimiento de voz directo en español (es-MX).
+    // Prioriza reconocimiento local: el audio no se envía a servicios remotos.
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!state.audioStatus.whisper && SpeechRec) {
-        startBrowserSpeechRecognition(SpeechRec);
+        await startLocalBrowserSpeechRecognition(SpeechRec);
         return;
     }
 
@@ -229,40 +311,144 @@ async function startRecording() {
 }
 
 
-function startBrowserSpeechRecognition(SpeechRec) {
+async function startLocalBrowserSpeechRecognition(SpeechRec) {
+    if (typeof SpeechRec.available !== 'function') {
+        const message = 'Este navegador no ofrece reconocimiento local de voz. Usa el modo texto o configura Whisper local.';
+        $('speechSetupNotice').textContent = message;
+        return;
+    }
+
+    try {
+        let availability = 'unavailable';
+        for (const language of ['es-MX', 'es-ES']) {
+            availability = await SpeechRec.available({ langs: [language], processLocally: true });
+            if (availability !== 'unavailable') {
+                state.speechLanguage = language;
+                break;
+            }
+        }
+        if (availability === 'available') {
+            startBrowserSpeechRecognition(SpeechRec);
+        } else if (availability === 'downloadable') {
+            $('speechSetupNotice').textContent = `Este equipo necesita el paquete local ${state.speechLanguage} antes de poder dictar.`;
+            if (typeof SpeechRec.install === 'function') {
+                $('btnInstallSpeech').classList.remove('hidden');
+            } else {
+                $('speechSetupNotice').textContent += ' La instalación desde el navegador no está disponible; configura Whisper local o usa texto.';
+            }
+        } else if (availability === 'downloading') {
+            $('speechSetupNotice').textContent = 'El paquete local de español todavía se está preparando. Intenta de nuevo en unos momentos.';
+        } else {
+            const message = 'No hay reconocimiento local de español disponible. Puedes escribir la frase o configurar Whisper local.';
+            $('speechSetupNotice').textContent = message;
+        }
+    } catch (error) {
+        console.warn('No se pudo consultar el reconocimiento local:', error);
+        $('speechSetupNotice').textContent = 'No se pudo iniciar el reconocimiento local. Usa el modo texto o configura Whisper local.';
+    }
+}
+
+
+async function installLocalSpeech() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const button = $('btnInstallSpeech');
+    if (!SpeechRec || typeof SpeechRec.install !== 'function') return;
+
+    button.disabled = true;
+    button.textContent = 'Preparando paquete local…';
+    $('speechSetupNotice').textContent = 'Descargando el paquete de reconocimiento en español para este dispositivo.';
+    try {
+        const installed = await SpeechRec.install({ langs: [state.speechLanguage], processLocally: true });
+        if (!installed) throw new Error('El navegador no pudo instalar el paquete de español.');
+        $('speechSetupNotice').textContent = 'Paquete local listo. Presiona Voz para empezar a hablar.';
+        button.classList.add('hidden');
+    } catch (error) {
+        $('speechSetupNotice').textContent = error.message || 'No se pudo instalar el paquete. Usa el modo texto o configura Whisper local.';
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Preparar reconocimiento local de voz';
+    }
+}
+
+
+function startBrowserSpeechRecognition(SpeechRec, resume = false) {
     try {
         const recognition = new SpeechRec();
-        recognition.lang = 'es-MX';
+        recognition.lang = state.speechLanguage;
+        recognition.processLocally = true;
         recognition.interimResults = true;
         recognition.continuous = true;
 
-        state.speechTranscript = '';
+        if (!resume) state.speechTranscript = '';
         state.speechRecognition = recognition;
+        let processedFinalResultCount = 0;
 
         recognition.onresult = (event) => {
-            let fullText = '';
-            for (let i = 0; i < event.results.length; i++) {
-                fullText += event.results[i][0].transcript + ' ';
+            let finalText = '';
+            let interimText = '';
+            for (let i = processedFinalResultCount; i < event.results.length; i++) {
+                const text = event.results[i][0].transcript.trim();
+                if (event.results[i].isFinal) {
+                    finalText += `${text} `;
+                    processedFinalResultCount = i + 1;
+                }
+                else interimText += `${text} `;
             }
-            state.speechTranscript = fullText.trim();
-            els.callStatus.textContent = `🎙️ "${state.speechTranscript}"`;
+            if (finalText.trim()) {
+                state.speechTranscript = [state.speechTranscript, finalText.trim()]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim();
+            }
+            const liveText = [state.speechTranscript, interimText.trim()].filter(Boolean).join(' ');
+            els.callStatus.textContent = liveText ? `Escuchando: “${liveText}”` : 'Escuchando a la persona que llama…';
         };
 
         recognition.onerror = (event) => {
             console.warn('SpeechRecognition error:', event.error);
-            if (event.error === 'not-allowed') {
-                addSystemMessage('⚠️ Permiso de micrófono denegado. Usa el modo texto.');
+            if (event.error === 'no-speech') {
+                // Algunos navegadores cierran la sesión si hay una pausa al empezar.
+                // onend la vuelve a abrir mientras el botón siga en modo escucha.
+                return;
             }
-            setRecordingUI(false, 'En llamada...');
+            if (['not-allowed', 'service-not-allowed', 'audio-capture', 'network'].includes(event.error)) {
+                state.recording = false;
+                state.speechRecognition = null;
+                const messages = {
+                    'not-allowed': 'Permiso de micrófono denegado. Habilítalo en el navegador y vuelve a intentarlo.',
+                    'service-not-allowed': 'El navegador no pudo iniciar el paquete local de español. Prepáralo desde esta pantalla o usa Whisper local.',
+                    'audio-capture': 'No se encontró un micrófono disponible. Revisa el dispositivo y vuelve a intentarlo.',
+                    network: 'El reconocimiento local del navegador no está disponible en este momento. Usa el modo texto o Whisper local.',
+                };
+                if (event.error === 'service-not-allowed') {
+                    $('btnInstallSpeech').classList.remove('hidden');
+                    $('speechSetupNotice').textContent = messages[event.error];
+                }
+                setRecordingUI(false, 'En llamada…');
+                $('speechSetupNotice').textContent = messages[event.error];
+            }
         };
 
         recognition.onend = async () => {
             const finalText = state.speechTranscript.trim();
             state.speechRecognition = null;
+
+            if (state.recording && state.active) {
+                setRecordingUI(true, 'Pausa breve… sigue hablando');
+                state.speechRestartTimer = setTimeout(() => {
+                    state.speechRestartTimer = null;
+                    if (state.recording && state.active) {
+                        startBrowserSpeechRecognition(SpeechRec, true);
+                    }
+                }, 250);
+                return;
+            }
+
+            state.speechTranscript = '';
             setRecordingUI(false, 'En llamada...');
 
             if (finalText && state.active) {
-                addMessage('atacante', `🎤 "${finalText}"`);
+                addMessage('atacante', finalText);
                 await processInput({ text: finalText });
             }
         };
@@ -278,6 +464,10 @@ function startBrowserSpeechRecognition(SpeechRec) {
 
 
 function stopRecording() {
+    if (state.speechRestartTimer) {
+        clearTimeout(state.speechRestartTimer);
+        state.speechRestartTimer = null;
+    }
     if (state.speechRecognition) {
         try { state.speechRecognition.stop(); } catch (_) {}
     }
@@ -410,10 +600,12 @@ async function processInput({ text, audio }) {
 
         if (audio) {
             if (data.transcripcion_usuario) {
-                replaceLastAtacanteMessage(`🎤 "${data.transcripcion_usuario}"`);
+                replaceLastAtacanteMessage(data.transcripcion_usuario);
             } else {
-                replaceLastAtacanteMessage('🎤 (Audio sin transcripción — usa el modo texto)');
+                replaceLastAtacanteMessage('(Audio sin transcripción. Usa el modo texto.)');
             }
+        } else if (data.transcripcion_usuario) {
+            replaceLastAtacanteMessage(data.transcripcion_usuario);
         }
 
         // Mostrar respuesta de Lupita y reproducir su voz de inmediato
@@ -615,6 +807,8 @@ function replaceLastAtacanteMessage(newText) {
         const last = messages[messages.length - 1];
         const textSpan = last.querySelector('.text');
         if (textSpan) textSpan.textContent = newText;
+    } else if (newText) {
+        addMessage('atacante', newText);
     }
 }
 
@@ -630,7 +824,7 @@ function updateBadges(status) {
     if (!status) return;
 
     const set = (el, on) => {
-        el.className = `badge ${on ? 'on' : 'off'}`;
+        el.className = `tool-status ${on ? 'on' : 'off'}`;
     };
 
     const hasBrowserSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);

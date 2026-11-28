@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -20,8 +20,8 @@ from app.modules.planting.router import router as planting_router
 from app.modules.planting.service import ensure_seeded
 from app.modules.sms.router import router as sms_router
 from app.modules.voice.router import router as voice_router
+from app.modules.government.auth import require_government_user
 from app.modules.government.router import router as government_router
-from app.modules.telephony.router import router as telephony_router
 
 
 @asynccontextmanager
@@ -44,15 +44,19 @@ register_default_handlers()
 for module_router in (
     planting_router,
     voice_router,
-    create_intel_router(),
     sms_router,
     citizen_router,
     dashboard_router,
     map_router,
     government_router,
-    telephony_router,
 ):
     app.include_router(module_router)
+
+# Intel APIs expose campaign, attribution and evidence details for internal use.
+app.include_router(
+    create_intel_router(),
+    dependencies=[Depends(require_government_user)],
+)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -71,12 +75,12 @@ async def health():
 
 
 @app.get("/api/scenarios")
-async def scenarios():
+async def scenarios(_: str = Depends(require_government_user)):
     return list_scenarios()
 
 
 @app.post("/api/scenarios/{scenario_id}/run")
-def run_one_scenario(scenario_id: str):
+def run_one_scenario(scenario_id: str, _: str = Depends(require_government_user)):
     scenario = next((item for item in list_scenarios() if item.id == scenario_id), None)
     if scenario is None:
         raise HTTPException(status_code=404, detail="Scenario is not in data/scenarios")
@@ -84,16 +88,16 @@ def run_one_scenario(scenario_id: str):
 
 
 @app.post("/api/scenarios/run-all")
-def run_all():
+def run_all(_: str = Depends(require_government_user)):
     return run_all_scenarios()
 
 
 @app.get("/api/scenarios/results")
-async def scenario_results():
+async def scenario_results(_: str = Depends(require_government_user)):
     return list_scenario_results()
 
 
 @app.post("/api/demo/reset")
-async def reset_demo():
+async def reset_demo(_: str = Depends(require_government_user)):
     reset_demo_data()
     return {"status": "reset"}

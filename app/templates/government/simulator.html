@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Simula llamadas completas con escenarios precargados y voces sintéticas.">
+  <title>{{ title }}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/government.css">
+  <link rel="stylesheet" href="/static/government-simulator.css">
+</head>
+<body class="simulator-page">
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <header class="gov-header">
+    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
+      <span class="gov-brand-name">Protocolo Lupita</span>
+      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
+    </a>
+    <nav class="gov-nav" aria-label="Navegación del panel">
+      <a href="/gobierno">Llamada en vivo</a>
+      <a href="/gobierno/simulador" aria-current="page">Simular llamada</a>
+      <a href="/gobierno/reportes">Reportes y métricas</a>
+      <a href="/">Vista ciudadana</a>
+    </nav>
+  </header>
+
+  <main id="main-content" class="simulator-main">
+    <div class="simulator-heading">
+      <div>
+        <h1>Simulación de llamada</h1>
+        <p>Elige un guion precargado para escuchar la llamada completa. El atacante y Doña Lupita hablan automáticamente; el análisis aparece en vivo en el dashboard.</p>
+      </div>
+      <span class="demo-label">Local · voces sintéticas</span>
+    </div>
+
+    <div class="simulator-layout">
+      <section class="phone-shell" aria-label="Teléfono simulado">
+        <div class="phone-camera" aria-hidden="true"></div>
+        <section id="incoming-screen" class="phone-screen incoming-screen" aria-labelledby="incoming-title">
+          <div class="phone-statusbar"><span>9:41</span><span class="phone-signal" aria-label="señal simulada"><i></i><i></i><i></i><i></i></span></div>
+          <div class="incoming-content">
+            <label class="scenario-picker" for="scenario-select">Escenario de llamada
+              <select id="scenario-select" disabled><option value="">Cargando escenarios…</option></select>
+            </label>
+            <span class="incoming-kicker">Llamada entrante · guion sintético</span>
+            <div class="caller-avatar" aria-hidden="true">
+              <svg viewBox="0 0 48 48" role="presentation"><circle cx="24" cy="24" r="23"/><path d="M24 12a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm-13 25c1.8-6.1 6.4-9 13-9s11.2 2.9 13 9"/></svg>
+            </div>
+            <h2 id="incoming-title">Número ficticio</h2>
+            <p class="caller-number">+52 442 XXX 8899</p>
+            <p class="caller-classification">La conversación se reproduce sin micrófono ni respuestas manuales.</p>
+            <p id="incoming-notice" class="incoming-notice" role="status" aria-live="polite">Selecciona un escenario y contesta para comenzar.</p>
+          </div>
+          <div class="incoming-actions">
+            <button id="btn-decline" class="phone-action decline-action" type="button" aria-label="Rechazar llamada">
+              <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></span>
+              <span>Rechazar</span>
+            </button>
+            <button id="btn-answer" class="phone-action answer-action" type="button" aria-label="Contestar y ejecutar escenario" disabled>
+              <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h3l2 5-2 2a14 14 0 0 0 5 5l2-2 5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg></span>
+              <span>Contestar</span>
+            </button>
+          </div>
+          <button id="btn-reset-incoming" class="retry-call hidden" type="button">Elegir otro escenario</button>
+          <button id="btn-recover" class="retry-call hidden" type="button">Cerrar llamada anterior y liberar simulador</button>
+        </section>
+
+        <section id="active-screen" class="phone-screen active-screen hidden" aria-label="Llamada simulada en curso">
+          <div class="phone-statusbar"><span>9:41</span><span class="phone-signal" aria-label="señal simulada"><i></i><i></i><i></i><i></i></span></div>
+          <header class="active-call-header">
+            <span class="active-call-label">Escenario <span id="active-scenario">—</span></span>
+            <span id="timer" class="timer">00:00</span>
+            <h2>Doña Lupita</h2>
+            <p class="caller-number">+52 442 XXX 8899 · ficticio</p>
+            <p id="call-status" class="call-status" role="status" aria-live="polite">Conectando…</p>
+          </header>
+          <div class="transcript-heading"><h3>Transcripción</h3><span>En vivo en el dashboard</span></div>
+          <div id="transcript" class="chat-container" role="log" aria-label="Transcripción de las voces sintéticas" aria-live="polite"></div>
+          <p id="voice-status" class="voice-status" role="status" aria-live="polite">Preparando voces sintéticas del dispositivo…</p>
+          <div class="active-call-actions">
+            <button id="btn-cancel" class="phone-action decline-action" type="button" aria-label="Cancelar llamada">
+              <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></span>
+              <span>Cancelar llamada</span>
+            </button>
+            <button id="btn-reset" class="retry-call hidden" type="button">Elegir otro escenario</button>
+          </div>
+        </section>
+        <div class="phone-home-indicator" aria-hidden="true"></div>
+      </section>
+
+      <aside class="simulator-notes" aria-labelledby="flow-title">
+        <h2 id="flow-title">Llamada guiada por escenario</h2>
+        <ol>
+          <li>Selecciona uno de los guiones precargados de voz.</li>
+          <li>Contesta para iniciar el diálogo: una voz sintética interpreta al atacante y otra a Doña Lupita.</li>
+          <li>El sistema procesa cada turno, identifica señales y actualiza el dashboard en vivo.</li>
+        </ol>
+        <p id="simulator-notice" class="simulator-notice" role="status" aria-live="polite">Puedes rechazar la llamada antes de contestar o cancelarla durante la conversación.</p>
+        <a class="dashboard-link" href="/gobierno">Abrir dashboard de resultados <span aria-hidden="true">→</span></a>
+        <p class="synthetic-note">No se realizan llamadas telefónicas ni se activa el micrófono. El guion y los números son de demostración.</p>
+      </aside>
+    </div>
+  </main>
+  <script src="/static/government-call-simulator.js?v=20261128-1" defer></script>
+</body>
+</html>

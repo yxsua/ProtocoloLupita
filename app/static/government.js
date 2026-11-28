@@ -111,14 +111,19 @@
 
     if (event.kind === "call.started") {
       latestCallId = event.call_id || "";
-      setCallState("En llamada", "active", "El servidor recibió una llamada al número de prueba.");
+      setCallState("En llamada", "active", "La sesión de llamada simulada está en curso.");
       byId("trace-caller").textContent = event.caller_masked || "No disponible";
       byId("trace-number").textContent = event.called_number_masked || "Número de prueba";
       byId("caller-note").textContent = "Identificador del llamante no verificado.";
       updateAttribution(event.attribution, event.agent);
       updateIndicators([]);
-      reportButton.disabled = false;
-      addTimelineItem({ time: event.occurred_at, label: "Llamada recibida", text: "El agente contestó y quedó asociada a una copia sembrada." });
+      reportButton.disabled = true;
+      addTimelineItem({
+        time: event.occurred_at,
+        label: "Llamada entrante contestada",
+        text: "La trampa ficticia quedó asociada a una copia sembrada.",
+        reply: event.agent_response || "Doña Lupita respondió la llamada.",
+      });
     } else if (event.kind === "call.partial") {
       addTimelineItem({ time: event.occurred_at, label: "Voz reconocida (provisional)", text: event.transcript || "", provisional: true });
     } else if (event.kind === "call.turn") {
@@ -128,7 +133,9 @@
       updateIndicators(event.indicators);
       addTimelineItem({
         time: event.occurred_at,
-        label: event.intent ? (intentNames[event.intent] || "Turno reconocido") : "Turno reconocido",
+        label: event.scenario_id
+          ? `${event.scenario_id} · Persona que llama`
+          : event.intent ? (intentNames[event.intent] || "Turno reconocido") : "Turno reconocido",
         text: event.transcript || "",
         reply: event.agent_response || "",
       });
@@ -137,9 +144,10 @@
       setCallState("Llamada terminada", "ended", `Duración: ${event.duration_seconds || 0} s · resultado de demostración.`);
       updateAttribution(event.attribution, "Doña Lupita");
       updateIndicators(event.indicators);
+      reportButton.disabled = false;
       addTimelineItem({ time: event.occurred_at, label: "Llamada finalizada", text: "El borrador puede prepararse para revisión." });
     } else if (event.kind === "call.capacity_rejected") {
-      addTimelineItem({ time: event.occurred_at, label: "Línea ocupada", text: "El límite del piloto es una llamada simultánea." });
+      addTimelineItem({ time: event.occurred_at, label: "Sesión ocupada", text: "Solo se permite una simulación activa a la vez." });
     }
   }
 

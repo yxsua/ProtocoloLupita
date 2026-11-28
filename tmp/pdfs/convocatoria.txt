@@ -1,0 +1,906 @@
+===== PÁGINA 1 =====
+La Secretaría de la Juventud y la Secretaría de Finanzas, por conducto de la 
+Dirección de Gobierno Digital e Innovación de la Subsecretaría de Tecnologías de la 
+Información, ambas del Poder Ejecutivo del Estado de Querétaro, con fundamento 
+en lo dispuesto por los artículos 19, fracciones II y XIV, 22 y 34 de la Ley Orgánica del 
+Poder Ejecutivo del Estado de Querétaro; 6, fracción II, 8, 9 y 10, fracciones I, IV, XIV y 
+XVI, de la Ley para el Desarrollo de los Jóvenes en el Estado de Querétaro; 2, 3, 7 y 8, 
+fracción I, del Reglamento Interior de la Secretaría de la Juventud; así como 3  
+fracción III inciso c, 71 fracción III, 83 y 84 fracciones VII y XIII del Reglamento Interior 
+de la Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro, emiten la 
+siguiente: 
+CONSIDERANDO 
+1.Que, el artículo 4 párrafo vigésimo segundo de la Constitución Política de los 
+Estados Unidos Mexicanos, así como el artículo 3 párrafo tercero de la 
+Constitución Política del Estado Libre y Soberano de Querétaro, establecen que, 
+el Estado promoverá el desarrollo integral de las personas jóvenes, a través de 
+políticas públicas con enfoque multidisciplinario, que propicien su inclusión en los 
+ámbitos político, social, económico y cultural del país. 
+2.Que, el artículo 6 de la Constitución Política de los Estados Unidos Mexicanos 
+señala que el Estado garantizará el derecho de acceso a las tecnologías de la 
+información y comunicación, así como a los servicios de radiodifusión y 
+telecomunicaciones, incluido el de banda ancha e internet, por lo que resulta 
+necesario promover que el uso de dichas tecnologías se realice en condiciones 
+que favorezcan la seguridad, la confianza y la protección de las personas 
+usuarias. 
+3.Que, de acuerdo con la Encuesta Nacional sobre Disponibilidad y Uso de 
+Tecnologías de la Información en los Hogares 2025, publicada por el Instituto 
+Nacional de Estadística y Geografía (INEGI), el 86.1% (ochenta y seis punto uno 
+por ciento) de la población de 06 (seis) años y más en México, utilizó internet 
+durante el año 2025 (dos mil veinticinco), lo que equivale a 104.9 (ciento cuatro 
+punto nueve) millones de personas, evidenciándose la presencia creciente de 
+las tecnologías digitales en las actividades cotidianas de la población. 
+4.Que, el incremento en el acceso y uso de internet, plataformas digitales, 
+dispositivos conectados y servicios tecnológicos plantea la necesidad de 
+fortalecer conocimientos, capacidades y mecanismos que permitan identificar, 
+prevenir, atender y mitigar riesgos, amenazas e incidentes relacionados con el 
+uso de las tecnologías de la información. 
+Página  de   1 23
+
+===== PÁGINA 2 =====
+5.Que, las juventudes representan un sector estratégico para el desarrollo social, 
+económico y cultural del Estado de Querétaro. De acuerdo con datos de la 
+Organización de las Naciones Unidas (ONU), las personas jóvenes comprenden 
+el 16% (dieciséis por ciento) de la población mundial, lo que reafirma su papel 
+fundamental en la construcción de sociedades sostenibles, innovadoras y 
+competitivas, así como en la implementación de políticas públicas que 
+promuevan su bienestar y participación activa en los sectores público y privado. 
+6.Que, el Plan Estatal de Desarrollo Querétaro 2021-2027, publicado en el Periódico 
+Oficial del Gobierno del Estado de Querétaro “La Sombra de Arteaga”, el 21 
+(veintiuno) de febrero de 2022 (dos mil veintidós), contiene como uno de sus Ejes 
+Rectores, el Eje Rector 3 denominado “Economía dinámica y prosperidad 
+familiar”, el cual, tiene como objeto propiciar condiciones, oportunidades y 
+apoyos para mantener el ritmo de crecimiento económico dinámico, sostenible, 
+equilibrado y equitativo que incremente la prosperidad de las familias 
+queretanas y estimule la competitividad de los sectores económicos. 
+7.Que, la Secretaría de la Juventud y la Secretaría de Finanzas a través de la 
+Dirección de Gobierno Digital e Innovación de la Subsecretaría de Tecnologías 
+de la Información, ambas del Poder Ejecutivo del Estado de Querétaro, en el 
+ámbito de sus respectivas atribuciones, buscan impulsar estrategias que 
+promuevan el desarrollo de competencias digitales, tecnológicas y creativas en 
+un entorno de aprendizaje colaborativo, a fin de fomentar la investigación, la 
+innovación y la participación de las juventudes queretanas en proyectos que 
+contribuyan a fortalecer la seguridad en los entornos digitales. 
+8.Que, el término hackathon surge de la combinación de las palabras “hacker”, 
+entendida en su acepción positiva como la persona que programa y desarrolla 
+soluciones mediante el pensamiento crítico, analítico y creativo; y “maratón”, en 
+alusión al trabajo continuo y colaborativo que caracteriza a este tipo de 
+eventos. Su finalidad es fomentar la innovación, el trabajo en equipo, la 
+experimentación y el desarrollo de prototipos tecnológicos que respondan de 
+forma práctica, eficiente y original a un reto o problemática. 
+9.Que, este tipo de ejercicios de innovación fortalecen la vinculación entre 
+instituciones públicas, el sector educativo, la iniciativa privada y la ciudadanía, 
+al propiciar el intercambio de conocimientos, la formación de redes 
+interdisciplinarias y el aprovechamiento del talento juvenil para la generación de 
+soluciones digitales que contribuyan al desarrollo tecnológico y social en el 
+estado de Querétaro. 
+Página  de   2 23
+
+===== PÁGINA 3 =====
+10.Que, el Poder Ejecutivo del Estado de Querétaro reconoce en las juventudes un 
+motor esencial para la innovación, la productividad y la competitividad, por lo 
+que, impulsa mecanismos que les permitan aplicar sus conocimientos, fortalecer 
+sus habilidades y desarrollar proyectos con impacto positivo, sustentable e 
+incluyente. Por lo anteriormente expuesto, se emite la presente. 
+CONVOCATORIA 
+“HACKATHON QUERÉTARO DIGITAL 2026” 
+BASES DE LA CONVOCATORIA: 
+1.OBJETIVO  
+Impulsar el talento y la colaboración de las personas jóvenes en el diseño de 
+estrategias de ciberseguridad que respondan a retos sociales e institucionales, 
+mediante la aplicación de conocimientos técnicos, metodologías de innovación 
+aplicada y trabajo interdisciplinario en un entorno intensivo de creación 
+tecnológica, a fin de desarrollar modelos, protocolos o soluciones en favor de una 
+transformación digital segura y responsable en el estado de Querétaro. 
+2.PERFIL DE LAS PERSONAS PARTICIPANTES 
+Podrán participar en la presente Convocatoria personas jóvenes que cumplan con 
+los siguientes criterios: 
+a.Tener entre 18 (dieciocho) y 29 (veintinueve) años de edad cumplidos al 
+momento de realizar su registro.  
+b.Contar con residencia comprobable en el estado de Querétaro. 
+c.Ser estudiante universitario inscrito en una institución educativa ubicada en el 
+estado de Querétaro.  
+d.Cumplir con los requisitos, condiciones y documentación establecidos en la 
+presente Convocatoria. 
+3.MODALIDAD DE PARTICIPACIÓN  
+La participación en la presente Convocatoria, denominada “HACKATHON 
+QUERÉTARO DIGITAL 2026” (en adelante, Convocatoria) se realizará en la modalidad 
+de equipos, integrados por 05 (cinco) personas, quienes deberán organizarse de 
+manera interdisciplinaria para articular conocimientos y habilidades relacionados 
+con la tecnología, la innovación, la ciberseguridad y el desarrollo de soluciones 
+digitales. 
+Para la integración de los equipos deberá atenderse lo siguiente: 
+Página  de   3 23
+
+===== PÁGINA 4 =====
+a.Contar con la participación de al menos 01 (una) persona estudiante 
+universitaria en cualquiera de las áreas STEM, por sus siglas en inglés, Science, 
+Technology, Engineering and Mathematics (Ciencia, Tecnología, Ingeniería o 
+Matemáticas). 
+b.Contar con la participación de al menos 01 (una) mujer.  
+c.Cada equipo deberá designar a 01 (una) persona líder, quien fungirá como su 
+representante y enlace ante las dependencias convocantes y la Instancia 
+Ejecutora y Responsable. La persona líder será responsable de realizar el 
+registro del equipo, integrar y presentar la información y documentación 
+requerida, así como dar seguimiento a las comunicaciones relacionadas con 
+su participación en la Convocatoria. 
+El incumplimiento de estas disposiciones será causa de improcedencia del registro. 
+La designación de la persona líder no exime a las demás personas integrantes del 
+equipo del cumplimiento de las obligaciones establecidas en la Convocatoria. 
+4.VIGENCIA  
+La Convocatoria entrará en vigor a partir de la fecha de su publicación en la 
+página oficial y/o redes sociales de la Secretaría de la Juventud del Poder Ejecutivo 
+del Estado de Querétaro (en adelante SEJUVE) y hasta el cabal cumplimiento de los 
+procedimientos administrativos inherentes a la Convocatoria. 
+5.ETAPAS DE LA CONVOCATORIA  
+El proceso de participación se desarrollará conforme a las siguientes etapas. Cada 
+una establece las acciones, plazos, requisitos y criterios que deberán ser cumplidos 
+por los equipos participantes: 
+PRIMERA ETAPA: REGISTRO 
+La persona designada como líder de cada equipo interesado en participar en la 
+Convocatoria, deberá realizar su registro de forma digital a partir de la fecha de la 
+publicación de la presente y hasta el día 22 (veintidós) de noviembre de 2026 (dos 
+mil veintiséis) a las 23:59 (veintitrés horas con cincuenta y nueve minutos) hora del 
+Centro de México, a través del siguiente formulario https://forms.gle/
+mPk3bRa2kSa3ytxL7 en lo sucesivo “FORMULARIO DE REGISTRO” y  adjuntar la 
+siguiente documentación de cada una de las personas integrantes del equipo, de 
+manera completa y legible, en formato PDF:  
+a.Credencial para votar vigente con domicilio en el estado de Querétaro de 
+cada persona integrante del equipo; 
+Página  de   4 23
+
+===== PÁGINA 5 =====
+b.CURP de cada persona integrante del equipo, que podrá consultar y 
+descargar en el siguiente enlace: https://www.gob.mx/curp/; 
+c.Comprobante de domicilio en el estado de Querétaro , de cada persona 
+integrante del equipo, con una antigüedad no mayor a 02 (dos) meses al 
+momento de registro en la Convocatoria; 
+d.Documento que acredite que se encuentra cursando estudios universitarios: 
+Constancia de inscripción, Kardex, o cualquier otro documento oficial idóneo, 
+expedido por una institución de educación universitaria pública o privada, a 
+nombre de cada persona integrante del equipo. 
+e.Carta de aceptación y designación de persona líder : Documento 
+denominado “Carta de aceptación y designación de persona líder” que 
+deberá  descargar  en: https://drive.google.com/drive/folders/
+1TPniH5xiOIPNH0y1SSzdKsWZYoj46Fhe?usp=sharing, debidamente llenada y 
+firmada por cada persona integrante del equipo. 
+f.Entregar la documentación e información adicional que, en su caso, sea 
+solicitada por la Instancia Ejecutora y Responsable, en los plazos, formatos y 
+medios establecidos. 
+En caso de detectarse registros duplicados correspondientes al mismo equipo, 
+únicamente se considerará el último registro recibido. 
+SEGUNDA ETAPA: SELECCIÓN DE EQUIPOS PARTICIPANTES 
+Concluido el plazo de registro establecido en la Primera Etapa: Registro, la Instancia 
+Ejecutora y Responsable, en coordinación con una persona designada por la 
+Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro, procederá a 
+revisar los registros recibidos y la documentación adjunta, con el propósito de 
+verificar el cumplimiento de los siguientes criterios de elegibilidad: 
+a.Que todas las personas integrantes del equipo se encuentren dentro del rango 
+de edad establecido en la Convocatoria; 
+b.Que todas las personas integrantes del equipo acrediten su residencia en el 
+estado de Querétaro; 
+c.Que el equipo esté integrado por 05 (cinco) personas; 
+d.Que el equipo haya designado a 01 (una) persona participante como líder; 
+e.Que el equipo cuente con la participación de al menos 01 (una) persona que 
+se encuentre cursando estudios universitarios en cualquiera de las áreas STEM, 
+correspondientes a Ciencia, Tecnología, Ingeniería o Matemáticas; 
+f.Que el equipo cuente con la participación de al menos 01 (una) mujer; 
+g.Que todas las personas integrantes del equipo acrediten encontrarse cursando 
+estudios universitarios, y       
+Página  de   5 23
+
+===== PÁGINA 6 =====
+h.Que la información y documentación requerida haya sido presentada en su 
+totalidad, de manera legible, vigente, así como en los formatos y dentro del 
+plazo establecido en la Convocatoria. 
+La Instancia Ejecutora y Responsable seleccionará hasta 20 (veinte) equipos q u e  
+cumplan con la totalidad de los criterios de elegibilidad, conforme al orden 
+cronológico en el que los mismos hayan completado su registro, tomando como 
+referencia la fecha y hora registradas en el “FORMULARIO DE REGISTRO”. 
+En caso de que se registren menos de 20 (veinte) equipos en la Convocatoria, 
+únicamente serán seleccionados aquellos que cumplan cabalmente con los 
+criterios de elegibilidad. 
+Posteriormente, la Instancia Ejecutora y Responsable informará al Comité Técnico de 
+Validación sobre los equipos seleccionados, a efecto de que dicho órgano 
+colegiado emita, en su caso, la validación correspondiente y, en consecuencia, los 
+equipos seleccionados y validados avancen a la Tercera Etapa: Desarrollo del 
+Hackathon. Una vez   validada la selección de los equipos, la Instancia Ejecutora y 
+Responsable notificará a las personas líderes de los mismos mediante el correo 
+electrónico registrado en el “FORMULARIO DE REGISTRO”, que participarán en la 
+Tercera Etapa: Desarrollo del Hackathon.  
+Para que la Convocatoria avance a la Tercera Etapa: Desarrollo del Hackathon, 
+deberá contar con un mínimo de 05 (cinco) equipos que cumplan con la totalidad 
+de los criterios de elegibilidad. En caso de no alcanzarse dicho número, la 
+Convocatoria podrá declararse desierta.  
+TERCERA ETAPA: DESARROLLO DEL HACKATHON 
+El desarrollo del Hackathon se llevará a cabo los días 27 (veintisiete) y 28 
+(veintiocho) de noviembre de 2026 (dos mil veintiséis) , en las instalaciones del 
+edificio denominado BLOQUE - Centro de Innovación y Tecnología Creativa , 
+ubicado en Calle Gral. Francisco Villa 1580, Carlos María de Bustamante, C.P. 76140, 
+Santiago de Querétaro, Querétaro.  
+La Instancia Ejecutora y Responsable notificará a la persona líder de cada equipo 
+seleccionado para participar en la presente etapa, mediante el correo electrónico 
+registrado en el “FORMULARIO DE REGISTRO”, los horarios en que deberán 
+presentarse, las condiciones de acceso a la sede e indicaciones operativas 
+aplicables al desarrollo del Hackathon. 
+Página  de   6 23
+
+===== PÁGINA 7 =====
+Esta etapa consistirá en una jornada presencial intensiva de trabajo, con una 
+duración aproximada de 24 (veinticuatro) horas, conforme a las necesidades 
+operativas. Durante la jornada, los equipos participantes deberán diseñar y 
+desarrollar un proyecto alineado con la temática: 
+“Estrategias de Ciberseguridad” 
+Los equipos participantes deberán disponer del equipo de cómputo, programas 
+informáticos, dispositivos y demás recursos técnicos necesarios para desarrollar sus 
+proyectos. El software, las herramientas, las bases de datos y cualquier otro recurso 
+utilizado deberán contar con las licencias, autorizaciones o condiciones de uso 
+correspondientes. 
+Las personas integrantes de los equipos deberán observar las instrucciones, reglas de 
+seguridad y lineamientos operativos emitidos por la Instancia Ejecutora y 
+Responsable, la SEJUVE, la Secretaría de Finanzas del Poder Ejecutivo del Estado de 
+Querétaro, la administración de la sede y el personal operativo autorizado. El 
+incumplimiento de estas disposiciones dará lugar a la aplicación de incidencias o en 
+su caso, la baja del equipo participante. 
+Durante el desarrollo del Hackathon, los equipos contarán con el acompañamiento 
+de personas mentoras, quienes podrán brindar orientación técnica y metodológica. 
+Las recomendaciones formuladas por dichas personas tendrán carácter consultivo y 
+no sustituirán el trabajo ni las decisiones del equipo. 
+Al cierre de la jornada, cada equipo participante presentará su proyecto ante el 
+“Jurado Calificador”, quien realizará una evaluación con la finalidad de identificar 
+los proyectos más destacados conforme a la rúbrica de evaluación señalada a 
+continuación, la cual está integrada por 06 (seis) criterios, que suman un máximo 
+total de 100 (cien) puntos posibles por rúbrica. Cada integrante del “Jurado 
+Calificador” realizará una rúbrica por cada equipo participante, y los puntajes 
+obtenidos en cada rúbrica serán sumados para determinar la calificación final por 
+equipo participante. 
+RÚBRICA DE EVALUACIÓN DE LA TERCERA ETAPA: DESARROLLO DEL HACKATHON 
+“HACKATHON QUERÉTARO DIGITAL 2026”
+Criterio Descripción de lo que se evaluará
+Rango 
+de 
+puntos
+Puntos 
+obtenidos
+Página  de   7 23
+
+===== PÁGINA 8 =====
+Funcionalidad y 
+grado de 
+desarrollo de la 
+propuesta
+Evalúa el nivel de desarrollo del proyecto; 
+consistencia  o  aplicabilidad  de  sus  
+componentes principales, así como la 
+evidencia presentada para demostrar que 
+cumple con el propósito para el cual fue 
+diseñado.
+0 - 20
+Solidez técnica 
+en materia de 
+ciberseguridad
+Evalúa la identificación de los riesgos y 
+escenarios de afectación; la fundamentación 
+técnica de la propuesta; la congruencia de la 
+arquitectura, metodología, modelo o 
+protocolo planteado, así como la pertinencia 
+de las medidas de seguridad incorporadas 
+para atender el problema identificado. 
+También considera la protección de la 
+información, de los datos personales, la 
+privacidad y/o el uso responsable de las 
+herramientas tecnológicas empleadas.
+0 - 25
+Innovación y 
+originalidad
+Evalúa la incorporación de enfoques, 
+procesos, herramientas o mecanismos 
+novedosos; la creatividad aplicada, así como 
+los elementos que distinguen al proyecto de 
+otras alternativas existentes.
+0 - 15
+Viabilidad 
+técnica y de 
+implementación
+Evalúa la factibilidad técnica, operativa y 
+económica del proyecto; la identificación de 
+los recursos necesarios; la claridad de su 
+proceso de implementación, así como su 
+capacidad de adaptación, continuidad o 
+escalabilidad.
+0 - 15
+Impacto 
+potencial y 
+pertinencia
+Evalúa la relevancia del problema social o 
+institucional identificado; la congruencia de la 
+propuesta  con  la  temática  de  la  
+Convocatoria; la identificación de las personas 
+usuarias o beneficiarias, así como los 
+beneficios potenciales que generaría para 
+fortalecer entornos digitales seguros y 
+responsables.
+0 - 15
+Presentación y 
+comunicación 
+del proyecto
+Evalúa la claridad, estructura y coherencia de 
+la exposición; el dominio técnico de la 
+propuesta; la capacidad del equipo para 
+explicar su funcionamiento, alcance, 
+limitaciones y resultados esperados, así como 
+la precisión de las respuestas proporcionadas 
+al “Jurado Calificador”.
+0 -10
+Página  de   8 23
+
+===== PÁGINA 9 =====
+Una vez concluida la evaluación, las personas integrantes del “Jurado Calificador” 
+entregarán a la Instancia Ejecutora y Responsable las rúbricas debidamente 
+llenadas y firmadas. La Instancia Ejecutora y Responsable realizará el cómputo de 
+los puntajes obtenidos y seleccionará a los 03 (tres) equipos con las calificaciones 
+más altas. 
+En caso de empate, ocupará la posición superior el equipo que haya obtenido la 
+puntuación acumulada más alta en el criterio denominado “Solidez técnica en 
+materia de ciberseguridad”. Si el empate subsiste, se considerará, sucesivamente, la 
+puntuación obtenida en los criterios “Funcionalidad y grado de desarrollo de la 
+propuesta” y  “Viabilidad técnica y de implementación”. De persistir el empate, el 
+“Jurado Calificador” determinará el resultado mediante deliberación y votación por 
+mayoría simple, dejando constancia de su decisión. 
+Posteriormente, la Instancia Ejecutora y Responsable remitirá los resultados al Comité 
+Técnico de Validación, a efecto de que dicho órgano colegiado emita, en su caso, 
+la validación correspondiente y en consecuencia, los 03 (tres) equipos 
+seleccionados por la Instancia Ejecutora y Responsable ocupen el primero, segundo 
+y tercer lugar, respectivamente. 
+Una vez emitida la validación correspondiente, la Instancia Ejecutora y Responsable 
+notificará mediante el correo electrónico registrado en el “FORMULARIO DE 
+REGISTRO” a las personas líderes de todos los equipos que hayan sido evaluados por 
+el “Jurado Calificador”, la fecha, horario y lugar en los que deberán presentarse 
+para la ceremonia de premiación. 
+CUARTA ETAPA: CEREMONIA DE PREMIACIÓN 
+La SEJUVE y la Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro, 
+llevarán a cabo una ceremonia de premiación, en la cual se darán a conocer 
+públicamente los nombres de los equipos que hayan obtenido el primero, segundo y 
+tercer lugar, respectivamente. 
+Todos los equipos participantes convocados deberán presentarse en la fecha, horario 
+y lugar señalados por la Instancia Ejecutora y Responsable, así como observar las 
+indicaciones operativas y de acceso que les sean comunicadas. 
+En caso de que alguno de los equipos ganadores no se presente a la ceremonia de 
+premiación, su inasistencia no implicará la pérdida del premio correspondiente. La 
+Instancia Ejecutora y Responsable notificará a la persona líder de dicho equipo, 
+TOTAL DE PUNTOS OBTENIDOS:
+Página  de   9 23
+
+===== PÁGINA 10 =====
+mediante el correo electrónico registrado en el “ FORMULARIO DE REGISTRO”, el 
+procedimiento, los requisitos y los plazos que deberá atender para continuar con las 
+gestiones administrativas relativas al otorgamiento del premio correspondiente. 
+6.PREMIACIÓN 
+Con el propósito de reconocer el esfuerzo, la creatividad y la capacidad de 
+innovación de los equipos seleccionados como ganadores del primer, segundo y 
+tercer lugar, serán acreedores a un premio económico, de conformidad con lo 
+descrito en la siguiente tabla: 
+Los premios económicos no serán transferibles, ni podrán ser sustituidos por dinero en 
+efectivo o por ningún otro tipo de compensación. 
+Cada premio será otorgado de manera colectiva al equipo ganador como una 
+sola unidad. En consecuencia, los montos señalados en la tabla corresponden al 
+equipo y no a cada una de sus personas integrantes. 
+El otorgamiento del monto económico se realizará mediante transferencia bancaria 
+a la cuenta proporcionada por la persona líder del equipo ganador, quien asumirá 
+total responsabilidad respecto de su recepción, resguardo y posterior distribución 
+con las personas que integran el equipo. La SEJUVE no será responsable, en ningún 
+caso, de la distribución interna, administración, uso o cualquier controversia, 
+conflicto o reclamación que pudiera derivarse entre las personas integrantes del 
+equipo con posterioridad a dicha entrega. 
+Para realizar la entrega del premio económico correspondiente, las personas líderes 
+de los equipos ganadores, contarán con un plazo no mayor a 02 (dos) días hábiles 
+posteriores a la fecha de la ceremonia de premiación, para presentarse en las 
+instalaciones de la SEJUVE ubicadas en Boulevard Bernardo Quintana, S/N, Colonia 
+Villas del Parque, C.P. 76140, Santiago de Querétaro, Querétaro, al interior del 
+Parque Querétaro 2000, en un horario de lunes a viernes de 09:00 a 16:00 horas, a 
+efecto realizar la entrega de la siguiente documentación: 
+Equipo ganador Cantidad del premio
+Primer lugar $125,000.00 (Ciento veinticinco mil pesos 00/100 M.N.)
+Segundo lugar $100,000.00 (Cien mil pesos 00/100 M.N.)
+Tercer lugar $75,000.00 (Setenta y cinco mil pesos 00/100 M.N.)
+Página  de   10 23
+
+===== PÁGINA 11 =====
+a.Constancia de Situación Fiscal actualizada, a nombre de la persona líder del 
+equipo ganador; 
+b.Comprobante de domicilio en el estado de Querétaro con antigüedad no 
+mayor a 02 (dos) meses al momento de su entrega; 
+c.Carátula de estado de cuenta  e m i t i d o  p o r  u n a  i n s t i t u c i ó n  b a n c a r i a  
+formalmente regulada por las autoridades competentes, que incluya la CLABE 
+interbancaria de 18 (dieciocho) dígitos, a nombre de la persona líder del 
+equipo ganador. No se aceptarán cuentas de entidades financieras no 
+bancarias, plataformas digitales. 
+Asimismo, deberá entregar un comprobante que acredite que la cuenta 
+bancaria proporcionada tiene capacidad para recibir el importe del premio 
+señalado en la Convocatoria. La cuenta proporcionada, no podrá ser 
+modificada o sustituida; 
+d.Recibo de pago proporcionado por la SEJUVE, debidamente llenado y firmado 
+por la persona líder del equipo ganador;  
+e.Carta compromiso de dispersión de recursos, proporcionada por la  SEJUVE 
+debidamente llenada y firmada por la persona líder del equipo ganador, en la 
+cual adquiere el compromiso de realizar la distribución equitativa del premio 
+económico entre todas las personas integrantes del equipo. 
+f.Documentación e información adicional que, en su caso, sea solicitada por la 
+Instancia Ejecutora y Responsable para realizar las gestiones administrativas 
+correspondientes. 
+La entrega de los premios económicos estará sujeta al cumplimiento de los requisitos 
+documentales y administrativos previstos en la Convocatoria, así como de aquellos 
+que resulten aplicables para efectuar la transferencia bancaria correspondiente. 
+7.CONSIDERACIONES GENERALES  
+a.La participación en la Convocatoria implica la aceptación expresa y plena de 
+las bases, requisitos, criterios y lineamientos establecidos, los cuales deberán 
+cumplirse en su totalidad durante todas las etapas del proceso. 
+b.En caso de incumplimiento de cualquiera de los requisitos, lineamientos o 
+condiciones previstas en la Convocatoria, así como, que el equipo 
+participante, incurra en omisiones, irregularidades o falsedades en la 
+documentación o información presentada, dará lugar a la aplicación de 
+incidencias o en su caso, baja del equipo. 
+c.El proyecto presentado deberá ser de autoría del equipo participante y 
+elaborado por el mismo durante el desarrollo del Hackathon. El plagio, 
+apropiación o presentación como propia de un proyecto ajeno, ya sea de 
+Página  de   11 23
+
+===== PÁGINA 12 =====
+manera total o parcial, dará lugar a la baja del equipo, sin perjuicio de las 
+demás responsabilidades que, en su caso, pudieran derivarse. 
+d.En caso de que una o más personas integrantes de un equipo participante 
+incurran en una conducta que, por su gravedad, afecte el desarrollo del 
+Hackathon, la integridad o seguridad de las personas participantes, o el 
+adecuado desarrollo de las actividades, se levantará la incidencia 
+correspondiente y, atendiendo a la gravedad de la conducta, podrá 
+determinarse la baja del equipo involucrado, de conformidad con las 
+disposiciones previstas en la Convocatoria. 
+e.Los equipos participantes liberan a la SEJUVE y/o la Secretaría de Finanzas del 
+Poder Ejecutivo del Estado de Querétaro y/o al Poder Ejecutivo del Estado de 
+Querétaro de cualquier responsabilidad, controversia, uso o destino de la 
+información, imágenes, videos, enlaces o documentación generada y/o 
+compartida para su participación en la Convocatoria. 
+f.El Comité Técnico de Validación podrá declarar desierta la Convocatoria 
+cuando no se cuente con el número mínimo de equipos que cumplan con la 
+totalidad de los criterios de elegibilidad en la Segunda Etapa: Selección de 
+Participantes. 
+g.Una vez que sean seleccionados los equipos ganadores, no procederá 
+inconformidad alguna, toda vez que la Convocatoria incluye etapas de 
+evaluación objetiva cuyos resultados son producto directo de las capacidades, 
+méritos y desempeño de los equipos participantes. 
+h.Las decisiones que emita la SEJUVE, la Secretaría de Finanzas del Poder 
+Ejecutivo del Estado de Querétaro, así como los órganos competentes en el 
+marco de la Convocatoria serán definitivas e inapelables. No procederá 
+recurso administrativo o legal en su contra. 
+i.Los plazos, formatos, rúbricas y mecanismos de participación podrán ser 
+ajustados por razones logísticas, técnicas o administrativas, conforme a lo 
+dispuesto por la Instancia Ejecutora y Responsable. 
+j.El Comité Técnico de Validación podrá modificar, suspender o cancelar total o 
+parcialmente la Convocatoria, sin que ello genere obligación de 
+compensación alguna a los equipos participantes. En su caso, los cambios 
+serán informados a través de los medios oficiales de comunicación designados 
+por la SEJUVE. 
+k.Los recursos humanos, materiales, financieros y administrativos destinados a la 
+Convocatoria estarán sujetos a la disponibilidad presupuestal y operativa de la 
+SEJUVE y de la Secretaría de Finanzas del Poder Ejecutivo del Estado de 
+Querétaro. 
+l.Toda situación no prevista en la Convocatoria será analizada por la Instancia 
+Ejecutora y Responsable y resuelta con la validación del Comité Técnico de 
+Validación, conforme a sus atribuciones establecidas. 
+Página  de   12 23
+
+===== PÁGINA 13 =====
+m.Cuando así se estime necesario, la Instancia Ejecutora y Responsable podrá 
+requerir a la persona líder de los equipos participantes la presentación en 
+original de los documentos cargados en el “FORMULARIO DE REGISTRO”. 
+n.Se podrá suspender o cancelar la entrega de los premios económicos 
+establecidos en la Convocatoria. 
+o.Las personas participantes de la Convocatoria, autorizan que la SEJUVE y/o la 
+Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro y/o el 
+Poder Ejecutivo del Estado de Querétaro, de manera gratuita pueda hacer uso 
+de su imagen y voz con fines informativos, publicitarios o promocionales de sus 
+programas, políticas, convocatorias, obras acciones, a través de la difusión en 
+las diversas plataformas de comunicación social y redes sociales, mediante 
+fotografías, videograbaciones o cualquier tipo de reproducción de imagen y 
+voz, a nivel nacional o en el extranjero. Con fundamento en los artículos 86, 87 y 
+88 de la Ley Federal de Derechos de Autor y con la limitante de los supuestos 
+previstos en el artículo 44 del Código Civil del Estado de Querétaro. 
+p.Las personas servidoras públicas y órganos participantes en la implementación 
+de la Convocatoria deberán garantizar el respeto, protección y ejercicio de los 
+derechos humanos de las personas participantes, conforme a los principios de 
+legalidad, igualdad sustantiva, no discriminación, dignidad humana y el 
+principio pro persona. 
+q.Las referencias realizadas en un solo género gramatical dentro de la 
+Convocatoria deberán interpretarse como aplicables a todas las personas 
+jóvenes, sin distinción alguna, en cumplimiento del principio de igualdad y no 
+discriminación, así como de lo dispuesto por el Código de Ética de los 
+Servidores Públicos del Poder Ejecutivo del Estado de Querétaro y sus Entidades 
+y, demás normatividad aplicable. 
+8.INCIDENCIAS  
+Cuando un equipo participante presente conductas, incumplimientos o situaciones 
+que alteren el desarrollo ordenado del Hackathon, la Instancia Ejecutora y 
+Responsable podrá levantarle una incidencia, a través del formato correspondiente, 
+en el que se harán constar los hechos, las circunstancias en que ocurrieron y las 
+medidas adoptadas para su atención. 
+Cuando la naturaleza de la incidencia lo amerite, el equipo participante podrá 
+realizar aclaraciones que estime pertinentes, las cuales, quedarán asentadas en el 
+formato de incidencia correspondiente. 
+La acumulación de 02 (dos) incidencias dará lugar a la baja del equipo 
+participante. 
+9.CAUSALES Y PROCEDIMIENTO DE BAJA 
+Página  de   13 23
+
+===== PÁGINA 14 =====
+Los equipos participantes de la Convocatoria podrán causar baja en cualquiera de 
+los siguientes supuestos: 
+a.Cuando el equipo participante proporcione información o documentación 
+falsa, alterada o cuando se detecten irregularidades en los datos o 
+documentos presentados durante cualquier etapa de la Convocatoria, sin 
+perjuicio de las acciones legales o administrativas a que haya lugar y, en su 
+caso, de la notificación a las autoridades competentes. 
+b.En caso de que no se presente la totalidad de personas integrantes del equipo 
+participante a la Tercera Etapa: Desarrollo del Hackathon.  
+c.En caso de que los proyectos desarrollados por los equipos participantes 
+contengan material ilícito, difamatorio, ofensivo, obsceno o que contravenga 
+las disposiciones legales aplicables. 
+d.En caso de que algún equipo manifieste su decisión de retirarse o abandone la 
+Tercera Etapa: Desarrollo del Hackathon antes de su conclusión.  
+e.Cuando el equipo participante acumule 02 (dos) o más incidencias.  
+f.Realizar las actividades que deriven de la Convocatoria bajo efectos de 
+alcohol, estupefacientes, psicotrópicos o cualquier sustancia que altere su 
+capacidad física o mental, así como portar armas de fuego, armas blancas, 
+objetos punzocortantes, sustancias ilícitas, bebidas alcohólicas, drogas, 
+vapeadores o cigarros electrónicos.  
+g.En caso de que cualquier persona integrante de un equipo participante 
+agreda, amenace o insulte de manera física, verbal o psicológica a otra 
+persona participante, al equipo operativo de la Convocatoria, personal 
+adscrito a la SEJUVE o a la Secretaría de Finanzas del Poder Ejecutivo del 
+Estado de Querétaro. 
+h.Incurrir en cualquier otro supuesto no previsto en la Convocatoria que motive la 
+cancelación de su participación. 
+La baja se llevará a cabo conforme al siguiente procedimiento:  
+a.La Instancia Ejecutora y Responsable y/o personal operativo de la 
+Convocatoria notificará a la persona líder del equipo sobre la causal de baja, 
+señalando los hechos que la motivan. 
+b.El equipo participante que cause baja deberá suspender su participación y 
+retirarse de manera inmediata de la Tercera Etapa: Desarrollo del Hackathon. 
+c.La Instancia Ejecutora y Responsable y/o personal operativo de la 
+Convocatoria documentará la baja del equipo, a través del formato 
+correspondiente, en donde se describan los hechos y el motivo de baja. 
+Página  de   14 23
+
+===== PÁGINA 15 =====
+d.La Instancia Ejecutora y Responsable informará al Comité Técnico de 
+Validación sobre las bajas realizadas durante la Tercera Etapa: Desarrollo del 
+Hackathon. 
+10.RESTRICCIONES DE PARTICIPACIÓN 
+No podrán participar en la Convocatoria: 
+a.Personas que no cumplan con los criterios de elegibilidad establecidos en la 
+Convocatoria. 
+b.Personas que formen parte del Comité Técnico de Validación, del “Jurado 
+Calificador”, personal adscrito a la SEJUVE y/o a la Secretaría de Finanzas del 
+Poder Ejecutivo del Estado de Querétaro.  
+11.DERECHOS DE LAS PERSONAS PARTICIPANTES 
+Las personas que integran los equipos participantes de la Convocatoria contarán 
+con los siguientes derechos:  
+a.Participar en condiciones de igualdad, sin discriminación y con acceso claro y 
+completo a la información sobre las bases de la Convocatoria. 
+b.Recibir un trato digno, respetuoso, incluyente y libre de cualquier tipo de 
+discriminación durante todas las etapas de la Convocatoria.  
+c.Ser evaluados de manera objetiva, imparcial y transparente, garantizando la 
+confidencialidad conforme a los criterios establecidos en la Convocatoria. 
+d.Que sus datos personales sean protegidos de conformidad con las 
+disposiciones aplicables en materia de protección de datos personales.  
+e.Presentar dudas, aclaraciones o inconformidades a través del canal de 
+comunicación establecido en la Convocatoria. 
+12.OBLIGACIONES DE LAS PERSONAS PARTICIPANTES 
+Las personas que integran los equipos participantes de la Convocatoria, tendrán las 
+siguientes obligaciones: 
+a.Cumplir con los requisitos, términos y condiciones establecidos en la 
+Convocatoria en cada una de sus etapas. 
+b.Presentar la documentación y materiales solicitados de manera completa, 
+correcta, veraz, legible y en los formatos establecidos. 
+c.Entregar la documentación e información adicional, que, en su caso, sea 
+solicitada por la Instancia Ejecutora y Responsable, y/o los demás órganos 
+competentes de la Convocatoria, en los plazos y formatos requeridos. 
+Página  de   15 23
+
+===== PÁGINA 16 =====
+d.Participar de manera responsable, coordinada y puntual en todas las etapas 
+del proceso. 
+e.Mantener actualizados sus datos de contacto para recibir comunicaciones 
+relacionadas con la Convocatoria. 
+f.Garantizar la originalidad y autoría propia de los proyectos presentados, 
+evitando cualquier tipo de plagio o falsificación. 
+g.En caso de resultar como equipo ganador, cumplir con las disposiciones 
+relativas a la entrega del premio económico, incluyendo la firma de la 
+documentación adicional cuando sea requerido. 
+h.Respetar la confidencialidad y el uso adecuado de la información 
+proporcionada durante el proceso. 
+i.Conducirse con respeto hacia las demás personas participantes, la Instancia 
+Ejecutora y Responsable y/o los demás órganos competentes de la 
+Convocatoria, evitando el uso de palabras altisonantes y faltas de respeto. 
+j.Hacer uso adecuado de las instalaciones, recursos y equipamiento 
+proporcionado para el desarrollo de las actividades vinculadas a la 
+Convocatoria. 
+k.Acatar las decisiones emitidas por la Instancia Ejecutora y Responsable, Comité 
+Técnico de Validación, “Jurado Calificador” y/o personal adscrito a la SEJUVE 
+y/o a la Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro, 
+conforme a lo previsto en las bases de la Convocatoria. 
+l.Queda prohibido realizar las actividades que deriven de la Convocatoria bajo 
+efectos de alcohol, estupefacientes, psicotrópicos o cualquier sustancia que 
+altere su capacidad física o mental, así como portar armas de fuego, armas 
+blancas, objetos punzocortantes, sustancias ilícitas, bebidas alcohólicas, 
+drogas, vapeadores o cigarros electrónicos. En caso de ser sorprendido, el 
+equipo causará baja de la Convocatoria y se dará aviso a las autoridades 
+competentes. 
+13.ÓRGANOS DE COORDINACIÓN, EVALUACIÓN, SEGUIMIENTO Y EJECUCIÓN DE 
+LA CONVOCATORIA 
+Con el propósito de garantizar la correcta implementación, seguimiento y ejecución 
+de la Convocatoria, así como la evaluación de los equipos participantes, se 
+establecen los siguientes órganos: 
+I.Instancia Ejecutora y Responsable:  
+Integración: La SEJUVE a través de la Unidad de Desarrollo Profesional y Laboral. 
+Facultades de la Instancia Ejecutora y Responsable: 
+Página  de   16 23
+
+===== PÁGINA 17 =====
+a.Coordinar la operación general de la Convocatoria. 
+b.Proponer modificaciones a la Convocatoria. 
+c.Elaborar y verificar el correcto funcionamiento del “FORMULARIO DE REGISTRO”. 
+d.Verificar que los equipos participantes cumplan con los criterios de elegibilidad 
+establecidos en la Convocatoria. 
+e.Ejecutar y dar seguimiento a las etapas de la Convocatoria, de conformidad 
+con lo establecido en este instrumento. 
+f.En la Segunda Etapa: Selección de equipos participantes, seleccionar a los 
+equipos participantes que cumplan con los criterios de elegibilidad previstos en 
+esta Convocatoria, en coordinación con la persona designada por la 
+Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro. 
+g.En la Tercera Etapa: Desarrollo del Hackathon, realizar el cómputo de los 
+puntajes obtenidos en las “Rúbricas de Evaluación de la Tercera Etapa: 
+Desarrollo del Hackathon, emitidas por el “Jurado Calificador” y seleccionar a 
+los 03 (tres) equipos que obtengan las calificaciones más altas. 
+h.Seleccionar a los equipos que participarán en las etapas que corresponda, de 
+acuerdo con lo previsto en esta Convocatoria. 
+i.Solicitar a los equipos participantes, la entrega de información o 
+documentación adicional, así como la aclaración, complementación o 
+subsanación de la información o documentación proporcionada para su 
+participación en la Convocatoria. 
+j.Informar al Comité Técnico de Validación los resultados de las etapas 
+correspondientes de la Convocatoria. 
+k.Informar al Comité Técnico de Validación cualquier situación que requiera su 
+validación. 
+l.Fungir como enlace operativo y de comunicación entre el Comité Técnico de 
+Validación, el “Jurado Calificador”, la Secretaría de Finanzas del Poder 
+Ejecutivo del Estado de Querétaro y las personas lideres de los equipos 
+participantes. 
+m.Registrar, organizar y conservar la documentación y los expedientes, tanto en 
+formato físico como digital, derivados del desarrollo de la Convocatoria. 
+n.Realizar la programación y ejecución de las actividades que deriven de la 
+Convocatoria.  
+o.Notificar a las personas líderes de los equipos participantes la programación de 
+las actividades que correspondan conforme a la Convocatoria. 
+p.Realizar las gestiones administrativas correspondientes ante la Unidad de 
+Apoyo Administrativo de la SEJUVE relacionadas con la ejecución de esta 
+Convocatoria, conforme a la normatividad aplicable. 
+q.Reservarse el derecho de otorgar información sobre el desarrollo del proceso 
+durante la vigencia de la Convocatoria. 
+Página  de   17 23
+
+===== PÁGINA 18 =====
+r.Proponer ajustes operativos o logísticos, así como la suspensión, aplazamiento 
+y/o reprogramación de actividades, cuando sea necesario para garantizar la 
+adecuada implementación de la Convocatoria. 
+s.Proponer la suspensión, aplazamiento, reprogramación o cancelación de la 
+entrega de los premios previstos en la Convocatoria. 
+t.Ejecutar las demás acciones necesarias que no estén expresamente previstas, 
+para el adecuado desarrollo de la Convocatoria. En estos casos, deberá 
+informar al Comité Técnico de Validación mediante escrito sobre las decisiones 
+y medidas adoptadas. 
+II.Comité Técnico de Validación: 
+Integración: El Comité Técnico de Validación se integrará por 03 (tres) personas 
+servidoras públicas adscritas a la SEJUVE, quienes contarán con derecho a voz y 
+voto. Su instauración se formalizará mediante el acta correspondiente, de 
+conformidad con lo siguiente: 
+a.Presidenta/e: L a  p e r s o n a  t i t u l a r  d e  l a SEJUVE o en su defecto, la persona 
+servidora pública que designe para tal efecto. 
+b.Secretaria/o: 01 (una) persona designada por la persona titular de la SEJUVE. 
+c.Vocal: 01 (una) persona designada por la persona titular de la SEJUVE. 
+Las personas integrantes del Comité Técnico de Validación podrán designar a una 
+persona suplente, de manera temporal o permanente, para efectos de 
+representación dentro del Comité Técnico de Validación, mediante oficio o correo 
+electrónico, quien deberá ser servidor público adscrito a la SEJUVE. 
+La participación de miembros adicionales del Comité Técnico de Validación, se 
+atenderá de conformidad con lo siguiente: 
+a.Invitada especial: En todas las sesiones del Comité Técnico de Validación 
+participará la Instancia Ejecutora y Responsable como invitada especial, 
+con derecho a voz y sin derecho a voto, quien tendrá la obligación de 
+presentar informes de su actuación en las sesiones que corresponda. 
+b.Invitados: Las personas integrantes del Comité Técnico de Validación 
+podrán convocar a personas ajenas a dicho órgano colegiado, para 
+participar en las sesiones, cuando su participación resulte pertinente para 
+el análisis de los asuntos a tratar. Las personas invitadas contarán con 
+derecho a voz y sin derecho a voto. 
+Facultades del Comité Técnico de Validación: 
+Página  de   18 23
+
+===== PÁGINA 19 =====
+a.Interpretar las bases y disposiciones de la Convocatoria, para efectos de su 
+aplicación. 
+b.Autorizar modificaciones a la Convocatoria. 
+c.Validar, cuando corresponda, la actuación de la Instancia Ejecutora y 
+Responsable durante el desarrollo de la Convocatoria. 
+d.Validar, cuando corresponda, a los equipos seleccionados por la Instancia 
+Ejecutora y Responsable, en las etapas correspondientes de la Convocatoria. 
+e.Validar, cuando resulte procedente a los equipos seleccionados como 
+ganadores de la Convocatoria. 
+f.Autorizar ajustes operativos o logísticos, así como la suspensión, aplazamiento y/
+o reprogramación de actividades, cuando sea necesario para garantizar la 
+adecuada implementación de la Convocatoria. 
+g.Tener conocimiento por escrito de las actuaciones de la Instancia Ejecutora y 
+Responsable para la correcta ejecución de la Convocatoria. 
+h.Resolver situaciones no previstas, excepciones o controversias que se presenten 
+durante la ejecución de la Convocatoria. 
+i.Emitir recomendaciones, ajustes y/o estrategias para mejorar la eficiencia, 
+impacto, organización, seguimiento y cierre de la Convocatoria. 
+j.Determinar acciones correctivas ante incumplimientos en la ejecución de la 
+Convocatoria. 
+k.Autorizar la suspensión y/o aplazamiento y/o cancelación en la entrega de los 
+premios descritos en la Convocatoria. 
+l.Recomendar ajustes y estrategias para mejorar la eficiencia y el impacto de la 
+Convocatoria.  
+m.Registrar en actas los acuerdos tomados durante sus sesiones y dar seguimiento 
+a su cumplimiento. 
+n.Reservarse el derecho de emitir su validación respecto a las solicitudes o 
+actuaciones de la Instancia Ejecutora y Responsable, señalado los motivos que 
+sustenten dicha determinación y, en su caso, determinar las acciones que 
+deberá realizar dicha Instancia. 
+o.Reservarse el derecho de otorgar información sobre el desarrollo del proceso 
+durante la vigencia de la Convocatoria. 
+p.Sus decisiones y acuerdos serán definitivos e inapelables dentro del ámbito de 
+sus competencias, incluyendo todas las acciones necesarias para el 
+cumplimiento de la Convocatoria. 
+q.Ejecutar las demás acciones necesarias que no estén expresamente previstas, 
+para el adecuado desarrollo de la Convocatoria. 
+Sesiones del Comité Técnico de Validación: 
+Página  de   19 23
+
+===== PÁGINA 20 =====
+a.Solicitud de sesión: Cualquier persona integrante del Comité Técnico de 
+Validación, así como la Instancia Ejecutora y Responsable podrá solicitar por 
+oficio o correo electrónico a la/el Presidenta/e del mismo que se convoque a 
+una sesión, señalando los puntos a incorporar en el orden del día. 
+b.Convocatoria y modalidad:  L a s  s e s i o n e s  s e r á n  c o n v o c a d a s  p o r  l a / e l  
+Presidenta/e o su suplente, y la convocatoria a la sesión deberá incluir: día, 
+hora, modalidad y orden del día a tratar. Las sesiones podrán realizarse en la 
+modalidad presencial o virtual, de acuerdo con las necesidades operativas de 
+la Convocatoria y se podrá convocar a sesionar en días y horas inhábiles. 
+c.Quórum y votación: El quórum legal para sesionar será con la asistencia mínima 
+del 50% (cincuenta por ciento) más 01 (uno) de las personas integrantes. Cada 
+integrante tendrá derecho a voz y voto, en caso de empate, la/el Presidenta/e 
+ejercerá el voto de calidad. 
+d.Registro y seguimiento: En cada sesión se levantará y firmará un acta en la que 
+se estipulen los acuerdos adoptados. El Secretario/a será responsable de 
+elaborar, dar seguimiento a los acuerdos adoptados y resguardar las actas 
+correspondientes. 
+e.Periodicidad: El Comité Técnico de Validación sesionará de manera ordinaria al 
+menos 02 (dos) veces, la primera para su instauración y la segunda para la 
+conclusión o cierre de la Convocatoria, asimismo, podrá sesionar de manera 
+extraordinaria cuando resulte necesario. 
+III.“Jurado Calificador”: 
+Integración: El “Jurado Calificador” de la Convocatoria estará conformado por 04 
+(cuatro) personas, de conformidad con lo siguiente: 
+▪ 01 (una) persona adscrita a la SEJUVE, designada por la persona titular de la 
+misma. 
+▪ 01 (una) persona designada por la Secretaría de Finanzas del Poder Ejecutivo 
+del Estado de Querétaro. 
+▪ 01 (una) persona perteneciente al sector académico, invitada por la Instancia 
+Ejecutora y Responsable. 
+▪ 01 (una) persona con experiencia en ciberseguridad, invitada por la Instancia 
+Ejecutora y Responsable. 
+Las personas integrantes del “Jurado Calificador” podrán designar a una persona 
+suplente, de manera temporal o permanente, para efectos de representación 
+dentro del “Jurado Calificador”, mediante oficio o correo electrónico. 
+Facultades del “Jurado Calificador”: 
+Página  de   20 23
+
+===== PÁGINA 21 =====
+a.Evaluar a los equipos que participen en la Tercera Etapa: Desarrollo del 
+Hackathon, conforme a la rúbrica de evaluación correspondiente.  
+b.Realizar las evaluaciones de manera imparcial y objetiva en apego a los 
+criterios establecidos en la Convocatoria. 
+c.Entregar las rúbricas de evaluación a la Instancia Ejecutora y Responsable, 
+debidamente llenadas, firmadas y dentro del plazo que le sea señalado. 
+d.Guardar confidencialidad respecto a la información, documentación y 
+resultados del proceso de evaluación. 
+e.Actuar en todo momento con responsabilidad, objetividad, transparencia y 
+compromiso ético. 
+f.Solicitar documentación adicional o aclaraciones a través de la Instancia 
+Ejecutora y Responsable, cuando sea necesario para la evaluación. 
+g.Sus decisiones serán definitivas e inapelables en el ámbito de su competencia. 
+14.CANAL DE COMUNICACIÓN 
+Para efectos de atención, seguimiento y resolución de dudas, aclaraciones o 
+inconformidades relacionadas con la Convocatoria, se designa como medio oficial 
+de comunicación el correo electrónico dpyl.sejuve@gmail.com.  
+Los equipos participantes autorizan expresamente para oír y recibir todo tipo de 
+notificaciones relacionadas con esta Convocatoria, el correo electrónico 
+proporcionado en el “FORMULARIO DE REGISTRO” considerándose como válidas y 
+plenamente eficaces las comunicaciones efectuadas a dicha dirección 
+electrónica. 
+15.PROTECCIÓN DE DATOS PERSONALES 
+Los datos personales y datos personales sensibles recabados durante la ejecución 
+de la Convocatoria, serán tratados, de acuerdo a lo establecido por los artículos 1, 
+7, 15 y 22 de la Ley General de Protección de Datos Personales en Posesión de 
+Sujetos Obligados; 1, 7, 15, 16, 59 y 61 de la Ley de Protección de Datos Personales 
+en Posesión de Sujetos Obligados del Estado de Querétaro, en relación con la Ley 
+General de Transparencia y Acceso a la Información Pública y la Ley de 
+Transparencia y Acceso a la Información Pública del Estado de Querétaro. 
+16.AVISO DE PRIVACIDAD  
+La SEJUVE y la Secretaría de Finanzas del Poder Ejecutivo del Estado de Querétaro 
+son las dependencias responsables del tratamiento de los datos personales y en su 
+caso, datos personales sensibles, que las personas proporcionen de manera 
+voluntaria en el marco de la Convocatoria, como parte del proceso de registro y 
+participación. 
+Página  de   21 23
+
+===== PÁGINA 22 =====
+Los datos personales y en su caso, los datos personales sensibles, serán recabados y 
+utilizados para verificar el cumplimiento de los requisitos y criterios establecidos en la 
+Convocatoria; determinar la procedencia de la participación; comunicar resultados 
+y dar seguimiento a las distintas etapas de la Convocatoria; en su caso, otorgar el 
+premio de la Convocatoria; compartir información sobre los programas, obras y 
+acciones que lleve a cabo la SEJUVE y/o Secretaría de Finanzas del Poder Ejecutivo 
+del Estado de Querétaro y/o el Poder Ejecutivo del Estado de Querétaro, difundir a 
+través de medios institucionales y/o redes sociales oficiales, los nombres e imágenes 
+de las personas que integran los equipos participantes y/o equipos ganadores; con 
+fines de transparencia y promoción de la Convocatoria; y elaborar reportes 
+estadísticos, indicadores, evaluaciones internas y análisis sobre el impacto de la 
+misma, alineados a la normatividad aplicable. 
+Asimismo, los datos personales y en su caso, los datos personales sensibles serán 
+integrados en las bases de datos personales de la SEJUVE y podrán ser transmitidos a 
+otros entes públicos de los 03 (tres) niveles de gobierno, en el ejercicio de facultades 
+propias, compatibles o análogas, así como a personas físicas o morales que 
+intervengan en el desarrollo de la Convocatoria. Por lo tanto, se garantiza que su 
+tratamiento se realizará conforme a lo dispuesto en la normativa aplicable en 
+materia de protección de datos personales, transparencia y acceso a la 
+información pública. 
+Las personas titulares de los datos personales y datos personales sensibles podrán 
+ejercer sus derechos de Acceso, Rectificación, Cancelación u Oposición (ARCO) 
+directamente ante la SEJUVE, en el domicilio ubicado en Boulevard Bernardo 
+Quintana, S/N, Colonia Villas del Parque, C.P. 76140, Santiago de Querétaro, 
+Querétaro, al interior del Parque Querétaro 2000. 
+Asimismo, podrán ejercer dichos derechos ante la Unidad de Transparencia del 
+Poder Ejecutivo del Estado de Querétaro, ubicada en Calle 5 de Mayo, Esq. Luis 
+Pasteur S/N, Colonia Centro Histórico, C.P. 76000, Santiago de Querétaro, Querétaro, 
+o mediante la Plataforma Nacional de Transparencia en la dirección electrónica 
+http://www.plataformadetransparencia.org.mx 
+El Aviso de Privacidad Integral se encuentra disponible en la página web oficial de la 
+SEJUVE.  
+17.CONTACTO, UBICACIÓN, QUEJAS Y DENUNCIAS 
+Las quejas y denuncias relacionadas con la ejecución de esta Convocatoria podrán 
+presentarse personalmente en la SEJUVE, ubicada en Boulevard Bernardo Quintana, 
+Página  de   22 23
+
+===== PÁGINA 23 =====
+S/N, Colonia Villas del Parque, C.P. 76140, Santiago de Querétaro, Querétaro, al 
+interior del Parque Querétaro 2000, en horario de lunes a viernes de 09:00 a 17:00 
+horas. También podrán recibirse mediante el correo electrónico: 
+dpyl.sejuve@gmail.com. 
+Para cualquier consulta o trámite relacionado con la presente Convocatoria, la  
+SEJUVE se encuentra a disposición en las instalaciones mencionadas. 
+18.PUBLICIDAD Y DIFUSIÓN DE LA CONVOCATORIA 
+En términos del artículo 134 de la Constitución Política de los Estados Unidos 
+Mexicanos; 1 y 11 de la Ley General de Comunicación Social, la difusión en medios 
+impresos y propaganda que bajo cualquier modalidad de comunicación social se 
+realice en relación con la Convocatoria, deberá contener la siguiente leyenda: 
+“Este programa es público, ajeno a cualquier partido político. Queda prohibido el 
+uso para fines distintos a los establecidos en el programa” 
+  
+Se derogan todas las disposiciones de igual o menor jerarquía que se opongan a la 
+Convocatoria. 
+Dada a conocer en la Ciudad de Santiago de Querétaro, Querétaro, el 02 (dos) de 
+octubre del año 2026 (dos mil veintiséis). 
+LCDA. VIRGINIA HERNÁNDEZ VÁZQUEZ 
+SECRETARIA DE LA JUVENTUD 
+PODER EJECUTIVO DEL ESTADO DE QUERÉTARO 
+Página  de   23 23

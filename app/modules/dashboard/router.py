@@ -5,12 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal, Optional
 
-from fastapi import APIRouter, FastAPI, Query, Request
+from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.modules.dashboard.schemas import DashboardFilters, DashboardResponse
 from app.modules.dashboard.service import get_dashboard
+from app.modules.government.auth import require_government_user
 
 
 APP_DIR = Path(__file__).resolve().parents[2]
@@ -48,8 +49,9 @@ def api_dashboard(
     status: Optional[str] = Query(default=None),
     confidence: Optional[str] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=500),
+    _: str = Depends(require_government_user),
 ) -> DashboardResponse:
-    """Devuelve datos filtrados de atribuciones y campañas para el tablero."""
+    """Devuelve datos internos filtrados de atribución y campañas al gobierno."""
     filters = DashboardFilters(
         channel=channel,
         seed_period=seed_period,

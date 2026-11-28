@@ -1,87 +1,100 @@
-# Plan 6 — Plataforma ciudadana y consola privada de gobierno
+# Plan 6 — Plataforma ciudadana y consola privada de Gobierno
 
-**Prioridad:** siguiente implementación · **Base:** planes 1, 3 y 4 · **Modalidad:** solo local y datos sintéticos
+**Estado:** alcance actualizado el 28 de noviembre de 2026
+**Prioridad:** cierre de integración y preparación de demo
+**Modalidad:** ejecución local, datos sintéticos, sin servicios externos
 
-## Objetivo
+## Objetivo y alcance vigente
 
-Separar la plataforma en dos secciones con permisos y propósitos distintos. La sección pública ofrece orientación y recepción segura de reportes ciudadanos. La sección privada de gobierno concentra los dashboards con resultados de llamadas trampa, atribución, seguimiento y evidencia. La demo muestra la llamada simulada en un celular desde la experiencia pública y los resultados detallados en la consola privada de la laptop. No hay telecomunicaciones reales, datos reales ni envío a autoridades.
+La plataforma tiene dos secciones con límites de acceso distintos:
 
-## Estado actual frente al objetivo
+- **Ciudadanía — pública:** orientación preventiva, análisis de SMS sospechosos, recepción de reportes saneados y resultados agregados aprobados.
+- **Gobierno — privada:** simulación de llamadas por escenarios precargados, dashboard en vivo, historial de reportes, métricas, atribución, campañas y evidencia sintética.
 
-| Área | Ya existe | Brecha para esta demo |
+La simulación de llamada vive exclusivamente en Gobierno. Un escenario recorre una llamada entrante, su contestación y la conversación completa. El sistema genera las voces de quien llama y de Doña Lupita; la transcripción aparece en el simulador y en el dashboard. No se permite enviar mensajes libres al personaje ni se depende del micrófono. El operador puede rechazar la llamada entrante o cancelar la sesión activa.
+
+Todo número, cuenta, persona, ubicación, llamada, mensaje y atribución de la demostración es ficticio. No se originan llamadas/SMS reales ni se envían reportes a terceros. El reporte institucional es una salida de demostración y debe quedar rotulado como tal.
+
+## Estado actual frente al alcance
+
+| Área | Estado | Evidencia o brecha |
 |---|---|---|
-| Simulador de voz | `/voice/`, inicio/proceso/colgar; motor conversacional con intención, extracción de CLABE, respuestas de audio; captura de micrófono en el navegador y modo texto. | El acceso de audio en celular por IP local requiere validar permisos/contexto seguro. Hace falta guion totalmente determinista para que el recorrido no dependa de Whisper/Ollama ni del micrófono. |
-| Sesión de llamada | Se crea `session_id` y mantiene un `VoiceService` en memoria. | No hay API de lectura de la sesión para un segundo cliente; al colgar se elimina la sesión. Aún faltan eventos de sesión durables y su vínculo con inteligencia/evidencia. |
-| Tablero | `/dashboard` y `/api/dashboard` muestran atribuciones, campañas, mapa y datos de módulos/fixtures. | No es un monitor de turnos en vivo ni está ligado a la llamada abierta. |
-| Atribución | Siembra local sintética; atribución estricta por `trap_id` receptor. | Conectar la trampa elegida para la sesión de voz a la consulta y mostrar origen solo como dato secundario no confiable. |
-| Inteligencia/evidencia | Hay extracción, campañas, paquetes de autoridad simulados y una cadena de hashes local. | Integrar cada turno saneado de voz, el estado de la llamada y las referencias de evidencia en una vista coherente; el paquete existente no es todavía un expediente descargable de esa llamada. |
-| Acceso | El portal ciudadano y las vistas internas están implementados como módulos. | No se encontró modelo de autenticación ni separación de permisos. Rutas como `/dashboard`, `/planting`, `/api/planting/*` y rutas de inteligencia deben protegerse o migrarse antes de mostrarlas por la LAN. |
-| Operación | README inicia Uvicorn en `127.0.0.1`, válido para la laptop. | Para el celular hace falta exponer temporalmente el servidor a la LAN, mostrar URL/QR y revisar conectividad/firewall. No exponerlo a internet. |
+| Sección pública | Implementada | Portada, portal ciudadano, análisis SMS y avisos/mapa agregados. Los datos personales se saneen antes de guardar. |
+| Sección privada | Implementada | Gobierno usa credenciales locales; simulator, escenarios, dashboard e historial de reportes están dentro del área protegida. |
+| Simulación de llamada | Implementada | Escenarios de voz precargados ejecutan ambos parlamentos con voz del navegador. Hay controles para contestar, rechazar y cancelar. No se usa telefonía real, micrófono ni mensajes libres. |
+| Transcripción en vivo | Implementada | Los turnos saneados se publican al simulador y al dashboard por eventos locales/SSE. La sesión y el bus de eventos dependen de memoria. |
+| Inteligencia y atribución | Implementada | Siembra sintética, atribución por receptor, extracción/validación de indicadores, campañas, confianza y cadena de hashes. |
+| Historial y métricas | Implementado | La sección de reportes gubernamentales consulta registros guardados y presenta métricas/gráficas. La persistencia no conserva el estado completo de la sesión de voz para reconstruirla después de reiniciar. |
+| SMS y portal | Implementados | Análisis con fixtures, reglas de clasificación, dominios y reportes ciudadanos saneados. No hay recepción real de SMS. |
+| Contenedorización | Implementada | Dockerfile y Compose con almacenamiento persistente local; imagen construida y configuración revisada en la iteración de contenedorización. |
+| Ensayo y evidencia de demo | Pendiente de verificación | Falta registrar un recorrido integral de dos pantallas, latencia observada y resultados medidos de los escenarios; no se debe inventar una tasa de éxito. |
+| Artefactos de presentación | Pendiente | Preparar diapositivas, guion de pitch y video de respaldo de la demo, si aún no existen fuera del repositorio. |
 
-Hay marcadores de conflicto Git sin resolver en `app/main.py`; resolver e integrar el arranque y los routers es la fase cero, antes de montar permisos o publicar la aplicación en la LAN. La interfaz de micrófono y el motor de conversación ya son una base útil. La prioridad es separación de acceso + sesión compartida + ingestión de eventos + monitor; pulir voz natural viene después.
+La revisión anterior de este plan proponía el simulador en Ciudadanía, micrófono/texto libre, un QR de sesión móvil y rutas de polling aún inexistentes. Esos puntos quedan **obsoletos** frente al alcance vigente. La arquitectura de dos secciones se conserva, pero tanto la simulación como sus resultados son privados de Gobierno.
 
-## Dos secciones y límites de acceso
+## Límites de acceso y datos
 
-| Sección | Ruta de entrada propuesta | Contenido permitido | Contenido excluido |
-|---|---|---|---|
-| **Pública — Ciudadanía** | `/ciudadania` (puede conservar `/citizen` como alias) | Alertas preventivas redactadas, recomendaciones, consulta de mensajes/indicadores en lenguaje claro, reporte ciudadano saneado, mapa y conteos agregados que superen el umbral. Simulador telefónico de la demo en un modo de sesión acotado. | Mapeo trampa↔copia/proveedor, IDs internos de eventos, transcripción detallada de llamadas trampa, origen reportado, hashes de evidencia, expedientes institucionales, gestión de semillas. |
-| **Privada — Gobierno** | `/gobierno` | Autenticación local de demo; dashboard de llamadas trampa en vivo e histórico; número trampa receptor, copia/proveedor atribuidos, transcripción saneada, indicadores enmascarados, campañas/confianza, cadena de evidencia y expediente sintético. Herramientas de siembra solo para rol autorizado. | Datos personales ciudadanos en claro, audio crudo, transmisión real a autoridades o llamadas reales. |
-
-- Proteger en el servidor cada vista y endpoint, no solo ocultar enlaces del menú. En prototipo local, usar una cuenta/rol de demo con cookie de sesión y middleware/dependencia de autorización; rotular el acceso como simulado. No dejar dashboards privados accesibles por conocer la URL.
-- El reporte ciudadano sigue siendo público y anónimo; sanear antes de persistir. La sesión del simulador en el celular recibe una credencial aleatoria de alcance limitado a esa llamada, sin acceso a endpoints privados ni a otras sesiones.
-- Separar la API en `/api/public/*` y `/api/gobierno/*`. Durante la migración, mapear cada endpoint actual y retirar o proteger rutas antiguas abiertas que entreguen atribuciones o paquetes internos.
-- Las vistas públicas y sus respuestas API deben usar allowlist de campos. Aplicar el umbral de publicación en backend y comprobar que ningún campo interno pueda filtrarse accidentalmente.
-
-## Experiencia de demostración
-
-1. El funcionario abre la sección privada `/gobierno`, inicia sesión con la cuenta local de demo e inicia una corrida ficticia (proveedor/copia sembrada, número trampa receptor, origen simulado, municipio y guion del atacante). La consola crea un código/URL/QR de participación de un solo uso.
-2. El jurado abre en el celular la sección pública, entra al simulador de llamada y ve nombre/identificador ficticio, temporizador, controles de llamada y modo de entrada (guion, texto o audio disponible). La credencial del QR habilita solo esa llamada.
-3. El jurado u operador reproduce/dice el guion de atacante. Cada turno se procesa por el servicio existente; Doña Lupita responde con el audio preparado o voz local y el texto de respaldo.
-4. En el dashboard privado de la laptop el monitor se actualiza automáticamente: estado y duración, transcripción saneada por turno, datos ficticios observados y enmascarados, número trampa receptor, copia/proveedor atribuidos, confianza, campaña y referencias/hash de evidencia. Debe distinguir “pendiente”, “indicio”, “corroborado” y “sin verificar”. La pantalla pública no recibe esos datos internos.
-5. Al terminar se conserva la sesión y se genera un expediente sintético imprimible y descargable (HTML/JSON; PDF vía imprimir del navegador si no requiere dependencia adicional), con cronología, indicadores enmascarados, atribución, hashes y limitaciones. Mostrar siempre “SIMULADO — sin validez oficial”.
-
-## Contrato y diseño técnico propuestos
-
-- Conservar las rutas actuales de voz y agregar lectura de sesión activa/finalizada y expediente, por ejemplo `/voice/sessions/{session_id}` y `/voice/sessions/{session_id}/report`.
-- Mantener el payload de sesión tipado y versionable: `session_id`, estado, inicio/fin, duración, canal, `trap_id` receptor, origen ficticio, `scenario_id`, turnos visibles, indicadores enmascarados, atribución, `campaign_id`, confianza y `evidence_refs`.
-- Agregar eventos incrementales por turno con `event_id`, `occurred_at`, `speaker`, texto saneado, intención, indicadores y estado de análisis. No guardar audio. Conservar localmente hasta el reinicio de demo solo la transcripción saneada (marcadores para teléfonos/cuentas y datos personales), necesaria para reconstruir el expediente; el botón de reinicio elimina sesiones y eventos de la corrida.
-- Para el primer corte, el monitor consulta el endpoint cada 1–2 segundos. El endpoint devuelve el snapshot más reciente y `last_event_id` para actualizar sin duplicados. SSE/WebSocket queda como alternativa si el polling no logra la latencia objetivo.
-- Aplicar autorización de gobierno a todas las vistas y APIs privadas mediante una dependencia centralizada. Las APIs ciudadanas exponen solo esquemas públicos dedicados; no serializar directamente `DashboardResponse`, `SeedCopyRecord` o `EventResult`.
-- El QR de participación usa un token aleatorio, revocable y de vida limitada; solo autoriza iniciar/continuar la sesión concreta, sin acceso a datos de atribución ni a la API del dashboard.
-- No guardar el estado en un diccionario del router como fuente única: persistir eventos y resumen en SQLite/local store existente, conservando recuperación tras recarga y fin de llamada. El motor de voz puede permanecer en memoria mientras está activa.
-- Usar `attribute(trap_id)` para resolver copia. No inferir atribución a partir del Caller ID; el número origen va marcado como sintético y no verificado.
-- Enviar a `IntelEngine.process_event` únicamente entrada saneada y metadatos sintéticos. Reutilizar cadena de evidencia y `build_authority_package`; adaptar la salida a un artefacto local imprimible/descargable sin añadir transmisión a servicios externos.
-- Seguridad de demo: modo LAN se habilita explícitamente; la UI y todo expediente marcan los datos como ficticios. No exponer formularios de texto libre para PII real. Aplicar límite de tamaño/tasa a audio y texto.
-- Audio: priorizar micrófono móvil solo después de confirmar soporte de `getUserMedia` desde la IP LAN. Si el navegador lo bloquea, usar guion/texto con reproducción de voz pregrabada/TTS local. Esta alternativa debe mantener intacto el recorrido del monitor.
-
-## Secuencia de implementación
-
-| Fase | Trabajo | Resultado revisable |
+| Sección | Permitido | Excluido |
 |---|---|---|
-| 0. Arranque (0.5–1 h) | Resolver conflicto de `app/main.py`; integrar routers y acordar prefijos y dueño de autenticación. | Aplicación inicia con rutas registradas sin conflicto. |
-| 1. Secciones y permisos (1–3 h) | Crear entradas `/ciudadania` y `/gobierno`, sesión/rol de demo y dependencias backend; clasificar y proteger rutas existentes. | Ciudadanía ve solo contenido permitido; acceso privado redirige o responde 401/403 sin sesión de gobierno. |
-| 2. Contratos y estado (1–3 h) | Definir `CallSession`, `CallTurnEvent`, campos sintéticos, reglas de saneamiento y un fixture de demo único; guardar eventos y conservar sesión al colgar. | Sesión persistida y trazable a E01. |
-| 3. Simulador público y LAN (2–4 h) | Adaptar vista móvil, entrada de guion/texto, voz grabada opcional y QR/token de un solo uso ligado a la sesión. | Celular completa llamada ficticia sin poder abrir endpoints privados. |
-| 4. Dashboard privado en vivo (2–4 h) | Crear `/gobierno/llamadas/{session_id}`, polling incremental, atribución y análisis con protección de autenticación. | Cada turno aparece en ≤2 s solo en consola autenticada. |
-| 5. Inteligencia y expediente (2–4 h) | Conectar evento saneado a intel/evidencia y habilitar descarga/impresión de expediente privado simulado. | Expediente coincide con sesión y muestra referencias verificables. |
-| 6. Ensayo y robustez (1–2 h) | Probar permisos, red LAN, reconexión, latencia, fallback sin micrófono/modelos y reinicio de demo. | Guion de jurado repetible y plan B comprobado. |
+| **Ciudadanía — pública** | Orientación, análisis de mensajes sospechosos, reporte saneado, avisos generales y agregados con umbral aplicado en backend. | Simulador, transcripción de llamadas trampa, `trap_id`, copia/proveedor atribuidos, datos de origen, campaña interna, hashes y expedientes gubernamentales. |
+| **Gobierno — privada** | Ejecutar escenarios, ver transcripción saneada en vivo, atribución, indicadores enmascarados, campañas, dashboard, historial y reportes de demostración. | PII ciudadana en claro, audio crudo, llamadas reales, identificación real de personas y transmisión a autoridades. |
 
-Las fases 2–5 son el núcleo. El micrófono en vivo, Piper/Whisper y PDF generado por biblioteca son mejoras sujetas al tiempo; el guion, texto, reproducción existente, monitor y expediente local forman la ruta obligatoria.
+- Mantener autenticación del lado del servidor en las vistas y APIs de Gobierno; validar también las rutas antiguas que puedan exponer información interna.
+- Las respuestas públicas usan campos permitidos explícitamente y agregación/supresión aplicada en backend.
+- Las llamadas y conversaciones usan únicamente el guion sintético del escenario seleccionado. No introducir datos de jurados o usuarios reales.
+- El reporte debe advertir: **“SIMULADO — sin validez oficial”**. No añadir controles para enviar el reporte a una autoridad, banco u operadora.
+- En la demo de dos dispositivos, ambos abren la sección privada con las credenciales locales. No se requiere QR público ni token ciudadano para operar la llamada.
+
+## Recorrido de demostración
+
+1. En la laptop, el operador inicia la aplicación local y abre `/gobierno`.
+2. En el simulador privado `/gobierno/simulador`, selecciona un escenario sintético y pulsa iniciar.
+3. La interfaz muestra llamada entrante, identidad ficticia y controles de contestar/rechazar. Al contestar, reproduce por turnos las voces del atacante y de Doña Lupita.
+4. El simulador y el dashboard gubernamental muestran la misma transcripción saneada, junto con indicadores enmascarados, estado/confianza, atribución por número receptor y referencias de evidencia disponibles.
+5. El operador puede cancelar la llamada durante la conversación. El sistema la marca como terminada y libera la sesión para iniciar otro escenario.
+6. El operador consulta el evento en reportes guardados y métricas. El reporte es sintético y no se envía a terceros.
+7. Desde la sección pública se demuestra por separado el análisis de un SMS de ejemplo y/o el reporte ciudadano saneado, sin exponer información de las llamadas trampa.
+
+## Siguiente implementación
+
+### Prioridad 0 — Cerrar la demo repetible
+
+| Trabajo | Resultado revisable |
+|---|---|
+| Verificar permisos de Gobierno en vistas y APIs, incluida la lectura de atribución, voz, inteligencia, dashboard y reportes. Corregir cualquier endpoint interno que siga abierto. | Matriz de rutas privadas comprobada sin sesión y con credenciales. |
+| Recorrer contestar, rechazar, cancelar durante la conversación, terminar y volver a iniciar. Revisar también el error al fallar un turno del escenario. | La sesión siempre queda cerrada y no aparece un conflicto 409 al repetir la demo. |
+| Ejecutar el catálogo de escenarios y conservar resultados esperados/obtenidos. Confirmar que todos los IDs E01–E14 están cargados, aunque compartan archivos JSON. | Resumen reproducible de cobertura y resultados, sin cifras inventadas. |
+| Ensayar la vista en laptop y celular dentro de la LAN, con síntesis de voz disponible y sin micrófono/modelos externos. | Guion cronometrado, controles legibles y plan de respaldo probado. |
+
+### Prioridad 1 — Hacer el historial de llamadas completo
+
+| Trabajo | Resultado revisable |
+|---|---|
+| Persistir metadatos y turnos ya saneados de la llamada, vinculados a un `session_id`/`event_id`; no guardar audio ni texto crudo. | Una llamada terminada sigue consultable después de recargar o reiniciar el servidor. |
+| Hacer que el reporte guardado incluya la cronología, escenario, duración, número trampa ficticio, atribución, indicadores enmascarados, estado/confianza y hashes disponibles. | El detalle del reporte coincide con los eventos mostrados en vivo y está rotulado como simulado. |
+| Asegurar estados de finalización coherentes para rechazada, cancelada y completada; liberar cualquier candado de llamada aunque ocurra una excepción. | No quedan sesiones activas huérfanas ni se bloquean ejecuciones siguientes. |
+
+### Prioridad 2 — Métricas, experiencia y entrega
+
+| Trabajo | Resultado revisable |
+|---|---|
+| Afinar el dashboard histórico para separar llamadas, análisis SMS y reportes ciudadanos; asegurar que los filtros y gráficas indiquen periodo y fuente. | Métricas entendibles y trazables a registros almacenados. |
+| Medir la cobertura de atribución, extracción de CLABE y clasificación SMS con los escenarios sintéticos. | Indicadores calculados desde las ejecuciones; no estimaciones. |
+| Preparar pitch de tres minutos y grabar video local de respaldo. | Demo ensayada y reproducible si el equipo falla el día del evento. |
 
 ## Criterios de aceptación
 
-- Una laptop y un celular en la misma LAN completan la demo sin números reales ni acceso a servicios externos.
-- La ciudadanía puede abrir orientación y enviar un reporte sin cuenta; las respuestas públicas no incluyen copia/proveedor atribuidos ni datos de las llamadas trampa.
-- Un visitante sin sesión no puede abrir vistas privadas ni consultar sus APIs; el rol de gobierno autenticado sí accede al dashboard.
-- El operador inicia la llamada en la sección privada y el celular entra por QR/código de alcance limitado; ambas pantallas muestran el mismo ID de demo.
-- Una llamada guionizada produce al menos tres turnos de ida y vuelta; el detalle aparece en ≤2 segundos en el dashboard privado y no aparece en la sección pública.
-- Se ve con claridad qué número sintético recibió la llamada, qué copia/proveedor se atribuye por ese receptor, qué señales se extrajeron y qué evidencia se generó.
-- Al colgar, la sesión continúa consultable y el expediente imprimible/descargable coincide con sus eventos. El documento advierte que es una simulación sin validez oficial.
-- El recorrido completo funciona con micrófono/modelos desactivados; no se persiste audio ni PII del jurado/operador.
-- Un ciudadano no autenticado no puede obtener detalle de siembra, eventos, transcripciones internas, hashes o paquetes de autoridad consultando directamente las rutas API.
-- La atribución y la confianza respetan los contratos existentes y ninguna pantalla etiqueta fraude como confirmado por un indicio aislado.
+- Ciudadanía puede usar orientación, análisis SMS y reporte saneado sin acceder a dashboards ni a resultados de llamadas trampa.
+- Gobierno exige autenticación tanto para las páginas privadas como para sus APIs.
+- Un escenario seleccionado recorre llamada entrante, contestación y conversación completa con dos voces generadas localmente.
+- La misma transcripción saneada se ve en el simulador y en el dashboard privado mientras avanza el escenario.
+- Rechazar una llamada evita iniciar la conversación; cancelar una llamada activa termina la sesión y permite comenzar otra.
+- Los escenarios funcionan sin micrófono, Whisper, Ollama, telefonía ni servicios remotos.
+- Al terminar, queda un reporte privado persistido, consistente con los eventos de la sesión y rotulado **“SIMULADO — sin validez oficial”**.
+- Los valores usados son sintéticos; no se guardan audio ni PII en claro y no hay envío a autoridades o terceros.
+- Las métricas de demo provienen de escenarios ejecutados y se acompañan de sus resultados esperados/obtenidos.
+- La demo local puede iniciarse mediante Docker Compose y conserva las bases de datos en el volumen configurado.
 
-## Fuera de alcance de esta iteración
+## Fuera de alcance
 
-Llamadas telefónicas/SMS reales, integración con operadoras, envío a fiscalías/autoridades, identificación real de personas, almacenamiento de audios de terceros, publicación de datos personales y despliegue público. El artefacto es una demostración local de trazabilidad, no un reporte oficial ni una prueba de cadena de custodia legal.
-
+Telefonía real, números reales, recepción real de SMS, integración con operadoras, grabación de audio de terceros, uso de datos personales reales, identificación real de responsables, envío de reportes a autoridades/empresas, despliegue público y afirmaciones de cadena de custodia legal.

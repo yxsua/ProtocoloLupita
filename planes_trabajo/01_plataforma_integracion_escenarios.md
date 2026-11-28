@@ -4,20 +4,20 @@
 
 ## Objetivo
 
-Entregar la aplicación local con dos secciones: **Ciudadanía pública** para orientación y reportes saneados, y **Gobierno privada** para los dashboards detallados de llamadas trampa, atribución y evidencia. La demo tendrá dos dispositivos coordinados: simulador desde la sección ciudadana en el celular y dashboard autenticado en la laptop. El expediente final será sintético. No habrá llamadas, mensajes ni reportes enviados a terceros reales.
+Entregar la aplicación local con dos secciones: **Ciudadanía pública** para orientación y reportes saneados, y **Gobierno privada** para los dashboards detallados de llamadas trampa, atribución y evidencia. La demo de llamada se ejecuta exclusivamente dentro de Gobierno; puede mostrarse en dos dispositivos autenticados en la red local. El expediente final será sintético. No habrá llamadas, mensajes ni reportes enviados a terceros reales.
 
 ## Arquitectura acordada
 
 - Monolito modular en Python con FastAPI; interfaz HTML/CSS/JavaScript sencilla.
 - SQLite para persistencia local. JSON para escenarios y datos de muestra. Sin dependencias de servicios remotos durante la demo.
 - Para el uso desde celular, el servidor se podrá enlazar a la interfaz de red local y anunciar una URL/QR de sesión; el acceso queda limitado a la LAN de demostración. Evitar exponer información real.
-- La pantalla móvil y el monitor compartirán un `session_id` local. El monitor consultará el estado/eventos de la sesión (polling como primera opción) y conservará el resultado tras colgar.
-- La conexión de audio desde navegador móvil depende de permisos y contexto seguro. El guion/texto debe completar el recorrido sin micrófono ni modelos; audio grabado o voz del navegador puede servir como alternativa.
+- Si la demostración usa dos dispositivos, la pantalla del simulador y el monitor autenticado compartirán un `session_id` local; la transcripción saneada debe aparecer en ambas vistas.
+- El simulador de escenarios precargados genera las voces de quien llama y de Doña Lupita en el navegador. El recorrido principal no depende del micrófono, reconocimiento de voz, modelos externos ni texto libre.
 - El reporte institucional se genera como artefacto local imprimible/descargable, claramente sintético; no incluye función para enviarlo a autoridades.
 - Separar rutas públicas (`/ciudadania`, `/api/public/*`) y privadas (`/gobierno`, `/api/gobierno/*`). Toda ruta privada requiere autenticación y autorización comprobadas en backend; la sección ciudadana solo recibe DTOs públicos con allowlist y agregación segura.
-- Para la demo, implementar un rol de gobierno local y una sesión de servidor; no es un sistema de identidad real. El QR del celular contiene un token de corta duración que solo habilita la sesión telefónica asignada.
+- Para la demo, usar las credenciales locales del panel de Gobierno y proteger en backend las páginas y APIs privadas. Es acceso de demostración, no identidad gubernamental real. El simulador no usa QR ni habilita acceso desde Ciudadanía.
 - Cada integrante es dueño de su módulo y de sus archivos; se integra mediante los contratos de este documento, no editando el módulo de otra persona.
-- Los fixtures, identidades, cuentas y atribuciones de demostración son sintéticos y se muestran como tales. El piloto usa un número de prueba real y recibe metadatos del proveedor; el identificador del llamante se rotula como no verificado y se enmascara.
+- Los fixtures, identidades, cuentas, llamadas y atribuciones de demostración son sintéticos y se muestran como tales. La integración con números reales o proveedores no forma parte del prototipo local.
 - Los modelos locales y archivos del mapa deben estar disponibles antes de desconectar internet.
 
 ## Contratos comunes — congelar en la primera hora
@@ -39,7 +39,7 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 - `app/core/scenario_runner.py`, `app/core/seed_data.py`
 - `app/templates/base.html`, `app/static/app.css`, `app/static/app.js`
 - Vistas y endpoints gubernamentales protegidos; SSE para enviar eventos de llamada a la pantalla de resultados.
-- Adaptador de llamada del proveedor y control de una sesión telefónica activa.
+- Control de una sesión de llamada simulada activa. La integración con un proveedor telefónico queda fuera de alcance.
 - `data/scenarios/*.json`, consolidando escenarios aportados por los demás
 - Integración de routers y dependencias entre módulos; no reescribir su lógica interna.
 
@@ -58,7 +58,7 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 
 ## Aceptación
 
-- Un comando inicia la app en laptop sin internet; el celular se conecta a la misma red local y abre el simulador sin números reales.
+- Docker Compose o el comando documentado inicia la app local; el celular puede conectarse a la misma LAN y abrir el simulador privado con credenciales de Gobierno, sin números reales.
 - El monitor de la laptop recibe los turnos de la llamada y muestra transcripción, atributos ficticios, atribución, indicadores, confianza y evidencia durante la sesión.
 - La sección pública permite orientación y reporte ciudadano sin revelar atribución interna; el dashboard de llamadas trampa requiere iniciar sesión como gobierno.
 - Consultar directamente APIs privadas sin sesión produce rechazo de autorización; APIs públicas devuelven solo datos aprobados para ciudadanía.

@@ -1,22 +1,19 @@
-# Plan 3 — Doña Lupita y llamada simulada en móvil
+# Plan 3 — Doña Lupita y llamada simulada local
 
 **Responsable:** Integrante 3 · **Duración:** 18 horas · **Rol:** conversación de llamada
 
 ## Objetivo
 
-Implementar una llamada enteramente simulada desde la sección pública Ciudadanía en un celular conectado a la misma red local que la laptop. La consola privada Gobierno, autenticada en la laptop, mostrará en tiempo real la transcripción saneada, los datos ficticios observados, la atribución de la trampa y el avance del análisis. La vista móvil solo participa en su llamada mediante un token acotado; no puede consultar los dashboards. No se llama ni se envían mensajes a números reales.
+El alcance vigente ubica el simulador enteramente dentro de la sección privada Gobierno. La ciudadanía pública no puede iniciar ni observar llamadas trampa. El operador ejecuta un escenario precargado como llamada entrante, contesta o rechaza y reproduce la conversación completa con voces locales del navegador; puede cancelar durante la llamada. La transcripción saneada se muestra en la simulación y en el dashboard gubernamental. No se llama ni se envían mensajes a números reales.
 
 ## Diseño acordado
 
-- Flujo local opcional de audio: micrófono del celular → Whisper local, si está disponible → transcripción → selector de intención cerrada → fragmento pregrabado; usar Piper solo para dígitos u otro contenido dinámico.
-- Modo de demostración garantizado sin modelos: guion de turnos prefijados y entrada de texto desde el celular, con opción de reproducir una grabación o usar síntesis de voz del navegador. La voz en vivo del micrófono es una mejora condicionada a permisos y soporte HTTPS del navegador en la red local.
-- Ollama es opcional para selección de intención dentro de una lista fija; no debe producir texto o instrucciones libres. Si su latencia o instalación pone en riesgo el flujo, usar reglas locales para seleccionar la misma lista.
-- Intenciones permitidas: asustarse, pedir repetición, preguntar cuenta de depósito, repetir dígitos, dar largas y despedirse.
-- Audio pregrabado mientras corre la transcripción/modelo para hacer tolerable la espera.
-- Límite de duración configurable y botón de finalizar. Ruta de respaldo textual disponible desde la interfaz.
+- Modo de demostración garantizado sin modelos: escenario de turnos prefijados y síntesis de voz del navegador para quien llama y Doña Lupita. Asignar voces distintas cuando el navegador lo permita. El micrófono y el reconocimiento local no forman parte del recorrido base.
+- El escenario controla el orden de los turnos y las respuestas; no se consulta un modelo conversacional ni se acepta entrada libre de atacante o de Doña Lupita.
+- La interfaz muestra los controles de llamada entrante: contestar, rechazar y cancelar la sesión activa. La llamada simulada se termina al completar el guion o al cancelarla.
 - Cada llamada usa una sesión e identificadores, número de origen, número trampa receptor, hora, duración, ubicación de filtración y demás metadatos íntegramente ficticios. La atribución se determina por la trampa receptora, nunca por el origen.
 - La sesión debe poder consultarse desde otro dispositivo durante la llamada y permanecer disponible al terminar para el reporte sintético. Publicar actualizaciones locales sin audio crudo; preferir polling sencillo cada 1–2 segundos salvo que la implementación existente justifique SSE/WebSocket.
-- La pantalla móvil vive bajo `/ciudadania/demo/llamada/{session_id}`; la pantalla de escritorio vive bajo `/gobierno/llamadas/{session_id}` y requiere sesión de gobierno. Ambas se enlazan con un código/URL local, pero el token móvil solo autoriza operar esa llamada.
+- El simulador está en `/gobierno/simulador` y el dashboard privado en `/gobierno`; las vistas y endpoints de llamada requieren autenticación de Gobierno. Si se muestran en dos dispositivos, ambos usan el acceso privado local.
 - El resultado final permite generar un expediente de demostración imprimible/descargable con cronología, datos sintéticos, indicadores enmascarados, atribución, nivel de confianza y hashes de evidencia. Rotularlo “SIMULADO — sin validez oficial”; no transmitirlo a autoridades.
 - La persona nunca revela datos reales, amenaza, insulta ni afirma ser autoridad. Usar ficha y cuentas ficticias.
 
@@ -30,7 +27,7 @@ Usar `.env.example` como referencia, asignar los valores reales en el entorno de
 - `app/modules/voice/` — política conversacional, extracción, fragmentos pregrabados y Piper.
 - `app/modules/voice/assets/` — fragmentos de audio, inventario y voces locales.
 - `app/templates/voice/`, `app/static/voice.js`.
-- Vista pública del simulador y vista privada de monitoreo coordinada desde `app/modules/dashboard/` o una vista dedicada; coordinar con Integrante 1 los prefijos y controles backend.
+- Vista privada del simulador y monitor en vivo de Gobierno, coordinados desde `app/modules/government/` y `app/modules/voice/`.
 - `app/modules/evidence/` y `app/modules/intel/` para persistir metadatos saneados, correlacionar indicadores y construir el expediente simulado.
 - Casos de llamada en `data/scenarios/` para E01–E08 (Integrante 1 los consolida).
 
@@ -44,8 +41,8 @@ Conservar `process_call(input) -> CallResult` con transcripción, intención sel
 |---|---|
 | 0–1 h | Congelar contrato de sesión, separar pantalla móvil y monitor; definir metadatos ficticios y el payload consultable en vivo. |
 | 1–3 h | Hacer fiable la llamada simulada en modo guion/texto, con sesión compartida, estado y finalización. |
-| 3–5 h | Habilitar acceso móvil en la LAN (dirección/QR, diseño adaptable, reconexión y sesión visible); comprobar permisos de micrófono. |
-| 5–8 h | Conectar captura/transcripción local opcional y audio de respuesta; incluir grabación/voz de navegador como alternativa. |
+| 3–5 h | Preparar acceso LAN autenticado de Gobierno desde el dispositivo secundario y comprobar diseño adaptable/reconexión. |
+| 5–8 h | Asegurar reproducción ordenada de los parlamentos y voces diferenciadas del escenario en el navegador. |
 | 8–11 h | Enviar turnos al monitor en vivo y a inteligencia; mostrar extracción, origen/trampa ficticios, atribución y estados sin afirmar certeza. |
 | 11–13 h | Crear expediente sintético imprimible/descargable con cronología y referencias/hash de evidencia. |
 | 13–15 h | Mantener validación de CLABE y protección ante prompt injection; asegurar que ningún audio o dato personal crudo se guarda. |
@@ -54,8 +51,8 @@ Conservar `process_call(input) -> CallResult` con transcripción, intención sel
 
 ## Aceptación
 
-- Se puede iniciar la sesión en la laptop y abrir el simulador en un celular por la red local; ambas pantallas muestran el mismo identificador.
-- El guion o modo texto ejecuta una demo completa sin depender de servicios remotos ni modelos; cuando el navegador lo permita, se simula voz atacante desde el celular.
+- Simulador y dashboard son exclusivos de Gobierno; cuando se muestran en dos dispositivos, ambos requieren autenticación local y muestran la misma sesión.
+- Un escenario precargado ejecuta una demo completa con las voces generadas en el navegador, sin mensajes libres, micrófono, servicios remotos ni modelos.
 - El monitor muestra cada turno en tiempo real o con retraso máximo objetivo de 2 segundos, además de atribución por receptor, indicadores enmascarados y estado de inteligencia.
 - El expediente generado es coherente con los eventos, marcado como sintético y no se envía a autoridad alguna.
 - E01 se puede demostrar con voz o modo de respaldo, y la cuenta sintética queda transcrita, validada y confirmada en voz.

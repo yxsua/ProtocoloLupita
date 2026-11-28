@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, FastAPI, Query, Request
+from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -19,6 +19,7 @@ from app.modules.planting.service import (
     get_seeded_copies,
     reseed_period,
 )
+from app.modules.government.auth import require_government_user
 
 
 APP_DIR = Path(__file__).resolve().parents[2]
@@ -58,13 +59,16 @@ def planting_page(request: Request, seed_period: Optional[str] = Query(default=N
 
 
 @router.get("/api/planting/copies", response_model=list[SeedCopyRecord])
-def api_list_copies(seed_period: Optional[str] = Query(default=None)) -> list[SeedCopyRecord]:
+def api_list_copies(
+    seed_period: Optional[str] = Query(default=None),
+    _: str = Depends(require_government_user),
+) -> list[SeedCopyRecord]:
     """Devuelve las copias sembradas (uso interno de Contraloría/tablero)."""
     return get_seeded_copies(seed_period=seed_period)
 
 
 @router.get("/api/planting/manifest")
-def api_manifest_hash() -> dict[str, object]:
+def api_manifest_hash(_: str = Depends(require_government_user)) -> dict[str, object]:
     """Publica el hash SHA-256 del manifiesto sin exponer el mapeo secreto."""
     return {
         "manifest_hash": get_seed_manifest_hash(),
@@ -73,7 +77,7 @@ def api_manifest_hash() -> dict[str, object]:
 
 
 @router.post("/api/planting/seed", response_model=SeedBatchSummary)
-def api_reseed(payload: ReseedRequest) -> SeedBatchSummary:
+def api_reseed(payload: ReseedRequest, _: str = Depends(require_government_user)) -> SeedBatchSummary:
     """Genera de forma determinista un lote sintético para un periodo."""
     return reseed_period(
         seed_period=payload.seed_period,
@@ -83,13 +87,16 @@ def api_reseed(payload: ReseedRequest) -> SeedBatchSummary:
 
 
 @router.get("/api/planting/attribute", response_model=AttributionResult)
-def api_attribute_query(trap_id: str = Query(default="")) -> AttributionResult:
+def api_attribute_query(
+    trap_id: str = Query(default=""),
+    _: str = Depends(require_government_user),
+) -> AttributionResult:
     """Atribuye una copia vía parámetro de consulta (soporta vacío seguro)."""
     return attribute(trap_id)
 
 
 @router.get("/api/planting/attribute/{trap_id:path}", response_model=AttributionResult)
-def api_attribute(trap_id: str) -> AttributionResult:
+def api_attribute(trap_id: str, _: str = Depends(require_government_user)) -> AttributionResult:
     """Atribuye una copia exclusivamente a partir del número trampa receptor."""
     return attribute(trap_id)
 

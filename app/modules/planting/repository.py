@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from app.core.config import DATA_DIR
 from app.modules.planting.generator import (
     DEFAULT_PERIOD,
     DEFAULT_SEED,
@@ -18,9 +19,8 @@ from app.modules.planting.generator import (
 from app.modules.planting.schemas import PersonaRecord, SeedBatchSummary, SeedCopyRecord
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_DB_PATH = REPO_ROOT / "data" / "protocolo_lupita.sqlite3"
-DEFAULT_FIXTURE_PATH = REPO_ROOT / "data" / "planting" / "seed_copies.json"
+DEFAULT_DB_PATH = DATA_DIR / "protocolo_lupita.sqlite3"
+DEFAULT_FIXTURE_PATH = DATA_DIR / "planting" / "seed_copies.json"
 
 
 def normalize_trap_id(raw_trap_id: Optional[str]) -> str:

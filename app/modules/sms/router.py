@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from datetime import datetime, timezone
+import uuid
 
 from fastapi import APIRouter, Body, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.core.db import record_government_report
 from app.modules.sms.dataset_classifier import get_default_dataset_classifier
 from app.modules.sms.service import analyze_sms, get_default_circular_store, load_sms_inbox
 
@@ -58,5 +61,23 @@ def analyze_sms_api(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
             "message_id": payload.get("message_id"),
             "municipality": payload.get("municipality"),
         }
+    )
+    record_government_report(
+        report_id=f"sms-{uuid.uuid4().hex[:12]}",
+        report_type="sms_analysis",
+        created_at=datetime.now(timezone.utc).isoformat(),
+        channel="sms",
+        status=("sospechoso" if result.is_suspicious else result.verification_status),
+        confidence=result.engine_confidence,
+        threat_category=result.scam_type if result.is_suspicious else None,
+        campaign_id=result.campaign_id,
+        municipality=payload.get("municipality"),
+        details={
+            "entity": result.impersonated_entity,
+            "signal_count": len(result.rule_signals),
+            "domain_count": len(result.indicators.domains),
+            "indicator_count": sum(len(values) for values in result.indicators.to_dict().values()),
+            "campaign_name": result.campaign_name,
+        },
     )
     return result.to_dict()

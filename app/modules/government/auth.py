@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import hmac
 import os
+from pathlib import Path
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from dotenv import load_dotenv
+
+from app.core.config import PROJECT_ROOT
+
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 _basic = HTTPBasic(auto_error=False)
 

@@ -35,6 +35,8 @@ button:disabled { opacity: .65; cursor: wait; }
 .site-nav { display: flex; flex-wrap: wrap; gap: .35rem; }
 .site-nav a { padding: .55rem .75rem; border-radius: 7px; font-weight: 700; text-decoration: none; }
 .site-nav a[aria-current="page"] { background: var(--brand-pale); color: var(--brand-dark); text-decoration: underline; }
+.site-nav .gov-access-link { border: 1px solid var(--brand); color: var(--brand-dark); }
+.site-nav .gov-access-link:hover { background: var(--brand-pale); }
 .public-main, .container { width: min(1120px, 92vw); margin: 2rem auto 4rem; }
 .public-footer { padding: 1.25rem max(5vw, 1.2rem); background: #eaf0eb; color: var(--muted); font-size: .9rem; }
 h1, h2, h3, p { margin-top: 0; }
@@ -52,6 +54,9 @@ p { max-width: 72ch; }
 .action-card b { color: var(--brand-dark); text-decoration: underline; text-underline-offset: .2em; }
 .steps-list { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; padding-left: 1.3rem; }
 .steps-list li { padding-left: .3rem; }
+.government-entry { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem 1rem; margin: 1.25rem 0; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.government-entry span { color: var(--muted); }
+.government-entry a { font-weight: 700; }
 .card { margin-bottom: 1rem; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 label { display: block; margin: .75rem 0 .25rem; font-weight: 700; }

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from typing import Any
+from datetime import datetime, timezone
 
+from app.core.db import record_government_report
 from app.modules.citizen.guided_route import build_guided_route
 from app.modules.citizen.map_adapter import MapPort, MunicipalMapAdapter
 from app.modules.citizen.rate_limit import RateLimiter
@@ -201,6 +203,24 @@ def submit_report(
         channel=sanitized.channel,
         verification_status=status,
         rate_limited=is_rate_limited,
+    )
+
+    record_government_report(
+        report_id=sanitized.report_id,
+        report_type="citizen_report",
+        created_at=sanitized.created_at or datetime.now(timezone.utc).isoformat(),
+        channel=sanitized.channel,
+        status=status,
+        confidence=capped_conf,
+        threat_category=rule_res.scam_type,
+        campaign_id=verdict.campaign_id,
+        municipality=sanitized.municipality,
+        details={
+            "entity": rule_res.impersonated_entity,
+            "rate_limited": is_rate_limited,
+            "indicator_count": sum(len(values) for values in sanitized.indicators.to_dict().values()),
+            "discarded_pii_count": len(sanitized.discarded_pii_fields) + len(sanitized.redacted_inline_pii),
+        },
     )
 
     return CitizenResponse(

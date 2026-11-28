@@ -19,7 +19,7 @@ Este plan corresponde a la **sección pública Ciudadanía** (`/ciudadania`, con
 - Límite de tasa para reportes repetidos y estado “sin verificar”; integrar agregados municipales con el mapa de Integrante 2.
 - Mantener una allowlist pública de respuesta: recomendación, estado general de campaña y conteos agregados sobre el umbral. Nunca devolver `copy_id`, proveedor/dataset sembrado, `trap_id`, transcripción de llamada trampa, hash de evidencia ni paquetes institucionales.
 - La vista y API pública de reporte no requieren cuenta, pero deben sanear PII antes de persistir. No reutilizar DTOs de dashboard o inteligencia interna directamente en respuestas públicas.
-- El modo de llamada del jurado será un simulador ficticio dentro de la sección pública, autorizado por un token aleatorio limitado a esa sesión; no permite consultar resultados del dashboard.
+- La llamada simulada y sus escenarios están fuera de la experiencia pública: se ejecutan desde `/gobierno/simulador` y requieren autenticación gubernamental. Ciudadanía conserva el análisis de SMS y el formulario de reportes saneados.
 
 ## Archivos bajo responsabilidad
 

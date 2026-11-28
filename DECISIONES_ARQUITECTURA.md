@@ -56,16 +56,16 @@ La ruta de voz acepta audio en el router del módulo; la función `process_call`
 - La plataforma se separa en **Ciudadanía pública** (`/ciudadania`, APIs `/api/public/*`) y **Gobierno privada** (`/gobierno`, APIs `/api/gobierno/*`). Ciudadanía recibe orientación, reporte saneado y agregados que cumplan el umbral; Gobierno ve dashboards detallados de llamadas trampa, atribución, eventos y evidencia.
 - Proteger rutas y APIs privadas en el servidor con sesión autenticada y rol autorizado. La ocultación de enlaces en HTML no es control de acceso. La demo usa una cuenta local simulada, claramente marcada como tal, sin representar identidad gubernamental real.
 - Las APIs públicas usan esquemas de respuesta separados con allowlist: nunca devuelven mapeo copia↔trampa, `copy_id`, proveedor/dataset, transcripciones de trampas, IDs internos o evidencia privada. Aplicar supresión de grupos pequeños del lado servidor.
-- El simulador móvil es una ruta pública de demostración con token aleatorio, revocable y limitado a una llamada; no entrega permisos de gobierno. Cada llamada sigue siendo ficticia.
-- Al migrar, proteger o retirar endpoints internos antiguos (`/dashboard`, `/planting`, `/api/planting/*`, `/api/intel/*` y similares) antes de enlazar la app a la LAN.
-- La pantalla `/voice/` representa una llamada ficticia operada desde el celular; un monitor separado muestra el análisis en vivo en la laptop. Los dos clientes comparten un `session_id`.
-- Priorizar polling local de una lectura de sesión cada 1–2 segundos. Solo cambiar a SSE/WebSocket si el volumen o la latencia medida lo exige.
-- La sesión conserva metadatos sintéticos (origen, trampa receptora, fechas/duración, escenario de filtración y datos observados) y eventos saneados después de colgar, para alimentar el expediente de demostración.
+- El simulador de teléfono vive dentro de la sección privada de Gobierno y comparte las credenciales locales del panel.
+- Los endpoints internos de dashboard, siembra, inteligencia y escenarios verifican credenciales de gobierno; las rutas públicas usan respuestas agregadas o saneadas.
+- La pantalla `/gobierno/simulador` representa una llamada entrante ficticia; el dashboard `/gobierno` muestra en vivo su conversación y resultados mediante el `session_id`.
+- La consola gubernamental recibe eventos por SSE. El bus conserva eventos saneados en memoria durante la ejecución actual y se reinicia con el servidor.
+- La sesión conserva metadatos sintéticos y eventos saneados después de colgar, para alimentar el borrador de demostración en esa ejecución.
 - Transcripciones y audio crudos no se incorporan a la cadena de evidencia. El contenido guardado debe limitarse a texto saneado, indicadores enmascarados/hash y metadatos de la llamada. Todos los teléfonos, cuentas, entidades y ubicaciones son sintéticos.
 - El expediente se genera localmente para imprimir/descargar, lleva la leyenda “SIMULADO — sin validez oficial” y no ofrece envío a autoridades.
 - La entrada de micrófono desde IP local puede no estar disponible en el navegador por la política de contexto seguro. El flujo de guion/texto debe poder demostrar el sistema completo; audio pregrabado o TTS del navegador son alternativas locales.
 
-La app actual no tiene autenticación ni autorización registradas y `app/main.py` contiene marcadores de conflicto Git. Resolver el arranque y establecer el límite de acceso son prerrequisitos para exponer la demo en la LAN.
+La autenticación del panel usa HTTP Basic con credenciales locales configuradas en `.env`. El router de telefonía real no se monta en `app.main`; el flujo activo es el simulador local.
 
 ## Decisiones abiertas, sin bloquear el esqueleto
 
@@ -74,34 +74,32 @@ La app actual no tiene autenticación ni autorización registradas y `app/main.p
 - Fuente del GeoJSON de municipios; empaquetar un archivo local y evitar mapas de teselas en línea.
 - Lista final de entidades/campos particulares de cada módulo. Se añaden en el módulo dueño; el núcleo solo guarda datos normalizados y no contenido crudo.
 - Si el equipo requiere un instalador portable además del comando `uv`; decidirlo tras iniciar la app en la laptop de demo.
-- Proveedor telefónico, disponibilidad y configuración del número de prueba, URL pública, certificado TLS y validación de firmas de webhook.
-- Método de acceso al panel gubernamental y cuenta de demostración; no debe compartir permisos con la vista ciudadana.
+- Configurar credenciales locales para HTTP Basic del panel gubernamental, sin incluir secretos en Git.
 - Voz del actor que interpretará al atacante, límites de retención y campos que aparecerán en vivo en el panel.
 
-## Integración inicial: llamada móvil y panel gubernamental
+## Modo actual: llamada simulada y panel de gobierno
 
-Este alcance complementa el prototipo actual. La demo se realizará desde un celular que llama al número de prueba. Una persona del equipo interpreta al atacante; el sistema contesta con el perfil de agente asociado al número receptor. El servidor admite una llamada simultánea.
+El operador abre `/gobierno/simulador` con sus credenciales locales. La pantalla imita una app de teléfono: muestra la llamada entrante ficticia, permite rechazarla o contestarla y luego operar el guion de la persona que llama con texto o voz del navegador. Doña Lupita procesa los turnos localmente; `/gobierno` muestra la misma transcripción saneada, indicadores enmascarados y atribución de una trampa sintética. La aplicación no inicia ni recibe llamadas telefónicas reales.
 
-- Mantener la experiencia ciudadana existente. Añadir un panel gubernamental en rutas y APIs protegidas, con una vista de resultados en vivo y una consola de escenarios cerrados.
-- El proveedor envía la llamada a un adaptador telefónico por webhook HTTPS. Para el piloto, Twilio hace el reconocimiento de voz con Gather y entrega el texto transcrito al servicio de voz; el servidor responde con clips pregrabados o voz dinámica acotada. Usar Media Streams/WSS y reconocimiento propio queda para la siguiente etapa.
-- Resolver la atribución por el número receptor: `número de prueba → trampa/copia sembrada → fuente y periodo → perfil de agente`. El identificador de origen se muestra como no verificado y no determina la atribución.
-- El panel gubernamental recibe eventos de inicio, turnos reconocidos, intenciones, indicadores, atribución y borrador de reporte. Usar Server-Sent Events (SSE) para actualizar la pantalla; no necesita un canal de control bidireccional.
-- La consola ejecuta únicamente escenarios JSON aprobados, sin chat libre. Usa el mismo orquestador y flujo de eventos que la llamada; cada resultado conserva `source_mode` (`telephony` o `scenario`) y `scenario_id` cuando aplique.
-- Separar los resultados de escenario de las llamadas del número de prueba. Toda alerta derivada de fixtures y todo reporte de la demo lleva una marca visible de “simulación” o “borrador”; no se envía automáticamente a una autoridad.
-- El flujo de llamada transforma audio a texto para procesarlo. No guardar audio completo ni transcripción íntegra por defecto; conservar metadatos mínimos, indicadores enmascarados y evidencia aprobada para la demostración.
-- Al alcanzar el límite de una llamada activa, rechazar una segunda llamada con un mensaje breve de ocupado. No agregar cola, balanceador ni escalamiento horizontal en esta etapa.
+- La interfaz pública y el portal ciudadano solo exponen recomendaciones, reportes saneados y agregados aprobados.
+- El dashboard privado muestra actividad de llamadas, escenarios, atribución por número trampa, indicadores, campañas y referencias de evidencia. Las rutas API privadas verifican credenciales en el servidor.
+- Solo se permite una sesión activa; se puede rechazar antes de contestar o cancelar la llamada durante la conversación. El simulador ignora cualquier número receptor enviado por el navegador y atribuye con la trampa ficticia predefinida. El identificador de origen también es sintético.
+- Los eventos se transmiten al panel por SSE. Se publican transcripción saneada, respuesta, intención, indicadores enmascarados y hash de evidencia; audio y transcripción íntegra no se envían a ese bus.
+- Los escenarios de llamada se ejecutan desde la consola privada y sus resultados se marcan como simulación, separados de los turnos del simulador.
+- El borrador descargable permanece local, dice que es una simulación y no se envía a una autoridad.
+- El router de Twilio permanece fuera de `app.main`; cualquier trabajo de telefonía es otro alcance y no forma parte de esta demo.
 
 ### Secuencia de demo propuesta
 
-1. Desde el celular, una persona llama al número de prueba e interpreta el guion de atacante.
-2. El perfil asignado al número responde con una voz natural y controlada.
-3. En el panel gubernamental se observan el estado de llamada, el texto reconocido de forma transitoria, la intención, indicadores enmascarados y la atribución a la copia sembrada.
+1. En la laptop, un operador autenticado abre el dashboard privado y el simulador.
+2. En `/gobierno/simulador`, el jurado ve la llamada entrante ficticia y la contesta.
+3. La persona que opera la demo interpreta el guion con texto o voz; Doña Lupita responde y ambas vistas muestran la transcripción saneada y el panel presenta intención, indicadores y atribución.
 4. El operador revisa el borrador de reporte, etiquetado como simulación; la autoridad receptora y cualquier envío real quedan fuera de esta demo.
 5. Desde la consola se ejecuta un escenario fijo para mostrar un resultado repetible, claramente separado de la llamada móvil.
 
-### Escalamiento posterior
+### Fuera del alcance actual
 
-El piloto documenta como siguiente paso habilitar más números y perfiles, varias llamadas concurrentes, almacenamiento compartido de sesiones, workers de voz separados y alta disponibilidad. Ninguno de esos elementos es requisito de la demo de una llamada.
+Integración con operadoras, llamadas reales, DID, webhook público, despliegue público y envío a autoridades no forman parte de la demo local simulada.
 
 ## Brechas que bloqueaban empezar y resolución
 
@@ -112,8 +110,7 @@ El piloto documenta como siguiente paso habilitar más números y perfiles, vari
 
 ## Pendientes que requieren confirmación del equipo
 
-1. Confirmar proveedor, número de prueba, webhook, webhook HTTPS público y acceso a credenciales antes de iniciar la integración.
-2. Confirmar que el servidor puede cargar los modelos de voz una vez y sostener una llamada; si no, definir un fallback de audio pregrabado.
-3. Definir autenticación mínima para el panel gubernamental y el acceso a la consola de escenarios.
-4. Acordar qué indicadores y metadatos se muestran en vivo, y el formato del borrador de reporte.
-5. Acordar si cada módulo se integrará mediante ramas o un checkout compartido. No editar en paralelo `app/main.py`, `app/core/schemas.py` ni `app/core/db.py`; Integrante 1 mantiene esos archivos.
+1. Confirmar qué clips o modelo de voz local se utilizarán; el modo texto debe permanecer disponible.
+2. Completar las credenciales locales del panel gubernamental antes de iniciar la demo.
+3. Acordar qué indicadores y metadatos sintéticos se muestran en vivo y el formato del borrador.
+4. Acordar si cada módulo se integrará mediante ramas o un checkout compartido. No editar en paralelo `app/main.py`, `app/core/schemas.py` ni `app/core/db.py`; Integrante 1 mantiene esos archivos.

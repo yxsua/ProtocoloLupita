@@ -7,11 +7,11 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from app.core.config import PROJECT_ROOT
-from app.core.db import list_scenario_results
+from app.core.db import get_government_report_analytics, list_government_reports, list_scenario_results, record_government_report
 from app.core.scenario_runner import list_scenarios, run_scenario
 from app.core.schemas import Channel
 from app.modules.government.auth import require_government_user
@@ -45,16 +45,53 @@ def government_page(request: Request, _: str = Depends(require_government_user))
     )
 
 
-@router.get("/gobierno/escenarios", response_class=HTMLResponse)
-def government_scenarios_page(
+@router.get("/gobierno/simulador", response_class=HTMLResponse)
+def government_simulator_page(
     request: Request,
     _: str = Depends(require_government_user),
 ) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
-        "government/scenarios.html",
-        {"title": "Simular escenarios · Panel gubernamental"},
+        "government/simulator.html",
+        {"title": "Simular llamada · Panel gubernamental"},
     )
+
+
+@router.get("/gobierno/escenarios", response_class=HTMLResponse)
+def government_scenarios_page(
+    request: Request,
+    _: str = Depends(require_government_user),
+) -> RedirectResponse:
+    return RedirectResponse(url="/gobierno/simulador", status_code=307)
+
+
+@router.get("/gobierno/reportes", response_class=HTMLResponse)
+def government_reports_page(
+    request: Request,
+    _: str = Depends(require_government_user),
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        "government/reports.html",
+        {"title": "Reportes y métricas · Panel gubernamental"},
+    )
+
+
+@router.get("/api/gobierno/reportes-resumen")
+def government_reports_summary(
+    days: int = 30,
+    _: str = Depends(require_government_user),
+) -> dict[str, Any]:
+    return get_government_report_analytics(days=days)
+
+
+@router.get("/api/gobierno/reportes-guardados")
+def government_saved_reports(
+    limit: int = 100,
+    offset: int = 0,
+    _: str = Depends(require_government_user),
+) -> dict[str, Any]:
+    return {"items": list_government_reports(limit=limit, offset=offset)}
 
 
 @router.get("/api/gobierno/snapshot")
@@ -164,6 +201,26 @@ def government_report_draft(
     event = latest_event_for_report(event_id)
     if event is None:
         raise HTTPException(status_code=404, detail="No hay un resultado reciente para preparar.")
+    if event.get("kind") != "call.ended":
+        raise HTTPException(status_code=409, detail="La simulación debe terminar antes de preparar el borrador.")
+    call_campaign = event.get("campaign") or {}
+    existing = next(
+        (row for row in list_government_reports(limit=200) if row["report_id"] == event_id),
+        None,
+    )
+    existing_details = (existing or {}).get("details") or {}
+    record_government_report(
+        report_id=event_id,
+        report_type="call",
+        created_at=str(event.get("occurred_at") or ""),
+        channel="llamada",
+        status=str(call_campaign.get("status") or "sin_verificar"),
+        confidence=float(call_campaign.get("confidence") or 0),
+        threat_category=call_campaign.get("threat_category"),
+        campaign_id=call_campaign.get("campaign_id"),
+        details={**existing_details, "draft_status": "borrador_exportado"},
+        synthetic=True,
+    )
     return {
         "report_version": "demo-1",
         "status": "borrador_no_enviado",

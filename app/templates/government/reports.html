@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Historial privado y métricas de reportes de llamadas, SMS y ciudadanía.">
+  <title>{{ title }}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/government.css">
+  <link rel="stylesheet" href="/static/government-reports.css">
+</head>
+<body data-page="reports">
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <header class="gov-header">
+    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
+      <span class="gov-brand-name">Protocolo Lupita</span>
+      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
+    </a>
+    <nav class="gov-nav" aria-label="Navegación del panel">
+      <a href="/gobierno">Llamada en vivo</a>
+      <a href="/gobierno/simulador">Simular llamada</a>
+      <a href="/gobierno/reportes" aria-current="page">Reportes y métricas</a>
+      <a href="/">Vista ciudadana</a>
+    </nav>
+  </header>
+
+  <main id="main-content" class="gov-main reports-main">
+    <div class="gov-title-row reports-title-row">
+      <div>
+        <h1>Reportes y métricas</h1>
+        <p class="intro-copy">Consulta los análisis recientes y la actividad acumulada de llamadas simuladas, SMS y reportes ciudadanos.</p>
+      </div>
+      <label class="period-filter" for="period-select">Periodo
+        <select id="period-select">
+          <option value="7">Últimos 7 días</option>
+          <option value="30" selected>Últimos 30 días</option>
+          <option value="90">Últimos 90 días</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="reports-status" class="connection-status" role="status" aria-live="polite">Cargando reportes guardados…</div>
+
+    <section class="report-metrics" aria-label="Indicadores del periodo">
+      <article class="metric-block"><span class="metric-value" id="metric-total">—</span><span class="metric-label">Registros analizados</span></article>
+      <article class="metric-block"><span class="metric-value" id="metric-suspicious">—</span><span class="metric-label">Con señales de riesgo</span></article>
+      <article class="metric-block"><span class="metric-value" id="metric-campaigns">—</span><span class="metric-label">Campañas identificadas</span></article>
+      <article class="metric-block"><span class="metric-value" id="metric-drafts">—</span><span class="metric-label">Borradores exportados</span></article>
+    </section>
+
+    <section class="reports-charts" aria-label="Gráficas de actividad">
+      <article class="chart-panel trend-panel">
+        <div class="chart-heading"><div><h2>Actividad en el tiempo</h2><p>Registros recibidos por día</p></div><span id="trend-total" class="chart-total">—</span></div>
+        <div id="trend-chart" class="trend-chart" role="img" aria-label="Gráfica de actividad diaria"></div>
+      </article>
+      <article class="chart-panel type-panel">
+        <div class="chart-heading"><div><h2>Origen de los registros</h2><p>Distribución por canal</p></div></div>
+        <div id="type-chart" class="type-chart" role="img" aria-label="Distribución por tipo de registro"></div>
+        <div class="risk-summary"><span class="risk-dot" aria-hidden="true"></span><span id="risk-summary">Sin registros con señales en el periodo</span></div>
+      </article>
+    </section>
+
+    <section class="reports-table-section" aria-labelledby="recent-title">
+      <div class="table-heading"><div><h2 id="recent-title">Reportes recientes</h2><p>Historial local · hasta 50 registros más recientes</p></div><span id="recent-count" class="table-count">0 registros</span></div>
+      <div class="table-scroll">
+        <table class="reports-table">
+          <thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Municipio</th><th scope="col">Confianza</th><th scope="col">Origen</th></tr></thead>
+          <tbody id="reports-list"><tr><td colspan="6" class="table-empty">Cargando historial…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="gov-footnote">El historial se conserva en la base local del prototipo. Las llamadas son simuladas; los borradores se descargan para revisión y no se envían automáticamente a una autoridad.</p>
+  </main>
+  <script src="/static/government-reports.js" defer></script>
+</body>
+</html>
