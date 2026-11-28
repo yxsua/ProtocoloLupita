@@ -1,4 +1,4 @@
-"""Servicio de lectura y agregación del tablero de Mosca Estéril.
+"""Servicio de lectura y agregación del tablero de Protocolo Lupita.
 
 Consume atribuciones desde ``planting`` y lee eventos, indicadores y campañas
 desde el motor de inteligencia (Plan 4) sin recalcular ni promover niveles de

@@ -19,7 +19,7 @@ from app.modules.planting.schemas import PersonaRecord, SeedBatchSummary, SeedCo
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_DB_PATH = REPO_ROOT / "data" / "mosca_esteril.db"
+DEFAULT_DB_PATH = REPO_ROOT / "data" / "protocolo_lupita.sqlite3"
 DEFAULT_FIXTURE_PATH = REPO_ROOT / "data" / "planting" / "seed_copies.json"
 
 

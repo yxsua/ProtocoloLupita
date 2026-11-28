@@ -4,14 +4,18 @@
 
 ## Objetivo
 
-Entregar la aplicación local que conecta los módulos, conserva resultados sintéticos y permite ejecutar y demostrar los 14 escenarios de principio a fin. Este plan no reduce el alcance: da soporte a siembra y atribución, voz, extracción y evidencia, inteligencia, SMS, portal ciudadano y tablero/mapa.
+Entregar la aplicación que conecta los módulos y permite demostrar los 14 escenarios, además de una llamada desde un celular al número de prueba. La demo incluye dos superficies separadas: la experiencia ciudadana existente y un panel gubernamental protegido que muestra la llamada, su atribución y alertas en tiempo real. La consola gubernamental ejecuta escenarios cerrados y no permite interacción libre.
 
 ## Arquitectura acordada
 
 - Monolito modular en Python con FastAPI; interfaz HTML/CSS/JavaScript sencilla.
-- SQLite para persistencia local. JSON para escenarios y datos de muestra. Sin dependencias de servicios remotos durante la demo.
+- El prototipo y el runner pueden ejecutarse localmente; la llamada móvil requiere servidor públicamente accesible, TLS y conexión a un proveedor telefónico.
+- Mantener vistas y APIs ciudadanas separadas de rutas gubernamentales protegidas. El panel gubernamental incluye una vista en vivo y un ejecutor de escenarios predefinidos.
+- Limitar la demo telefónica a una llamada simultánea. El número llamado resuelve perfil, copia sembrada, fuente y periodo; el número de origen se etiqueta como no verificado.
+- Emitir actualizaciones del panel en vivo mediante SSE. Guardar resultados de escenarios y mantener llamadas en el bus temporal con origen distinguible; no mezclar sus métricas.
+- El envío de reportes a autoridades se presenta como borrador de demostración y no se automatiza.
 - Cada integrante es dueño de su módulo y de sus archivos; se integra mediante los contratos de este documento, no editando el módulo de otra persona.
-- Todos los datos y números del prototipo son sintéticos y se muestran como tales.
+- Los fixtures, identidades, cuentas y atribuciones de demostración son sintéticos y se muestran como tales. El piloto usa un número de prueba real y recibe metadatos del proveedor; el identificador del llamante se rotula como no verificado y se enmascara.
 - Los modelos locales y archivos del mapa deben estar disponibles antes de desconectar internet.
 
 ## Contratos comunes — congelar en la primera hora
@@ -19,6 +23,7 @@ Entregar la aplicación local que conecta los módulos, conserva resultados sint
 Publicar `app/core/schemas.py` y compartirlos con el equipo antes de que cada quien avance:
 
 - `Scenario`: `id`, `channel` (`call|sms|portal`), `trap_id`, `input`, `expected`.
+- `CallInput`: origen (`telephony|scenario`), número receptor/trap, perfil de agente y sesión del proveedor o escenario; los adaptadores entregan turnos o audio al mismo servicio de voz.
 - `Event`: `id`, `occurred_at`, `channel`, `trap_id`, `attribution_id`, `indicator_ids`, `campaign_id`, `confidence`, `status`, `evidence_hash`.
 - `Indicator`: `id`, `type`, `value_masked`, `source_event_id`, `confidence`, `status`.
 - `AttributionResult`: `trap_id`, `copy_id`, `provider`, `seed_period`, `synthetic`.
@@ -31,6 +36,8 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 - `app/main.py`, `app/core/schemas.py`, `app/core/db.py`, `app/core/config.py`
 - `app/core/scenario_runner.py`, `app/core/seed_data.py`
 - `app/templates/base.html`, `app/static/app.css`, `app/static/app.js`
+- Vistas y endpoints gubernamentales protegidos; SSE para enviar eventos de llamada a la pantalla de resultados.
+- Adaptador de llamada del proveedor y control de una sesión telefónica activa.
 - `data/scenarios/*.json`, consolidando escenarios aportados por los demás
 - Integración de routers y dependencias entre módulos; no reescribir su lógica interna.
 
@@ -38,23 +45,31 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 
 | Tiempo | Entrega |
 |---|---|
-| 0–1 h | Acordar contratos, rutas internas, estructura de carpetas y cómo correr el proyecto. Crear repo ejecutable mínimo. |
-| 1–4 h | Crear FastAPI, SQLite, carga de configuración, layout de navegación y datos sintéticos iniciales. |
-| 4–8 h | Integrar un adaptador por módulo y asegurar que cada pantalla pueda abrirse aunque use datos provisionales. |
-| 8–12 h | Implementar cargador de escenarios JSON, runner y registro de esperado/obtenido; consolidar los 14 casos. |
-| 12–15 h | Ejecutar recorrido integrado, corregir errores de rutas, persistencia y campos compartidos; habilitar modo demo sin internet. |
-| 15–16 h | Congelar funciones y código; etiquetar versión de demo y respaldar datos. |
-| 16–18 h | Ensayar demo de tres minutos, registrar métricas reales del prototipo y grabar video de respaldo. |
+| 0–2 h | Congelar contratos de evento, origen de llamada y acceso al panel; verificar que número, proveedor, credenciales y servidor público estén disponibles. |
+| 2–5 h | Separar rutas ciudadanas/gubernamentales, proteger el panel y añadir la vista de consola de escenarios cerrados. |
+| 3–9 h | En paralelo con Plan 3, conectar webhook HTTPS del proveedor con reconocimiento Gather, asociar número receptor con trampa y habilitar el límite de una llamada activa. |
+| 8–12 h | Conectar eventos del agente, atribución, inteligencia y borrador de reporte; entregar actualizaciones del panel por SSE. |
+| 12–15 h | Recorrer llamada móvil y escenarios JSON; verificar que el panel rotule y filtre ambos orígenes por separado. |
+| 15–16 h | Congelar funciones y preparar respaldo de demostración si falla el proveedor o la red. |
+| 16–18 h | Ensayar la llamada desde un celular, la lectura del panel en otra pantalla y el guion de presentación. |
 
 ## Aceptación
 
-- Un comando inicia la app en laptop sin internet y muestra datos sintéticos.
+- Un celular llama al número de prueba y el agente responde desde el servidor público.
+- El panel gubernamental protegido muestra en vivo el estado, intención, indicadores enmascarados y atribución a la copia/fuente sembrada.
+- Una segunda llamada mientras la primera está activa recibe el mensaje de ocupado o cierre definido.
+- La consola ejecuta escenarios cerrados por el mismo orquestador, sin entrada libre ni interacción conversacional.
+- El panel diferencia la llamada móvil de las simulaciones y marca como simulados los datos y reportes de demo.
+- La experiencia ciudadana no expone datos ni controles internos del panel gubernamental.
 - Se puede navegar por todos los módulos y seguir un evento desde la trampa hasta tablero y ruta ciudadana.
 - Los 14 JSON se cargan y el runner registra esperado y obtenido sin inventar porcentajes.
 - Los registros de reporte almacenados no incluyen datos personales del formulario original.
-- Existe una demo ensayada y un video local reproducible.
+- Existe una demo ensayada desde un celular y un video de respaldo reproducible.
+
+## Fuera de esta integración inicial
+
+Más números, llamadas simultáneas, alta disponibilidad, envío automático a instituciones y un sistema de telefonía de producción. Se documentan como paso posterior, no como recortes del flujo de demo.
 
 ## Uso de herramientas de codificación con IA
 
 Delegar cambios por archivo y contrato. Pedir primero un diff pequeño y revisión de imports; no permitir que un agente cambie esquemas congelados sin avisar. Integrar cada módulo cuando entregue una función importable y un ejemplo JSON, no esperar hasta la hora 12.
-

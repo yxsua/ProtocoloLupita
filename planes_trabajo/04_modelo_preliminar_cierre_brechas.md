@@ -1,14 +1,14 @@
 # Modelo preliminar — Modificaciones propuestas y cierre de brechas (Plan 4)
 
-**Documento de diseño previo a implementación (v2 — alineado con Alcance Ampliado "Mosca Estéril")**  
+**Documento de diseño previo a implementación (v2 — alineado con el alcance ampliado de Protocolo Lupita)**
 **Referencia base:** [04_extractor_evidencia_inteligencia.md](./04_extractor_evidencia_inteligencia.md)  
-**Alineación cruzada:** [Plan 1](./01_plataforma_integracion_escenarios.md) · [Plan 2](./02_siembra_atribucion_tablero_mapa.md) · [Plan 3](./03_dona_lupita_voz.md) · [Plan 5](./05_sms_portal_ciudadano.md) · *Mosca Estéril — Alcance ampliado del prototipo (PDF)*
+**Alineación cruzada:** [Plan 1](./01_plataforma_integracion_escenarios.md) · [Plan 2](./02_siembra_atribucion_tablero_mapa.md) · [Plan 3](./03_dona_lupita_voz.md) · [Plan 5](./05_sms_portal_ciudadano.md) · *Alcance ampliado del prototipo*
 
 ---
 
 ## 1. Propósito y nota organizativa
 
-Este documento define el **modelo preliminar técnico y contractual** para cerrar todas las brechas detectadas al cruzar el Plan 4 (*Extractor, evidencia y motor de inteligencia*), los planes 1, 2, 3 y 5, y el documento **Mosca Estéril — Alcance ampliado del prototipo**, **antes de iniciar la implementación en código**.
+Este documento define el **modelo preliminar técnico y contractual** para cerrar todas las brechas detectadas al cruzar el Plan 4 (*Extractor, evidencia y motor de inteligencia*), los planes 1, 2, 3 y 5, y el documento de **alcance ampliado del prototipo**, **antes de iniciar la implementación en código**.
 
 > **Nota sobre numeración de roles:** En el documento general de alcance (págs. 11–12), *Extractor, evidencia y motor de inteligencia* figura como **Persona 3**, mientras que en `planes_trabajo/` corresponde al **Integrante 4**. Ambos describen exactamente la misma responsabilidad funcional. Asimismo, conforme al orden de recorte del alcance (primero mapa, luego bandeja de SMS), los módulos de `intel/` y `evidence/` forman parte del núcleo prioritario (Prioridad 1 y 2).
 

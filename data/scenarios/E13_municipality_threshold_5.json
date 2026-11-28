@@ -10,7 +10,7 @@
   "expected": {
     "threshold": 5,
     "visible_municipalities": [{ "municipality": "Guadalajara", "count": 5 }],
-    "hidden_municipalities": ["Tlaquepaque"],
+    "hidden_municipalities_count": 1,
     "total_reports": 9
   }
 }

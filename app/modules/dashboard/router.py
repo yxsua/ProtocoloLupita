@@ -1,4 +1,4 @@
-"""Rutas HTTP y HTML del tablero de Mosca Estéril."""
+"""Rutas HTTP y HTML del tablero de Protocolo Lupita."""
 
 from __future__ import annotations
 
@@ -28,15 +28,14 @@ def _resolve_base_template() -> str:
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard_page(request: Request) -> HTMLResponse:
-    """Renderiza el tablero principal (atribución, campañas y mapa offline)."""
-    initial_data = get_dashboard()
+    """Renderiza los avisos públicos con un resumen y mapa simplificados."""
     return templates.TemplateResponse(
         request,
         "dashboard/index.html",
         {
             "base_template": _resolve_base_template(),
-            "page_title": "Tablero y Mapa — Mosca Estéril",
-            "initial_data": initial_data,
+            "page_title": "Avisos para cuidarnos · Protocolo Lupita",
+            "active_page": "alerts",
         },
     )
 
@@ -60,6 +59,22 @@ def api_dashboard(
         limit=limit,
     )
     return get_dashboard(filters)
+
+
+@router.get("/api/public/alerts")
+def api_public_alerts() -> dict[str, list[dict[str, object]]]:
+    """Entrega al panel público solo avisos y canales relacionados."""
+    dashboard = get_dashboard()
+    return {
+        "alerts": [
+            {
+                "brand": campaign.brand,
+                "channels": campaign.channels,
+                "status": campaign.status,
+            }
+            for campaign in dashboard.campaigns
+        ]
+    }
 
 
 def get_routers() -> list[APIRouter]:

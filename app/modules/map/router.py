@@ -17,6 +17,31 @@ def api_map_summary() -> StateMapSummary:
     return get_map_summary()
 
 
+@router.get("/api/public/map")
+def api_public_map() -> dict[str, object]:
+    """Entrega al panel público solo las zonas que cumplen el mínimo de publicación."""
+    summary = get_map_summary()
+    visible = [
+        {"name": item.municipality_name, "count": item.count}
+        for item in summary.municipalities
+        if not item.suppressed and item.count is not None and item.count >= summary.threshold
+    ]
+    visible_names = {item["name"] for item in visible}
+    features = []
+    for feature in summary.geojson.get("features", []):
+        name = feature.get("properties", {}).get("municipality_name")
+        features.append({
+            "type": feature.get("type", "Feature"),
+            "geometry": feature.get("geometry"),
+            "properties": {"published": name in visible_names},
+        })
+    return {
+        "threshold": summary.threshold,
+        "visible_areas": visible,
+        "geojson": {"type": "FeatureCollection", "features": features},
+    }
+
+
 def get_routers() -> list[APIRouter]:
     """Devuelve los routers del módulo de mapa."""
     return [router]

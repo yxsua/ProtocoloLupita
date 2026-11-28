@@ -1,21 +1,14 @@
-<<<<<<< HEAD
-.venv/
-__pycache__/
-*.py[cod]
-.env
-data/*.sqlite3
-data/*.sqlite3-shm
-data/*.sqlite3-wal
-*.log
-
-=======
 # Entornos virtuales y artefactos locales
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+.env
+data/*.sqlite3-shm
+data/*.sqlite3-wal
 *.db
 *.sqlite
 *.sqlite3
 .pytest_cache/
->>>>>>> origin/Meli
+*.log
+data/planting/seed_copies.json

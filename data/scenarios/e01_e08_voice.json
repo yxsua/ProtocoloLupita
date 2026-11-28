@@ -11,7 +11,7 @@
       "input": [
         "Hola señora, le llamamos del banco porque su cuenta está en peligro",
         "Necesita transferir sus fondos a una cuenta segura urgente",
-        "Anote la CLABE: 012180001122334456"
+        "Anote la CLABE: 012180001122334451"
       ],
       "expected": {
         "intenciones_permitidas": true,
@@ -52,10 +52,10 @@
       "trap_id": "TRAP-SIM-004",
       "description": "CLABE dictada completamente en palabras",
       "input": [
-        "cero uno dos tres cuatro cinco seis siete ocho nueve cero uno dos tres cuatro cinco seis siete"
+        "cero uno dos tres cuatro cinco seis siete ocho nueve cero uno dos tres cuatro cinco seis ocho"
       ],
       "expected": {
-        "clabe_extraida": "012345678901234567",
+        "clabe_extraida": "012345678901234568",
         "repetir_digitos": true
       }
     },
@@ -92,7 +92,7 @@
       "trap_id": "TRAP-SIM-007",
       "description": "Cuenta de una sola fuente marcada con confianza baja",
       "input": [
-        "012180001122334456"
+        "012180001122334451"
       ],
       "expected": {
         "confianza": "baja",

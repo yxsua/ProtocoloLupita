@@ -1,1 +1,1 @@
-"""Módulos funcionales de ProtocoloLupita / Mosca Estéril."""
+"""Módulos funcionales de Protocolo Lupita."""

@@ -1,9 +1,10 @@
-<<<<<<< HEAD
-"""Módulo map del prototipo."""
-=======
 """Módulo de mapa municipal offline con umbral de privacidad (Plan 2)."""
 
-from app.modules.map.aggregator import PUBLICATION_THRESHOLD, get_map_summary, load_queretaro_geojson
+from app.modules.map.aggregator import (
+    PUBLICATION_THRESHOLD,
+    get_map_summary,
+    load_queretaro_geojson,
+)
 from app.modules.map.router import get_routers, register_routes, router
 from app.modules.map.schemas import MunicipalityAggregate, StateMapSummary
 
@@ -17,4 +18,3 @@ __all__ = [
     "register_routes",
     "router",
 ]
->>>>>>> origin/Meli

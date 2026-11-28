@@ -1,10 +1,10 @@
 # Plan 2 — Siembra, atribución, tablero y mapa
 
-**Proyecto:** Mosca Estéril (Doña Lupita) · **Responsable:** Integrante 2 · **Duración:** 18 horas · **Rol:** trazabilidad y visualización
+**Proyecto:** Protocolo Lupita · **Responsable:** Integrante 2 · **Duración:** 18 horas · **Rol:** trazabilidad y visualización
 
 ## Objetivo
 
-Construir la siembra de registros sintéticos del sistema **Mosca Estéril** y demostrar qué copia de base de datos corresponde a un número trampa que recibió una llamada o SMS. Mostrar la atribución de fugas para la Contraloría, el boletín epidemiológico de campañas, la ventaja de tiempo frente al primer reporte ciudadano y el mapa local de los 18 municipios de **Querétaro**.
+Construir la siembra de registros sintéticos de **Protocolo Lupita** y demostrar qué copia de base de datos corresponde a un número trampa que recibió una llamada o SMS. Mostrar la atribución de fugas para la Contraloría, el boletín epidemiológico de campañas, la ventaja de tiempo frente al primer reporte ciudadano y el mapa local de los 18 municipios de **Querétaro**.
 
 ## Alcance asignado
 

@@ -20,25 +20,11 @@ router = APIRouter(prefix="/sms", tags=["sms"])
 
 @router.get("", response_class=HTMLResponse)
 def sms_inbox_page(request: Request) -> HTMLResponse:
-    """Vista de bandeja de SMS sinteticos (nunca abre enlaces ni responde SMS)."""
-    inbox = load_sms_inbox()
-    precomputed = [
-        {
-            "raw": item,
-            "analysis": analyze_sms(item).to_dict(),
-        }
-        for item in inbox
-    ]
-    alerts = get_default_circular_store().list_recent_alerts()
-    dataset_stats = get_default_dataset_classifier().stats()
+    """Vista pública para revisar un mensaje en lenguaje sencillo."""
     return templates.TemplateResponse(
         request,
         "sms/inbox.html",
-        {
-            "items": precomputed,
-            "circular_alerts": alerts,
-            "dataset_stats": dataset_stats,
-        },
+        {"active_page": "sms"},
     )
 
 
