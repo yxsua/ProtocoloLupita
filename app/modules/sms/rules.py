@@ -75,6 +75,15 @@ _CREDENTIAL_OR_PAYMENT_KEYWORDS = (
     "bono",
 )
 
+_PRIZE_CLAIM_PATTERN = re.compile(
+    r"(?i)\b(?:has\s+sid[oa]\s+ganador[oa]|ganaste|eres?\s+(?:el\s+)?ganador[oa]?|"
+    r"ganador(?:es)?|premio|premiada|gratis|winner|you\s+won|congratulations)\b"
+)
+_LINK_ACTION_PATTERN = re.compile(
+    r"(?i)\b(?:click|clic|cliquea|pincha|toca|pulsa|abre|abrir|visita|ingresa|entra|sigue)\b|"
+    r"\b(?:siguiente|este|el)\s+(?:enlace|link)\b|\benlace\b|\blink\b"
+)
+
 
 @dataclass(slots=True)
 class RuleClassification:
@@ -121,6 +130,8 @@ def _infer_scam_type(
 ) -> str:
     if not is_suspicious:
         return "informativo_oficial"
+    if "prize_link_lure" in rule_signals:
+        return "falso_premio_paquete"
     if "prompt_injection_attempt" in rule_signals and entity == "ninguno":
         return "manipulacion_prompt"
     if any(k in text_lower for k in ("paquete retenido", "aduana", "entrega fallida", "paquete")):
@@ -181,10 +192,19 @@ def classify_sms_rules(
 
     urgency_hits = [kw for kw in _URGENCY_KEYWORDS if kw in text_lower]
     action_hits = [kw for kw in _CREDENTIAL_OR_PAYMENT_KEYWORDS if kw in text_lower]
+    prize_claim = bool(_PRIZE_CLAIM_PATTERN.search(text))
+    link_action = bool(_LINK_ACTION_PATTERN.search(text))
+    prize_link_lure = prize_claim and link_action
     if urgency_hits:
         signals.append("urgency_pressure")
     if action_hits:
         signals.append("payment_or_credential_lure")
+    if prize_claim:
+        signals.append("unexpected_prize_claim")
+    if link_action:
+        signals.append("link_open_requested")
+    if prize_link_lure:
+        signals.append("prize_link_lure")
 
     entity = _infer_entity(text_lower, domain_checks)
 
@@ -196,7 +216,7 @@ def classify_sms_rules(
         or has_punycode
         or has_homoglyphs
         or has_suspicious_tld
-        or (not all_official_exact and (urgency_hits or action_hits))
+        or (not all_official_exact and (urgency_hits or action_hits or prize_link_lure))
     )
 
     scam_type = _infer_scam_type(entity, text_lower, signals, is_suspicious)

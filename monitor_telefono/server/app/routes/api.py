@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import re
 import time
 from collections import defaultdict, deque
@@ -10,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
@@ -30,6 +32,7 @@ from app.fraude.detector import evaluate_event
 from app.privacy import consent_text, consent_version
 
 router = APIRouter()
+logger = logging.getLogger("monitor_telefono.api")
 MAX_EVENT_BODY_BYTES = 64 * 1024
 MAX_EVENT_TEXT = 4000
 PAGE_SIZE_DEFAULT = 50
@@ -282,6 +285,10 @@ async def receive_event(request: Request) -> JSONResponse:
     )
     if inserted and stored:
         await request.app.state.hub.publish(stored)
+    integration_configured = bool(settings.lupita_events_url and settings.lupita_events_key)
+    consent_current = device.get("consentimiento_version") == consent_version(settings)
+    if integration_configured and consent_current and stored:
+        await _relay_to_lupita(settings.lupita_events_url, settings.lupita_events_key, stored)
     return JSONResponse(
         status_code=201 if inserted else 200,
         content={
@@ -294,6 +301,37 @@ async def receive_event(request: Request) -> JSONResponse:
             },
         },
     )
+
+
+async def _relay_to_lupita(url: str, key: str, event: dict[str, Any]) -> None:
+    """Entrega el evento ya persistido al feed local del portal principal."""
+    payload = {
+        "id_evento": event["id_evento"],
+        "dispositivo": str(event.get("dispositivo") or "Android")[:80],
+        "origen": "monitor_telefono",
+        "tipo": event["tipo"],
+        "app": event["app"],
+        "remitente": event.get("remitente"),
+        "texto": event.get("texto"),
+        "direccion": event.get("direccion"),
+        "duracion_s": event.get("duracion_s"),
+        "fecha": event["fecha"],
+    }
+    try:
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
+            response = await client.post(
+                url,
+                json=payload,
+                headers={"X-Device-Key": key},
+            )
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        logger.warning("No se pudo entregar un evento al portal principal: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="El evento quedó guardado; se reintentará la entrega al portal principal.",
+            headers={"Retry-After": "5"},
+        ) from exc
 
 
 def _client_attempt_key(request: Request) -> str:

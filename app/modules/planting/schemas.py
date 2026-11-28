@@ -66,6 +66,7 @@ class SeedCopyRecord(BaseModel):
     provider: str
     dataset_name: str
     seed_period: str
+    municipality_code: str = ""
     trap_id: str
     trap_display: str
     channel_scope: str = "call|sms"
@@ -81,3 +82,13 @@ class SeedBatchSummary(BaseModel):
     manifest_hash: str
     synthetic: bool = True
     copies: list[SeedCopyRecord] = Field(default_factory=list)
+
+
+class SeedBatchListItem(BaseModel):
+    """Resumen seguro de un lote; no incluye los números trampa asignados."""
+
+    seed_period: str
+    total_copies: int
+    manifest_hash: str
+    updated_at: str
+    synthetic: bool = True

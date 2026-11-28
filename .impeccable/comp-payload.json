@@ -1,0 +1,72 @@
+{
+  "title": "Choose the page composition",
+  "question": "Which composition should carry forward, and what feels false to the world? Approve one layout for the build; the navy, off-white, gold palette, logo, content, and wayfinding system stay fixed.",
+  "options": [
+    {
+      "id": "comp-a",
+      "label": "Split hero with route diagram",
+      "lineage": "Civic wayfinding signs and service directories",
+      "thesis": "A clear citizen question leads directly into three labeled service routes.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "navy header",
+        "gold route rail",
+        "directional plaques",
+        "warm off-white field"
+      ],
+      "viewport": "The citizen question and primary action share the left half; a branch diagram of SMS review, report, and public alerts occupies the right. Government and local-demo details sit below.",
+      "risk": "The map-like branch can feel abstract unless the route labels remain dominant.",
+      "comp": ".impeccable/mocks/decision/model-pick.png"
+    },
+    {
+      "id": "comp-b",
+      "label": "Full-width service directory",
+      "lineage": "Civic wayfinding signs and service directories",
+      "thesis": "The citizen question is followed by one broad, unmistakable route system.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "navy header",
+        "continuous gold route rail",
+        "directional plaques",
+        "warm off-white field"
+      ],
+      "viewport": "A full-width heading band leads into a single route line branching to three wide, readable destination plaques. SMS review is primary; government access and the demo note follow below.",
+      "risk": "Three destination plaques occupy more width; small screens must stack them without losing the route relationship.",
+      "comp": ".impeccable/mocks/wayfinding-2.png"
+    },
+    {
+      "id": "comp-c",
+      "label": "Vertical service rail",
+      "lineage": "Civic wayfinding signs and service directories",
+      "thesis": "A persistent left rail keeps the citizen’s routes visible beside the task.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "navy navigation rail",
+        "gold active marker",
+        "directional plaques",
+        "warm off-white field"
+      ],
+      "viewport": "A navy side rail holds the supplied shield and routes; the off-white main field holds the citizen question and three stacked action plaques.",
+      "risk": "A persistent desktop rail may consume too much room on narrow screens and needs a compact mobile form.",
+      "comp": ".impeccable/mocks/wayfinding-3.png"
+    }
+  ],
+  "buildPath": {
+    "value": "comp",
+    "toggle": false
+  },
+  "steer": false,
+  "canon": false
+}

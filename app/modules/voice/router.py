@@ -12,6 +12,7 @@ Proporciona:
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import re
@@ -22,11 +23,16 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from pydantic import ValidationError
 
 from app.core.db import record_government_report
 from app.modules.voice.audio_engine import AudioEngine
-from app.modules.voice.models import CallResult
-from app.modules.voice.service import VoiceService
+from app.modules.voice.models import AvatarId, CallResult, LockedVoiceProfile
+from app.modules.voice.service import (
+    DEFAULT_BOT_MAX_TURNS,
+    BotEstafadorSimulator,
+    VoiceService,
+)
 from app.modules.citizen.sanitizer import sanitize_report
 from app.modules.government.events import publish_event
 from app.modules.government.auth import require_government_user
@@ -51,6 +57,8 @@ _MAX_AUDIO_BYTES = 15 * 1024 * 1024
 _sessions: dict[str, VoiceService] = {}
 _call_metadata: dict[str, dict] = {}
 _scenario_runs: dict[str, dict] = {}
+_bot_sessions: dict[str, BotEstafadorSimulator] = {}
+_shared_engine: Optional[AudioEngine] = None
 _DEFAULT_DEMO_TRAP = "+52 442 000 0102"
 _LONG_DIGIT_SEQUENCE = re.compile(r"(?<!\d)(?:\+?\d[\s().-]*){9,19}(?!\d)")
 _DIGIT_WORD = r"cero|uno|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve"
@@ -193,7 +201,7 @@ async def start_scenario_call(scenario_id: str = Form(...)) -> dict:
     )
     if scenario is None:
         raise HTTPException(status_code=404, detail="No se encontró ese escenario de llamada.")
-    turns = scenario.input.get("turns", [])
+    turns = scenario.input.get("simulation_turns", scenario.input.get("turns", []))
     if not turns or not all(isinstance(turn, str) and turn.strip() for turn in turns):
         raise HTTPException(status_code=422, detail="El escenario no contiene turnos de voz válidos.")
 
@@ -263,7 +271,7 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
     sanitized_input = sanitize_report(
         {"channel": "llamada", "municipality": "No especificado", "description": input_text}
     ).sanitized_summary
-    safe_transcript = _sanitize_demo_text(input_text)
+    safe_transcript = _sanitize_agent_response(input_text)
     safe_agent_response = _sanitize_agent_response(result.respuesta_texto)
     occurred_at = datetime.now(timezone.utc).isoformat()
     transcript = _call_metadata[session_id].setdefault("transcript", [])
@@ -537,8 +545,11 @@ async def advance_scenario_call(session_id: str = Form(...)) -> dict:
             await hangup_call(session_id=session_id)
         run["finished"] = finished
         return {
-            "attacker_line": payload.get("transcripcion_usuario", _sanitize_demo_text(attacker_line)),
-        "victim_line": _sanitize_agent_response(call_result.get("respuesta_texto", "")),
+            # La transcripción visible debe ocultar también las CLABE deletreadas.
+            # El texto original se envía aparte solo para la síntesis de voz local.
+            "attacker_line": _sanitize_agent_response(attacker_line),
+            "attacker_spoken_line": attacker_line,
+            "victim_line": _sanitize_agent_response(call_result.get("respuesta_texto", "")),
             "intent": call_result.get("ultima_intencion"),
             "turn": turn_index + 1,
             "turn_count": len(run["turns"]),

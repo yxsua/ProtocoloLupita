@@ -5,6 +5,11 @@ from typing import Any
 
 
 def consent_text(settings: Any) -> str:
+    relay_scope = (
+        " Con la integración habilitada, los eventos se compartirán también con el panel local de Protocolo Lupita para búsqueda y análisis de mensajes."
+        if getattr(settings, "lupita_events_url", None)
+        else ""
+    )
     reviewer_scope = (
         "Los revisores autorizados podrán ver todos los mensajes del teléfono."
         if settings.reviewers_see_all
@@ -13,6 +18,7 @@ def consent_text(settings: Any) -> str:
     return (
         "Los administradores autorizados gestionan el dispositivo y la configuración. "
         + reviewer_scope
+        + relay_scope
         + f" Los textos sin alerta se eliminan después de {settings.retention_text_hours} horas; "
         + f"las alertas se conservan hasta {settings.retention_alert_days} días. "
         + "Puedes retirar el consentimiento pausando o desvinculando el teléfono. "

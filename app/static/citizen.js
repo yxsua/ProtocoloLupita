@@ -56,7 +56,7 @@
         resultCard.hidden = false;
         const heading = el("sms-res-status");
         if (data.is_suspicious) {
-          heading.textContent = "Este mensaje tiene señales que conviene revisar.";
+          heading.textContent = "Detectamos señales de un posible engaño.";
           heading.className = "status-message warning";
         } else {
           heading.textContent = "No encontramos señales claras de engaño.";
@@ -65,9 +65,10 @@
         setResultWarning(el("sms-res-warning"), data.is_suspicious
           ? "No respondas ni abras enlaces. La revisión encontró señales que conviene comprobar."
           : "");
+        const explanation = (data.explanation || "").trim();
         el("sms-res-explanation").textContent = data.is_suspicious
-          ? "No abras enlaces ni respondas. Comprueba la información directamente con la institución usando un contacto que ya conozcas."
-          : "Esto no garantiza que el mensaje sea seguro. No compartas contraseñas, códigos ni datos de tu cuenta.";
+          ? [explanation, "No abras el enlace ni respondas. Verifica la información por un canal oficial que ya conozcas."].filter(Boolean).join(" ")
+          : [explanation, "Esto no garantiza que el mensaje sea seguro. No compartas contraseñas, códigos ni datos de tu cuenta."].filter(Boolean).join(" ");
         renderNextSteps(el("sms-res-advice"));
         resultCard.focus();
       } catch (error) {

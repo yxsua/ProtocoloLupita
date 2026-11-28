@@ -16,6 +16,7 @@ from app.modules.citizen.router import router as citizen_router
 from app.modules.dashboard.router import router as dashboard_router
 from app.modules.intel.router import create_fastapi_router as create_intel_router
 from app.modules.map.router import router as map_router
+from app.modules.mensajes.router import router as mensajes_router
 from app.modules.planting.router import router as planting_router
 from app.modules.planting.service import ensure_seeded
 from app.modules.sms.router import router as sms_router
@@ -48,6 +49,7 @@ for module_router in (
     citizen_router,
     dashboard_router,
     map_router,
+    mensajes_router,
     government_router,
 ):
     app.include_router(module_router)

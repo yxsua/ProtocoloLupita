@@ -9,16 +9,25 @@ from __future__ import annotations
 
 import copy
 import json
+import unicodedata
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from app.core.db import list_citizen_report_municipality_counts
 from app.modules.map.schemas import MunicipalityAggregate, StateMapSummary
-from app.modules.planting.fixtures_local import QUERETARO_MUNICIPALITIES, SAMPLE_MUNICIPAL_REPORTS
+from app.modules.planting.fixtures_local import QUERETARO_MUNICIPALITIES
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_GEOJSON_PATH = REPO_ROOT / "data" / "geo" / "municipios_18.geojson"
 PUBLICATION_THRESHOLD = 5
+
+
+def _municipality_key(value: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", value).casefold()
+    return " ".join(
+        "".join(char for char in decomposed if not unicodedata.combining(char)).split()
+    )
 
 
 def load_queretaro_geojson(geojson_path: Optional[Path] = None) -> dict[str, Any]:
@@ -28,13 +37,8 @@ def load_queretaro_geojson(geojson_path: Optional[Path] = None) -> dict[str, Any
 
 
 def _load_citizen_counts() -> list[dict[str, Any]]:
-    """Lee conteos municipales desde el portal ciudadano (Plan 5) o usa fixtures locales."""
-    try:  # pragma: no cover - integración con Plan 5 cuando exista
-        from app.modules.citizen.router import list_municipality_counts
-
-        return [dict(item) for item in list_municipality_counts()]
-    except ImportError:
-        return [dict(item) for item in SAMPLE_MUNICIPAL_REPORTS]
+    """Lee conteos de reportes ciudadanos saneados guardados en SQLite."""
+    return list_citizen_report_municipality_counts()
 
 
 def get_map_summary(
@@ -46,7 +50,7 @@ def get_map_summary(
     """Calcula el agregado estatal y aplica supresión municipal para conteos ``< threshold``."""
     raw_counts = counts_provider() if counts_provider is not None else _load_citizen_counts()
     name_to_code = {
-        m["municipality_name"].strip().lower(): m["municipality_code"]
+        _municipality_key(m["municipality_name"]): m["municipality_code"]
         for m in QUERETARO_MUNICIPALITIES
     }
     counts_by_code: dict[str, int] = {}
@@ -55,7 +59,7 @@ def get_map_summary(
     for entry in raw_counts:
         code = str(entry.get("municipality_code") or "").strip()
         if not code and entry.get("municipality_name"):
-            code = name_to_code.get(str(entry["municipality_name"]).strip().lower(), "")
+            code = name_to_code.get(_municipality_key(str(entry["municipality_name"])), "")
         val = max(0, int(entry.get("count", 0) or 0))
         excluded_rate_limited += max(0, int(entry.get("rate_limited_excluded", 0) or 0))
         if code:
@@ -116,5 +120,5 @@ def get_map_summary(
         excluded_rate_limited_count=excluded_rate_limited,
         municipalities=municipalities,
         geojson=geojson,
-        synthetic=True,
+        synthetic=False,
     )

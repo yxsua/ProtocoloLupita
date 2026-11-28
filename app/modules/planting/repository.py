@@ -223,6 +223,16 @@ def persist_batch(
     )
 
 
+def seed_period_exists(conn: sqlite3.Connection, seed_period: str) -> bool:
+    """Indica si el identificador del lote ya quedó registrado."""
+    init_planting_db(conn)
+    row = conn.execute(
+        "SELECT 1 FROM seed_manifests WHERE seed_period = ? LIMIT 1",
+        (seed_period,),
+    ).fetchone()
+    return row is not None
+
+
 def seed_if_empty(
     conn: sqlite3.Connection,
     *,
@@ -265,11 +275,17 @@ def list_copies(conn: sqlite3.Connection, seed_period: Optional[str] = None) -> 
     init_planting_db(conn)
     if seed_period:
         rows = conn.execute(
-            "SELECT * FROM seed_copies WHERE seed_period = ? ORDER BY copy_id ASC",
+            "SELECT sc.*, sp.municipality_code FROM seed_copies sc "
+            "JOIN seed_personas sp ON sp.persona_id = sc.persona_id "
+            "WHERE sc.seed_period = ? ORDER BY sc.copy_id ASC",
             (seed_period,),
         ).fetchall()
     else:
-        rows = conn.execute("SELECT * FROM seed_copies ORDER BY seed_period ASC, copy_id ASC").fetchall()
+        rows = conn.execute(
+            "SELECT sc.*, sp.municipality_code FROM seed_copies sc "
+            "JOIN seed_personas sp ON sp.persona_id = sc.persona_id "
+            "ORDER BY sc.seed_period ASC, sc.copy_id ASC"
+        ).fetchall()
 
     return [
         SeedCopyRecord(
@@ -279,12 +295,36 @@ def list_copies(conn: sqlite3.Connection, seed_period: Optional[str] = None) -> 
             provider=row["provider"],
             dataset_name=row["dataset_name"],
             seed_period=row["seed_period"],
+            municipality_code=row["municipality_code"],
             trap_id=row["trap_id"],
             trap_display=row["trap_display"],
             channel_scope=row["channel_scope"],
             synthetic=bool(row["synthetic"]),
             created_at=row["created_at"],
         )
+        for row in rows
+    ]
+
+
+def list_seed_batches(conn: sqlite3.Connection) -> list[dict[str, object]]:
+    """Lista lotes sin devolver el mapa privado entre copias y números trampa."""
+    init_planting_db(conn)
+    rows = conn.execute(
+        """
+        SELECT seed_period, manifest_hash, total_copies, updated_at
+        FROM seed_manifests
+        WHERE seed_period <> 'GLOBAL'
+        ORDER BY updated_at DESC, seed_period DESC
+        """
+    ).fetchall()
+    return [
+        {
+            "seed_period": row["seed_period"],
+            "manifest_hash": row["manifest_hash"],
+            "total_copies": row["total_copies"],
+            "updated_at": row["updated_at"],
+            "synthetic": True,
+        }
         for row in rows
     ]
 

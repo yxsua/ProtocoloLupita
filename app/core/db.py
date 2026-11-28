@@ -205,6 +205,41 @@ def record_government_report(
         )
 
 
+def list_citizen_report_municipality_counts(
+    database_path: Path | str = DATABASE_PATH,
+) -> list[dict]:
+    """Aggregate only persisted, non-synthetic citizen reports by municipality."""
+    with database(database_path) as connection:
+        rows = connection.execute(
+            """SELECT municipality, details_json
+               FROM government_reports
+               WHERE report_type='citizen_report' AND synthetic=0
+                 AND municipality IS NOT NULL AND trim(municipality) != ''"""
+        ).fetchall()
+
+    counts: dict[str, dict[str, int]] = {}
+    for row in rows:
+        municipality = " ".join(str(row["municipality"]).split())
+        if not municipality:
+            continue
+        try:
+            details = json.loads(row["details_json"] or "{}")
+        except (json.JSONDecodeError, TypeError):
+            details = {}
+        entry = counts.setdefault(
+            municipality, {"count": 0, "rate_limited_excluded": 0}
+        )
+        if details.get("rate_limited") is True:
+            entry["rate_limited_excluded"] += 1
+        else:
+            entry["count"] += 1
+
+    return [
+        {"municipality_name": name, **values}
+        for name, values in sorted(counts.items(), key=lambda item: item[0].casefold())
+    ]
+
+
 def list_government_reports(
     *,
     limit: int = 50,

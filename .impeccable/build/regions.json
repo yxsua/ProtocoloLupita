@@ -1,0 +1,127 @@
+{
+  "regions": [
+    {
+      "id": "browser-frame-artifact",
+      "kind": "chrome",
+      "grid": "A0:C0",
+      "note": "Generated browser toolbar and address field above the page; a presentation artifact, not part of the website."
+    },
+    {
+      "id": "shield-logo",
+      "kind": "image",
+      "grid": "A1:A2",
+      "note": "User-supplied fox shield logo in the navy header, preserving its original black, gold, and white design.",
+      "bleed": true
+    },
+    {
+      "id": "wordmark",
+      "kind": "text",
+      "grid": "B1:D2",
+      "note": "Protocolo Lupita wordmark, white bold text with a thin vertical separator."
+    },
+    {
+      "id": "nav-inicio",
+      "kind": "control",
+      "grid": "E1:F1",
+      "note": "Inicio navigation link with short gold active underline."
+    },
+    {
+      "id": "nav-como-funciona",
+      "kind": "control",
+      "grid": "F1:G1",
+      "note": "Cómo funciona navigation link in the right-aligned header."
+    },
+    {
+      "id": "nav-preguntas",
+      "kind": "control",
+      "grid": "G1:I1",
+      "note": "Preguntas frecuentes navigation link in the header."
+    },
+    {
+      "id": "nav-avisos",
+      "kind": "control",
+      "grid": "I1:J1",
+      "note": "Avisos navigation link at the far right of the header."
+    },
+    {
+      "id": "hero-heading",
+      "kind": "text",
+      "grid": "A3:F3",
+      "note": "Large navy Spanish question: ¿Recibiste un mensaje o una llamada sospechosa?"
+    },
+    {
+      "id": "hero-supporting-copy",
+      "kind": "text",
+      "grid": "A4:F4",
+      "note": "Two lines explaining that the visitor can review a message and learn safe next steps."
+    },
+    {
+      "id": "primary-sms-action",
+      "kind": "control",
+      "grid": "A5:F6",
+      "note": "Large gold directional plaque with chat icon, Revisar un SMS label, and right arrow."
+    },
+    {
+      "id": "report-action",
+      "kind": "control",
+      "grid": "A6:F7",
+      "note": "Outlined navy directional plaque with warning icon, Hacer un reporte label, and right arrow."
+    },
+    {
+      "id": "route-branch",
+      "kind": "chrome",
+      "grid": "G3:H6",
+      "note": "Single gold route node and three-branch line connecting the destinations; a functional diagram, not decoration.",
+      "codeDrawn": true
+    },
+    {
+      "id": "route-sms",
+      "kind": "control",
+      "grid": "H3:J4",
+      "note": "Outlined directional plaque with SMS icon, Revisar SMS label, and arrow."
+    },
+    {
+      "id": "route-report",
+      "kind": "control",
+      "grid": "H4:J5",
+      "note": "Outlined directional plaque with megaphone icon, Reportar label, and arrow."
+    },
+    {
+      "id": "route-alerts",
+      "kind": "control",
+      "grid": "H5:J6",
+      "note": "Outlined directional plaque with information icon, Consultar avisos label, and arrow."
+    },
+    {
+      "id": "gold-horizontal-rule",
+      "kind": "chrome",
+      "grid": "A8:J8",
+      "note": "Thin gold horizontal divider above the secondary government route and demonstration note."
+    },
+    {
+      "id": "government-entry",
+      "kind": "control",
+      "grid": "A9:E9",
+      "note": "Secondary government entrance with institutional icon, Entrada para gobierno label, and arrow."
+    },
+    {
+      "id": "government-demo-divider",
+      "kind": "chrome",
+      "grid": "F9:F9",
+      "note": "Thin vertical gold divider between the government entrance and local-demo note."
+    },
+    {
+      "id": "demo-note-icon",
+      "kind": "control",
+      "grid": "G9:G9",
+      "note": "Small outlined information icon introducing the demonstration notice.",
+      "codeDrawn": true
+    },
+    {
+      "id": "demo-note",
+      "kind": "text",
+      "grid": "G9:J9",
+      "note": "Local-demo disclosure that the prototype is in demonstration and uses fictional data."
+    }
+  ]
+}

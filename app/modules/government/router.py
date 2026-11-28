@@ -41,7 +41,7 @@ def government_page(request: Request, _: str = Depends(require_government_user))
     return templates.TemplateResponse(
         request,
         "government/index.html",
-        {"title": "Actividad de llamadas · Panel gubernamental"},
+        {"title": "Actividad de llamadas · Panel gubernamental", "active": "live"},
     )
 
 
@@ -53,7 +53,7 @@ def government_simulator_page(
     return templates.TemplateResponse(
         request,
         "government/simulator.html",
-        {"title": "Simular llamada · Panel gubernamental"},
+        {"title": "Simular llamada · Panel gubernamental", "active": "simulator"},
     )
 
 
@@ -73,7 +73,7 @@ def government_reports_page(
     return templates.TemplateResponse(
         request,
         "government/reports.html",
-        {"title": "Reportes y métricas · Panel gubernamental"},
+        {"title": "Reportes y métricas · Panel gubernamental", "active": "reports"},
     )
 
 

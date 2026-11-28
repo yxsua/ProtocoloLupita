@@ -69,6 +69,40 @@
     return { minX, maxX, minY, maxY };
   }
 
+  function polygonLabelPoint(feature) {
+    const polygons = feature.geometry.type === "MultiPolygon"
+      ? feature.geometry.coordinates
+      : [feature.geometry.coordinates];
+    let largest = null;
+    let largestArea = -1;
+    polygons.forEach((polygon) => {
+      const ring = polygon[0] || [];
+      let twiceArea = 0, xSum = 0, ySum = 0;
+      for (let i = 0; i < ring.length - 1; i += 1) {
+        const [x1, y1] = ring[i], [x2, y2] = ring[i + 1];
+        const cross = x1 * y2 - x2 * y1;
+        twiceArea += cross;
+        xSum += (x1 + x2) * cross;
+        ySum += (y1 + y2) * cross;
+      }
+      const area = Math.abs(twiceArea);
+      if (area > largestArea) {
+        largestArea = area;
+        largest = area > 0
+          ? [xSum / (3 * twiceArea), ySum / (3 * twiceArea)]
+          : ring[0];
+      }
+    });
+    return largest;
+  }
+
+  function svgElement(name, attrs, text) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+    Object.entries(attrs || {}).forEach(([key, value]) => element.setAttribute(key, value));
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+
   function renderMap(mapData) {
     const svg = document.getElementById("qro-map-svg");
     const list = document.getElementById("map-regions");
@@ -79,7 +113,7 @@
     const geojson = mapData.geojson || {};
     const features = geojson.features || [];
     const bounds = pointBounds(geojson);
-    const width = 640, height = 520, pad = 24;
+    const width = 620, height = 658, pad = 10;
     const spanX = Math.max(bounds.maxX - bounds.minX, .001);
     const spanY = Math.max(bounds.maxY - bounds.minY, .001);
     const scale = Math.min((width - 2 * pad) / spanX, (height - 2 * pad) / spanY);
@@ -99,12 +133,28 @@
         const [x, y] = project(point);
         return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
       }).join(" ") + " Z").join(" ")).join(" ");
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", d);
-      path.setAttribute("stroke", "#355347");
-      path.setAttribute("stroke-width", "1.5");
-      path.setAttribute("fill", feature.properties.published ? "#4b9b70" : "#e1e9e3");
+      const path = svgElement("path", {
+        d,
+        stroke: "#10213c",
+        "stroke-width": "1.15",
+        "stroke-linejoin": "round",
+        "vector-effect": "non-scaling-stroke",
+        fill: feature.properties.published ? "#c89b28" : "#e4e9e3",
+      });
       svg.append(path);
+    });
+
+    features.forEach((feature) => {
+      const center = polygonLabelPoint(feature);
+      if (!center) return;
+      const [x, y] = project(center);
+      const label = svgElement("text", {
+        x: x.toFixed(1), y: y.toFixed(1),
+        class: "map-municipality-label",
+        "text-anchor": "middle",
+        "dominant-baseline": "middle",
+      }, feature.properties.municipality_name || "Municipio");
+      svg.append(label);
     });
 
     summary.textContent = visible.length

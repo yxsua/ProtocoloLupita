@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Genera y descarga copias SQLite sintéticas para demostraciones controladas.">
+  <title>{{ title }}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
+  <link rel="stylesheet" href="/static/government.css?v=20261128-9">
+  <link rel="stylesheet" href="/static/government-seed-copies.css">
+</head>
+<body class="gov-app">
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <div class="gov-app-shell">
+    {% include "_government_sidebar.html" %}
+    <div class="gov-main-column">
+
+  <main id="main-content" class="gov-main seed-main">
+    <div class="gov-title-row seed-title-row">
+      <div>
+        <h1>Copias de prueba</h1>
+        <p class="intro-copy">Crea bases de datos SQLite ficticias para demostrar cómo un número trampa ayuda a identificar una copia filtrada.</p>
+      </div>
+      <span class="demo-label">SOLO DATOS SINTÉTICOS</span>
+    </div>
+
+    <div class="seed-workspace">
+      <section class="seed-create" aria-labelledby="seed-create-title">
+        <h2 id="seed-create-title">Crear un lote</h2>
+        <p>Se generará un archivo SQLite distinto por cada copia, con un número trampa único para la demostración.</p>
+        <form id="seed-create-form">
+          <div class="seed-form-fields">
+            <div class="seed-field">
+              <label for="seed-period">Identificador del lote</label>
+              <input id="seed-period" name="seed_period" type="text" minlength="3" maxlength="64" pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,63}" required aria-describedby="seed-period-help">
+              <small id="seed-period-help">Usa letras, números, guiones o guiones bajos. Cada identificador solo se puede crear una vez.</small>
+            </div>
+            <div class="seed-field seed-count-field">
+              <label for="seed-count">Copias del lote</label>
+              <input id="seed-count" name="total_copies" type="number" min="1" max="50" value="3" required>
+            </div>
+          </div>
+          <button id="seed-create-button" type="submit">Generar copias</button>
+          <p id="seed-status" class="seed-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <aside class="seed-guidance" aria-labelledby="seed-guidance-title">
+        <h2 id="seed-guidance-title">Cómo distribuirlas</h2>
+        <p>El ZIP incluye un archivo por copia y una guía de uso. Entrega a cada participante únicamente la base que le corresponde.</p>
+        <p class="seed-privacy-note"><strong>La atribución queda privada.</strong> El ZIP no incluye la tabla que relaciona cada número trampa con su copia.</p>
+      </aside>
+    </div>
+
+    <section class="seed-batches" aria-labelledby="seed-batches-title">
+      <div class="seed-list-heading">
+        <div><h2 id="seed-batches-title">Lotes disponibles</h2><p>Descarga de nuevo un lote anterior cuando lo necesites.</p></div>
+        <button id="seed-refresh" type="button" class="secondary-button">Actualizar lista</button>
+      </div>
+      <div id="seed-batches-status" class="seed-batches-status" role="status" aria-live="polite">Cargando lotes…</div>
+      <ul id="seed-batches-list" class="seed-batch-list" aria-label="Lotes sintéticos disponibles"></ul>
+    </section>
+
+    <p class="gov-footnote">Los registros, nombres y números de estas bases son ficticios. No conectes estas copias con servicios productivos ni con datos personales reales.</p>
+  </main>
+  </div>
+  </div>
+  <script src="/static/government-seed-copies.js" defer></script>
+</body>
+</html>

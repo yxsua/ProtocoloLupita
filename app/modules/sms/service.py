@@ -80,6 +80,7 @@ def _build_sms_explanation(
     campaign_id: str | None,
     untrusted_ignored: bool,
     circular_matches: list[CircularMatch],
+    rule_signals: list[str],
 ) -> str:
     parts: list[str] = []
 
@@ -87,6 +88,13 @@ def _build_sms_explanation(
         parts.append(
             "No se detectaron señales de suplantacion ni enlaces sospechosos en las reglas locales."
         )
+    elif "prize_link_lure" in rule_signals:
+        parts.append(
+            "Posible señuelo de premio: anuncia que ganaste algo y te pide abrir un enlace, "
+            "una combinación frecuente en mensajes de phishing."
+        )
+        if not domain_checks:
+            parts.append("No se incluyó el destino del enlace, así que no fue posible revisarlo.")
     else:
         entity_txt = entity if entity != "ninguno" else "entidad no especificada"
         parts.append(
@@ -206,6 +214,7 @@ def analyze_sms(
         campaign_id=verdict.campaign_id,
         untrusted_ignored=rule_res.untrusted_text_ignored,
         circular_matches=circular_matches,
+        rule_signals=rule_signals,
     )
 
     guided_route = build_guided_route(

@@ -33,10 +33,14 @@ def api_public_map() -> dict[str, object]:
         features.append({
             "type": feature.get("type", "Feature"),
             "geometry": feature.get("geometry"),
-            "properties": {"published": name in visible_names},
+            "properties": {
+                "municipality_name": name,
+                "published": name in visible_names,
+            },
         })
     return {
         "threshold": summary.threshold,
+        "synthetic": summary.synthetic,
         "visible_areas": visible,
         "geojson": {"type": "FeatureCollection", "features": features},
     }

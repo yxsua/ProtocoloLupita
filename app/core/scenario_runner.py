@@ -62,7 +62,13 @@ def list_scenarios(directory: Path = SCENARIOS_DIR) -> list[Scenario]:
             continue
 
         if channel == "call":
-            scenario_input = {"event": event or {}, "turns": (voice or {}).get("input", [])}
+            scenario_input = {
+                "event": event or {},
+                "turns": (voice or {}).get("input", []),
+                "simulation_turns": (voice or {}).get(
+                    "simulation_turns", (voice or {}).get("input", [])
+                ),
+            }
             expected = {
                 "intelligence": (event or {}).get("expected", {}),
                 "voice": (voice or {}).get("expected", {}),

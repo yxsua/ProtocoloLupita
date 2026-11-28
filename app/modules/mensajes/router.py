@@ -2,17 +2,24 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
+import hmac
 import os
 import secrets
+import uuid
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.modules.government.auth import require_government_user
+from app.modules.sms.service import analyze_sms
 
 router = APIRouter(tags=["mensajes y dispositivos"])
 _APP_DIR = Path(__file__).resolve().parents[2]
@@ -24,7 +31,13 @@ class Evento(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    dispositivo: str = Field(min_length=1, max_length=64)
+    id_evento: str = Field(
+        default_factory=lambda: uuid.uuid4().hex,
+        min_length=1,
+        max_length=128,
+    )
+    dispositivo: str = Field(min_length=1, max_length=80)
+    origen: str = Field(default="bridge_android", min_length=1, max_length=64)
     tipo: Literal["notificacion", "sms", "llamada"]
     app: str = Field(default="desconocida", min_length=1, max_length=128)
     remitente: Optional[str] = Field(default=None, max_length=256)
@@ -81,6 +94,9 @@ class HubEventos:
         for websocket in caidos:
             self.desconectar(websocket)
 
+    def contiene(self, event_id: str) -> bool:
+        return any(item.get("id_evento") == event_id for item in self.historial)
+
 
 hub = HubEventos()
 
@@ -92,6 +108,25 @@ def _clave_valida(clave: Optional[str]) -> bool:
     return secrets.compare_digest(clave, clave_configurada)
 
 
+def _websocket_gubernamental_autorizado(websocket: WebSocket) -> bool:
+    usuario_configurado = os.getenv("GOV_PANEL_USERNAME", "")
+    clave_configurada = os.getenv("GOV_PANEL_PASSWORD", "")
+    if not usuario_configurado or not clave_configurada:
+        return False
+    esquema, separador, token = websocket.headers.get("authorization", "").partition(" ")
+    if esquema.lower() != "basic" or not separador:
+        return False
+    try:
+        credenciales = base64.b64decode(token, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        return False
+    usuario, separador, clave = credenciales.partition(":")
+    return bool(separador) and (
+        hmac.compare_digest(usuario, usuario_configurado)
+        and hmac.compare_digest(clave, clave_configurada)
+    )
+
+
 @router.post("/api/eventos", status_code=201)
 async def recibir_evento(
     evento: Evento,
@@ -99,18 +134,40 @@ async def recibir_evento(
 ) -> dict[str, bool]:
     if not _clave_valida(x_device_key):
         raise HTTPException(status_code=401, detail="Clave de dispositivo inválida.")
-    await hub.emitir(evento.model_dump(mode="json"))
+    if hub.contiene(evento.id_evento):
+        return {"ok": True}
+    data: dict[str, Any] = evento.model_dump(mode="json")
+    if evento.tipo != "llamada" and evento.texto:
+        try:
+            data["analisis"] = analyze_sms(
+                {
+                    "body": evento.texto,
+                    "sender": evento.remitente,
+                    "message_id": evento.id_evento,
+                }
+            ).to_dict()
+        except Exception:
+            data["analisis"] = {
+                "verification_status": "sin_verificar",
+                "explanation": "No fue posible completar el análisis local.",
+            }
+    await hub.emitir(data)
     return {"ok": True}
 
 
 @router.get("/api/eventos")
-async def listar_eventos() -> list[dict]:
+async def listar_eventos(_: str = Depends(require_government_user)) -> list[dict]:
     """Devuelve los eventos desde el más reciente hasta el más antiguo."""
     return list(reversed(hub.historial))
 
 
 @router.websocket("/ws/eventos")
-async def eventos_en_vivo(websocket: WebSocket) -> None:
+async def eventos_en_vivo(
+    websocket: WebSocket,
+) -> None:
+    if not _websocket_gubernamental_autorizado(websocket):
+        await websocket.close(code=1008, reason="Autenticación gubernamental requerida.")
+        return
     try:
         await hub.conectar(websocket)
         while True:
@@ -122,11 +179,14 @@ async def eventos_en_vivo(websocket: WebSocket) -> None:
 
 
 @router.get("/mensajes")
-async def pantalla_mensajes(request: Request):
+async def pantalla_mensajes(
+    request: Request,
+    _: str = Depends(require_government_user),
+):
     return templates.TemplateResponse(
         request=request,
         name="mensajes/index.html",
-        context={},
+        context={"active": "events"},
     )
 
 

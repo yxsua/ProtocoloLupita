@@ -9,7 +9,7 @@ El Android de esta fase envía únicamente notificaciones de las aplicaciones qu
 - `server/`: FastAPI, interfaz web, autenticación, SQLite, WebSocket y pruebas.
 - `android/`: aplicación Kotlin con consentimiento, allowlist local de apps, cola offline y envío autenticado.
 - `scripts/simular_telefono.py`: emite eventos ficticios para probar la API; no contacta teléfonos.
-- `docs/`: [guía de instalación](docs/GUIA_INSTALACION.md), [aviso de privacidad](docs/AVISO_PRIVACIDAD.md) y [nota de integración futura](docs/INTEGRACION_LUPITA.md).
+- `docs/`: [guía de instalación](docs/GUIA_INSTALACION.md), [vinculación Android estrictamente local](docs/VINCULACION_LOCAL_ANDROID.md), [integración con Protocolo Lupita](docs/INTEGRACION_LUPITA.md) y [aviso de privacidad](docs/AVISO_PRIVACIDAD.md).
 
 ## Requisitos
 
@@ -95,6 +95,8 @@ El simulador envía notificaciones, SMS y una llamada ficticios, incluidos comil
 | `REGLAS_FRAUDE_CSV` | Ruta del archivo CSV de reglas antifraude. | `server/data/reglas_fraude.csv` |
 | `DOMAIN` | Dominio DNS publicado por Caddy en Docker. | Sin valor |
 | `BACKUP_RETENTION_DAYS` | Días que se conservan respaldos diarios SQLite. | `30` |
+| `LUPITA_EVENTS_URL` | Endpoint `/api/eventos` del portal principal; HTTP solo en loopback. | Vacío |
+| `LUPITA_EVENTS_KEY` | Clave aleatoria compartida con `LUPITA_DEVICE_KEY` del portal. | Vacía |
 
 El archivo `.env.example` contiene valores vacíos para los secretos. Define los valores reales solamente en el `.env` local, que está excluido por `.gitignore`. Protege y respalda `DATA_ENCRYPTION_KEY`: si se pierde o cambia, no será posible descifrar mensajes existentes. Detrás de un proxy HTTPS, define también `BASE_URL_PUBLICA` y `COOKIE_SECURE=true`; restringe Uvicorn para que solo confíe en el proxy que controlas.
 
@@ -121,6 +123,8 @@ El servidor release se fija en `BuildConfig` desde `MONITOR_SERVER_URL` o `-Pmon
 
 El panel marca **En línea** cuando el contacto ocurrió en los últimos 35 minutos y actualiza cada 30 segundos. Configura `ANDROID_DOWNLOAD_URL` con una URL HTTPS a un APK release firmado para mostrar descarga en la página pública.
 
+Para mostrar los eventos del monitor en el portal principal, configura el relay opcional descrito en [Integración con Protocolo Lupita](docs/INTEGRACION_LUPITA.md). El monitor mantiene su base local y reenvía los eventos con una clave de servidor a servidor; no reutiliza el token del teléfono.
+
 ## Despliegue en la nube
 
 Se incluye Docker, Caddy para HTTPS automático, SQLite persistente y una tarea de respaldo diario. Sigue [docs/DESPLIEGUE_VPS.md](docs/DESPLIEGUE_VPS.md); la alternativa de piloto con Tailscale Funnel y sus riesgos está en [docs/PRUEBA_RAPIDA_FUNNEL.md](docs/PRUEBA_RAPIDA_FUNNEL.md).
@@ -144,4 +148,4 @@ El detector analiza cada evento, devuelve riesgo de 0 a 100 y razones breves, y 
 
 ## Aislamiento e integración
 
-Este proyecto no importa ni modifica `/app`, ni el sistema de voz, Whisper o Piper. La posible integración futura está descrita, sin implementarla, en [INTEGRACION_LUPITA.md](docs/INTEGRACION_LUPITA.md).
+Este proyecto no importa módulos de `/app` ni depende del sistema de voz, Whisper o Piper. El relay opcional hacia el portal principal está descrito en [INTEGRACION_LUPITA.md](docs/INTEGRACION_LUPITA.md).

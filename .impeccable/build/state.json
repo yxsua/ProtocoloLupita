@@ -1,0 +1,108 @@
+{
+  "tool": "build-phase",
+  "version": 2,
+  "startedAt": "2026-11-28T10:04:57.803Z",
+  "comp": ".impeccable/mocks/wayfinding-1.png",
+  "direction": "f92fbaba",
+  "breakpoint": "1586x992",
+  "artifact": null,
+  "phase": "hero",
+  "phases": {
+    "comps": {
+      "status": "closed",
+      "openedAt": "2026-11-28T10:04:57.802Z",
+      "closedAt": "2026-11-28T10:09:48.344Z",
+      "attempts": 2,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "3 comps, 1 approved",
+        "approved": ".impeccable/mocks/wayfinding-1.png",
+        "at": "2026-11-28T10:09:48.344Z"
+      },
+      "forced": null
+    },
+    "spec": {
+      "status": "closed",
+      "openedAt": "2026-11-28T10:09:48.390Z",
+      "closedAt": "2026-11-28T10:19:22.858Z",
+      "attempts": 8,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "20 regions, 1 plates, 4 text regions measured",
+        "at": "2026-11-28T10:19:22.857Z"
+      },
+      "forced": null
+    },
+    "plates": {
+      "status": "closed",
+      "openedAt": "2026-11-28T10:19:22.858Z",
+      "closedAt": "2026-11-28T10:22:37.555Z",
+      "attempts": 3,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "1/1 plates",
+        "at": "2026-11-28T10:22:37.554Z"
+      },
+      "forced": null
+    },
+    "hero": {
+      "status": "open",
+      "openedAt": "2026-11-28T10:22:37.555Z",
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "sections": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "motion": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "responsive": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "review": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    }
+  },
+  "finish": null,
+  "plates": {
+    "shield-logo": {
+      "status": "ok",
+      "score": 0.5836,
+      "size": "1122x1402"
+    }
+  }
+}

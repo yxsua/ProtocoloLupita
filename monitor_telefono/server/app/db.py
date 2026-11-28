@@ -378,7 +378,8 @@ def get_device_by_token_hash(path: Path, token_hash: str) -> dict[str, Any] | No
     with _connection(path) as connection:
         row = connection.execute(
             """
-            SELECT id, nombre, token_hash, creado_en, ultimo_contacto, estado
+            SELECT id, nombre, token_hash, creado_en, ultimo_contacto,
+                   consentimiento_version, estado
             FROM dispositivos WHERE token_hash = ?
             """,
             (token_hash,),

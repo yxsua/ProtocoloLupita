@@ -80,7 +80,7 @@
 .hidden { display: none !important; }
 @media (max-width: 760px) {
   .simulator-main { width: min(100% - 1.25rem, 520px); margin-top: 1.15rem; }
-  .simulator-page .gov-header { gap: .35rem; padding: .55rem .75rem; }
+  .simulator-page .gov-mobile-bar { gap: .35rem; padding: .55rem .75rem; }
   .simulator-page .gov-brand-note { display: none; }
   .simulator-page .gov-nav { flex-wrap: nowrap; gap: .1rem; overflow-x: auto; }
   .simulator-page .gov-nav a { flex: 0 0 auto; padding: .38rem .42rem; font-size: .8rem; white-space: nowrap; }
@@ -102,4 +102,44 @@
 @keyframes incoming-ring {
   0%, 100% { box-shadow: 0 0 0 0 rgba(127, 193, 151, .3); }
   60% { box-shadow: 0 0 0 13px rgba(127, 193, 151, 0); }
+}
+
+.simulator-page { background: var(--paper); }
+.phone-shell { background: #0a1425; box-shadow: 0 18px 36px rgba(0, 0, 0, .24); }
+.phone-camera { background: #0a1425; }
+.phone-screen { background: #14263f; }
+.phone-statusbar { color: #f7f4ec; }
+.phone-signal i { background: #f7f4ec; }
+.caller-avatar { border-color: #687b96; background: #253c5d; }
+.caller-avatar svg { stroke: #f4ecd8; }
+.incoming-kicker, .active-call-label, .call-status, .timer, .transcript-heading span { color: #f1ecdf; }
+.caller-classification { color: #f0ce75; }
+.incoming-notice { color: #f1ecdf; }
+.simulator-notice, .simulator-notes li, .simulator-notes { color: #35455d; }
+.answer-action .action-icon { background: #c99a18; color: #101e35; }
+.decline-action .action-icon { background: #a34537; }
+.tool-status { border-color: #64748d; color: #d2dceb; }
+.tool-status.on { border-color: #d1a52d; background: #3a3322; color: #f7eac9; }
+.transcript-heading { border-color: #3e526d; }
+.message { border-color: #455a76; background: #213956; color: #f6f4ed; }
+.message::before { color: #f1ecdf; }
+.message.atacante { border-color: #92752a; background: #353321; }
+.message.system { border-color: #806c34; background: #3b3423; color: #f5e4b7; }
+.input-bar { border-color: #3e526d; }
+.input-bar label, .voice-status { color: #f1ecdf; }
+.input-bar input { border-color: #7b899d; border-radius: 2px; background: var(--paper-light); color: var(--ink); }
+.input-bar input::placeholder { color: #536177; }
+.phone-control { border-color: #8996a9; border-radius: 2px; background: #243a59; color: #f7f4ec; }
+.send-control { border-color: #cfaa43; background: #c99a18; color: #13213a; }
+.phone-home-indicator { background: #e4e8eb; }
+.scenario-picker { color: #dbe2ec; }
+.scenario-picker select { border-color: #7b899d; border-radius: 2px; background: var(--paper-light); color: var(--ink); }
+.scenario-picker select:focus-visible, .phone-action:focus-visible, .phone-control:focus-visible, .retry-call:focus-visible, .input-bar input:focus-visible { outline-color: #e4b936; }
+.retry-call { border-color: #8794a5; border-radius: 2px; background: var(--paper-light); color: var(--navy); }
+.simulator-notice { border-color: #8f7b46; }
+.dashboard-link { color: var(--navy); }
+.synthetic-note { color: #536177; }
+@keyframes incoming-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(216, 167, 25, .3); }
+  60% { box-shadow: 0 0 0 13px rgba(216, 167, 25, 0); }
 }

@@ -4,7 +4,10 @@
 <section aria-labelledby="alerts-title">
   <h1 id="alerts-title">Avisos para cuidarnos</h1>
   <p class="intro-copy">Aquí reunimos señales de posibles engaños y consejos para verificar antes de responder.</p>
-  <p class="demo-note"><strong>Demostración:</strong> los ejemplos y cifras son ficticios. No representan reportes oficiales ni situaciones actuales.</p>
+  <aside class="demo-banner" role="note" aria-label="Alcance de los avisos">
+    <strong>Cómo leer el mapa</strong>
+    <p>Agrupa reportes ciudadanos por municipio y solo muestra zonas con cinco o más. Un reporte no confirma fraude ni constituye un aviso oficial; los demás ejemplos son de demostración.</p>
+  </aside>
 </section>
 
 <section class="card" aria-labelledby="campaigns-title">
@@ -16,14 +19,18 @@
 
 <section class="card" aria-labelledby="map-title">
   <h2 id="map-title">Avisos por zona</h2>
-  <p class="help-text">Solo mostramos una zona cuando hay suficientes avisos para proteger a las personas.</p>
+  <p class="help-text">Límites de los 18 municipios de Querétaro. El color destaca solo las zonas que reúnen suficientes reportes ciudadanos.</p>
   <div class="map-layout">
-    <svg id="qro-map-svg" class="map-frame" viewBox="0 0 640 520" aria-hidden="true" focusable="false"></svg>
+    <svg id="qro-map-svg" class="map-frame" viewBox="0 0 620 658" role="img" aria-labelledby="map-title map-total" focusable="false"></svg>
     <div>
       <h3>Zonas con avisos visibles</h3>
       <p id="map-total" aria-live="polite">Cargando información de zonas…</p>
       <ul id="map-regions" class="map-list" aria-live="polite"></ul>
-      <p class="help-text">Las zonas grises no tienen suficientes avisos para mostrarse.</p>
+      <ul class="map-legend" aria-label="Leyenda del mapa">
+        <li><span class="map-swatch map-swatch-visible" aria-hidden="true"></span>Zona con avisos publicados</li>
+        <li><span class="map-swatch map-swatch-private" aria-hidden="true"></span>Sin avisos suficientes para mostrar</li>
+      </ul>
+      <p class="help-text">La cantidad se muestra únicamente al superar el umbral de privacidad. Un aviso no confirma un delito.</p>
     </div>
   </div>
 </section>
@@ -35,10 +42,10 @@
     <li>No compartas contraseñas, códigos ni datos de tu cuenta.</li>
     <li>Verifica directamente con la institución usando un contacto que ya conozcas.</li>
   </ul>
-  <a class="button-link" href="/citizen">Reportar una llamada o mensaje</a>
+  <a class="button-link advice-action" href="/citizen">Reportar una llamada o mensaje</a>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/dashboard.js" defer></script>
+<script src="/static/dashboard.js?v=20261128-5" defer></script>
 {% endblock %}

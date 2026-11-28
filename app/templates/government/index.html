@@ -6,23 +6,14 @@
   <meta name="description" content="Seguimiento en vivo de la llamada de demostración y su atribución.">
   <title>{{ title }}</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/public.css">
-  <link rel="stylesheet" href="/static/government.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
+  <link rel="stylesheet" href="/static/government.css?v=20261128-9">
 </head>
-<body data-page="live">
+<body class="gov-app">
   <a class="skip-link" href="#main-content">Ir al contenido</a>
-  <header class="gov-header">
-    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
-      <span class="gov-brand-name">Protocolo Lupita</span>
-      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
-    </a>
-    <nav class="gov-nav" aria-label="Navegación del panel">
-      <a href="/gobierno" aria-current="page">Llamada en vivo</a>
-      <a href="/gobierno/simulador">Simular llamada</a>
-      <a href="/gobierno/reportes">Reportes y métricas</a>
-      <a href="/">Vista ciudadana</a>
-    </nav>
-  </header>
+  <div class="gov-app-shell">
+    {% include "_government_sidebar.html" %}
+    <div class="gov-main-column">
 
   <main id="main-content" class="gov-main">
     <div class="gov-title-row">
@@ -72,6 +63,8 @@
     </div>
     <p class="gov-footnote">Demostración local con números y datos ficticios. El identificador de origen es simulado y no verificado; no se realizan llamadas telefónicas.</p>
   </main>
+  </div>
+  </div>
   <script src="/static/government.js" defer></script>
 </body>
 </html>

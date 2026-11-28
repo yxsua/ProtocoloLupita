@@ -4,34 +4,52 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contar qué pasó · Protocolo Lupita</title>
-  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
 </head>
 <body>
   {% include "_public_header.html" %}
-  <main id="main-content" class="public-main" tabindex="-1">
+  <main id="main-content" class="public-main report-main" tabindex="-1">
     <h1>Cuéntanos qué pasó</h1>
-    <p class="intro-copy">Puedes reportar una llamada o un mensaje sospechoso. Te daremos pasos sencillos para cuidarte.</p>
-    <p class="demo-note"><strong>Por favor, no escribas</strong> contraseñas, códigos de verificación, CURP ni datos de tu cuenta. Esta demostración no es un servicio de emergencia.</p>
+    <p class="intro-copy report-intro">Puedes reportar una llamada o un mensaje sospechoso. Te daremos pasos sencillos para cuidarte.</p>
+    <aside class="report-safety" aria-label="Aviso sobre datos personales">
+      <strong>Por favor, no escribas</strong>
+      <p>contraseñas, códigos de verificación, CURP ni datos de tu cuenta. Esta demostración no es un servicio de emergencia.</p>
+    </aside>
 
-    <form id="citizen-report-form" class="public-card">
-      <label for="rep-channel">¿Qué recibiste?</label>
-      <select id="rep-channel" name="channel" required>
-        <option value="sms">Un mensaje de texto</option>
-        <option value="llamada">Una llamada</option>
-      </select>
+    <form id="citizen-report-form" class="public-card report-form">
+      <div class="report-field">
+        <label for="rep-channel">¿Qué recibiste?</label>
+        <select id="rep-channel" name="channel" required>
+          <option value="sms">Un mensaje de texto</option>
+          <option value="llamada">Una llamada</option>
+        </select>
+      </div>
 
-      <label for="rep-desc">¿Qué decía o qué pasó?</label>
-      <textarea id="rep-desc" name="description" rows="5" required aria-describedby="report-help" placeholder="Describe el mensaje o la llamada con tus propias palabras"></textarea>
-      <p id="report-help" class="help-text">Evita incluir tu nombre, contraseñas, códigos o información de tu cuenta.</p>
+      <div class="report-field report-field-wide">
+        <label for="rep-desc">¿Qué decía o qué pasó?</label>
+        <textarea id="rep-desc" name="description" rows="5" required aria-describedby="report-help" placeholder="Describe el mensaje o la llamada con tus propias palabras"></textarea>
+        <p id="report-help" class="help-text">Evita incluir tu nombre, contraseñas, códigos o información de tu cuenta.</p>
+      </div>
 
-      <label for="rep-municipality">¿En qué municipio ocurrió? <span class="help-text">(opcional)</span></label>
-      <input id="rep-municipality" name="municipality" type="text" autocomplete="address-level2" placeholder="Escribe el municipio">
+      <div class="report-field">
+        <label for="rep-municipality">¿En qué municipio ocurrió? <span class="help-text">(opcional)</span></label>
+        <select id="rep-municipality" name="municipality" autocomplete="address-level2">
+          <option value="">Prefiero no indicarlo</option>
+          {% for municipality in municipalities %}
+          <option value="{{ municipality.municipality_name }}">{{ municipality.municipality_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-      <label for="rep-sender">¿Quién te contactó? <span class="help-text">(opcional)</span></label>
-      <input id="rep-sender" name="reported_sender_or_phone" type="text" autocomplete="off" placeholder="Nombre o número que apareció">
+      <div class="report-field">
+        <label for="rep-sender">¿Quién te contactó? <span class="help-text">(opcional)</span></label>
+        <input id="rep-sender" name="reported_sender_or_phone" type="text" autocomplete="off" placeholder="Nombre o número que apareció">
+      </div>
 
-      <label for="rep-url">¿Incluía un enlace? <span class="help-text">(opcional; no lo abras)</span></label>
-      <input id="rep-url" name="reported_url" type="text" autocomplete="off" placeholder="Puedes dejarlo vacío">
+      <div class="report-field report-field-wide">
+        <label for="rep-url">¿Incluía un enlace? <span class="help-text">(opcional; no lo abras)</span></label>
+        <input id="rep-url" name="reported_url" type="text" autocomplete="off" placeholder="Puedes dejarlo vacío">
+      </div>
 
       <button id="report-submit" type="submit">Enviar reporte</button>
     </form>

@@ -19,7 +19,7 @@ Los textos pueden contener datos personales que el remitente incluya en la notif
 
 ## Finalidades y análisis antifraude
 
-Los datos se usan para recibir eventos consentidos, detectar señales de fraude o suplantación, presentar advertencias al teléfono, habilitar revisión humana de alertas, proteger la cuenta/dispositivo, y permitir solicitudes de acceso, exportación, rectificación o borrado.
+Los datos se usan para recibir eventos consentidos, detectar señales de fraude o suplantación, presentar advertencias al teléfono, habilitar revisión humana de alertas, proteger la cuenta/dispositivo, y permitir solicitudes de acceso, exportación, rectificación o borrado. Si se activa la integración con Protocolo Lupita, los eventos de teléfonos que aceptaron ese alcance también se comparten con el portal principal para búsqueda y análisis local de mensajes.
 
 El detector asigna un puntaje de 0 a 100 y razones explicables mediante reglas y heurísticas. Un resultado no determina que exista fraude ni se usa por sí solo para tomar decisiones con efectos legales sobre una persona. Las alertas medias y altas se envían a una cola de revisión humana.
 
@@ -27,6 +27,7 @@ El detector asigna un puntaje de 0 a 100 y razones explicables mediante reglas y
 
 - **Administradores:** gestionan dispositivos, cuentas, enrolamientos, reglas y configuración; pueden consultar el feed, exportar o borrar datos y acceder a la bitácora.
 - **Revisores:** por defecto ven solo mensajes marcados como posibles alertas y hasta tres mensajes previos del mismo remitente, con contexto mínimo. No tienen acceso al feed general ni a la lista de teléfonos.
+- **Panel principal Protocolo Lupita (integración opcional):** puede ver los eventos que se reenvían para esa demostración local y el resultado del análisis de mensaje. El feed principal conserva hasta 200 eventos en memoria y se limpia al reiniciar ese portal.
 - **Configuración ampliada:** si `REVISORES_VEN_TODO=true`, los revisores pueden consultar los textos de todos los eventos únicamente de teléfonos que aceptaron la versión de consentimiento que informa esa opción. Los demás dispositivos conservan el acceso limitado a alertas. La app muestra esta condición antes del consentimiento y cada consulta se registra en la bitácora.
 - **Persona propietaria del teléfono:** puede consultar y exportar exclusivamente los eventos vinculados a su token de dispositivo y solicitar su borrado desde la app.
 
@@ -34,7 +35,7 @@ Las acciones de consulta de alertas, marcado, exportación y borrado quedan regi
 
 ## Consentimiento, retiro y desinstalación
 
-El monitoreo solo debe activarse en teléfonos propios o con autorización expresa de su propietario. Antes de vincular, la app informa quién revisa, qué puede consultar, la retención y cómo retirar el consentimiento. No se envían notificaciones hasta que la persona acepta y habilita el monitoreo.
+El monitoreo solo debe activarse en teléfonos propios o con autorización expresa de su propietario. Antes de vincular, la app informa quién revisa, qué puede consultar, la retención y cómo retirar el consentimiento. Cuando el relay está habilitado, ese alcance aparece en el aviso del enrolamiento; los teléfonos previamente vinculados deben aceptar la nueva versión antes de reenviar eventos al portal principal. No se envían notificaciones hasta que la persona acepta y habilita el monitoreo.
 
 La persona puede pausar el monitoreo, revocar el acceso a notificaciones de Android, desvincular el dispositivo o desinstalar la app desde los ajustes del sistema. Desvincular detiene nuevos envíos y borra la configuración/cola local si el servidor confirma la revocación; no elimina automáticamente los datos que ya están en el servidor. La opción **Solicitar borrado de mis datos del servidor** borra y desvincula los datos de ese teléfono.
 
@@ -50,7 +51,7 @@ El servidor cifra los textos de eventos en SQLite mediante Fernet. `DATA_ENCRYPT
 
 ## Proveedor, transmisión y seguridad
 
-En despliegues en la nube, los datos se alojan en el VPS y proveedor elegidos por quien administra el servicio. El tráfico Android y web debe usar HTTPS; Caddy termina TLS y reenvía al servidor por una red privada de Docker. El responsable debe identificar al proveedor, ubicación, encargados y condiciones aplicables.
+En despliegues en la nube, los datos se alojan en el VPS y proveedor elegidos por quien administra el servicio. El tráfico Android y web debe usar HTTPS; Caddy termina TLS y reenvía al servidor por una red privada de Docker. En una demo estrictamente local, el relay al portal principal usa loopback HTTP; para otros hosts exige HTTPS. El responsable debe identificar al proveedor, ubicación, encargados y condiciones aplicables.
 
 El panel utiliza cuentas individuales, contraseñas con hash Argon2, bloqueo temporal por intentos fallidos, sesiones `HttpOnly`/`SameSite=Strict`, protección CSRF, cookies `Secure` bajo HTTPS y cabeceras CSP/HSTS. La app almacena su token protegido con Android Keystore. Ningún proxy o sistema de observabilidad debe registrar cuerpos HTTP, tokens, cookies, cabeceras de autorización, códigos de enrolamiento ni textos de mensajes.
 

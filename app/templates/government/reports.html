@@ -6,24 +6,15 @@
   <meta name="description" content="Historial privado y métricas de reportes de llamadas, SMS y ciudadanía.">
   <title>{{ title }}</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/public.css">
-  <link rel="stylesheet" href="/static/government.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
+  <link rel="stylesheet" href="/static/government.css?v=20261128-9">
   <link rel="stylesheet" href="/static/government-reports.css">
 </head>
-<body data-page="reports">
+<body class="gov-app">
   <a class="skip-link" href="#main-content">Ir al contenido</a>
-  <header class="gov-header">
-    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
-      <span class="gov-brand-name">Protocolo Lupita</span>
-      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
-    </a>
-    <nav class="gov-nav" aria-label="Navegación del panel">
-      <a href="/gobierno">Llamada en vivo</a>
-      <a href="/gobierno/simulador">Simular llamada</a>
-      <a href="/gobierno/reportes" aria-current="page">Reportes y métricas</a>
-      <a href="/">Vista ciudadana</a>
-    </nav>
-  </header>
+  <div class="gov-app-shell">
+    {% include "_government_sidebar.html" %}
+    <div class="gov-main-column">
 
   <main id="main-content" class="gov-main reports-main">
     <div class="gov-title-row reports-title-row">
@@ -80,6 +71,8 @@
     </dialog>
     <p class="gov-footnote">El historial se conserva en la base local del prototipo. Las llamadas son simuladas; los borradores se descargan para revisión y no se envían automáticamente a una autoridad.</p>
   </main>
+  </div>
+  </div>
   <script src="/static/government-reports.js" defer></script>
 </body>
 </html>

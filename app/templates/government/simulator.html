@@ -6,24 +6,15 @@
   <meta name="description" content="Simula llamadas completas con escenarios precargados y voces sintéticas.">
   <title>{{ title }}</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/public.css">
-  <link rel="stylesheet" href="/static/government.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
+  <link rel="stylesheet" href="/static/government.css?v=20261128-9">
   <link rel="stylesheet" href="/static/government-simulator.css">
 </head>
-<body class="simulator-page">
+<body class="gov-app simulator-page">
   <a class="skip-link" href="#main-content">Ir al contenido</a>
-  <header class="gov-header">
-    <a class="gov-brand" href="/gobierno" aria-label="Panel gubernamental, inicio">
-      <span class="gov-brand-name">Protocolo Lupita</span>
-      <span class="gov-brand-note">Panel gubernamental · demostración controlada</span>
-    </a>
-    <nav class="gov-nav" aria-label="Navegación del panel">
-      <a href="/gobierno">Llamada en vivo</a>
-      <a href="/gobierno/simulador" aria-current="page">Simular llamada</a>
-      <a href="/gobierno/reportes">Reportes y métricas</a>
-      <a href="/">Vista ciudadana</a>
-    </nav>
-  </header>
+  <div class="gov-app-shell">
+    {% include "_government_sidebar.html" %}
+    <div class="gov-main-column">
 
   <main id="main-content" class="simulator-main">
     <div class="simulator-heading">
@@ -102,6 +93,8 @@
       </aside>
     </div>
   </main>
-  <script src="/static/government-call-simulator.js?v=20261128-1" defer></script>
+  </div>
+  </div>
+  <script src="/static/government-call-simulator.js?v=20261128-2" defer></script>
 </body>
 </html>

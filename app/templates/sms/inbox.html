@@ -4,22 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Revisar un mensaje · Protocolo Lupita</title>
-  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
 </head>
 <body>
   {% include "_public_header.html" %}
   <main id="main-content" class="public-main" tabindex="-1">
     <h1>Revisa un mensaje</h1>
     <p class="intro-copy">Pega aquí el mensaje que te preocupa. Te diremos si encontramos señales que conviene revisar.</p>
-    <p class="demo-note"><strong>Por seguridad:</strong> no abras sus enlaces, no respondas y no compartas contraseñas ni códigos. Este es un ejemplo de demostración; no presenta una denuncia.</p>
+    <aside class="sms-safety-note" role="note">
+      <strong>Por seguridad:</strong>
+      <p>No abras sus enlaces, no respondas y no compartas contraseñas ni códigos. Este es un ejemplo de demostración; no presenta una denuncia.</p>
+    </aside>
 
-    <form id="sms-analyze-form" class="public-card">
+    <form id="sms-analyze-form" class="public-card sms-analysis-form">
+      <h2 class="sms-form-heading">Mensaje para revisar</h2>
       <label for="sms-body">Mensaje recibido</label>
       <textarea id="sms-body" name="body" rows="6" required aria-describedby="sms-help" placeholder="Pega aquí el texto del mensaje"></textarea>
       <p id="sms-help" class="help-text">No incluyas contraseñas, códigos de verificación ni datos de tu cuenta.</p>
-      <label for="sms-sender">¿Quién lo envió? <span class="help-text">(opcional)</span></label>
-      <input id="sms-sender" name="sender" type="text" autocomplete="off" placeholder="Por ejemplo, el nombre o número que aparece en el teléfono">
-      <button id="sms-submit" type="submit">Revisar mensaje</button>
+      <div class="sms-sender-field">
+        <label for="sms-sender">¿Quién lo envió? <span class="help-text">(opcional)</span></label>
+        <input id="sms-sender" name="sender" type="text" autocomplete="off" placeholder="Por ejemplo, el nombre o número que aparece en el teléfono">
+      </div>
+      <div class="sms-submit-row">
+        <button id="sms-submit" type="submit">Revisar mensaje</button>
+      </div>
     </form>
 
     <section id="sms-result-card" class="result-box" aria-live="polite" aria-atomic="true" tabindex="-1" hidden>
@@ -30,6 +38,6 @@
     </section>
   </main>
   <footer class="public-footer">No abras enlaces ni entregues códigos recibidos por mensaje.</footer>
-  <script src="/static/citizen.js" defer></script>
+  <script src="/static/citizen.js?v=20261128-prize-link-1" defer></script>
 </body>
 </html>

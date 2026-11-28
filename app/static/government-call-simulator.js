@@ -150,7 +150,7 @@
         }));
         if (turn.finished && !turn.attacker_line) break;
         appendLine("atacante", turn.attacker_line);
-        await speak(turn.attacker_line, "atacante");
+        await speak(turn.attacker_spoken_line || turn.attacker_line, "atacante");
         if (state.cancelled) break;
         appendLine("lupita", turn.victim_line);
         await speak(turn.victim_line, "victima");

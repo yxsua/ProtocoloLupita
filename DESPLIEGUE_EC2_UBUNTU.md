@@ -1,49 +1,79 @@
-# Publicar en AWS EC2 con Ubuntu y HTTPS
+# Despliegue en EC2 Ubuntu
 
-Guía para desplegar el prototipo en una sola instancia EC2, con Caddy como proxy HTTPS y Uvicorn en `127.0.0.1`. El piloto debe permanecer con **un worker**: el límite de llamadas y el flujo SSE usan memoria del proceso.
+Guía para desplegar Protocolo Lupita y el monitor Android en una instancia EC2. El dominio principal será `protocololupita.blockcode.site`; el monitor Android usará `monitor.protocololupita.blockcode.site` para disponer de su propio origen HTTPS.
 
-## 1. Preparar recursos en AWS
+## Arquitectura de esta guía
 
-1. En EC2, lanza una instancia con Ubuntu Server 24.04 LTS en una subred pública. Para este piloto, usa una instancia de al menos 2 vCPU y 4 GiB de RAM si vas a habilitar Piper; sin Piper puede bastar una instancia más pequeña.
-2. Crea o selecciona un par de llaves SSH y guárdalo fuera del repositorio.
-3. Asocia un Elastic IP a la instancia para tener una dirección estable y poder apuntar el DNS a ella.
-4. En el grupo de seguridad, agrega estas reglas de entrada:
+- **Protocolo Lupita:** Docker Compose, publicado solo en `127.0.0.1:8000`.
+- **Monitor de teléfono:** servicio `systemd`, publicado solo en `127.0.0.1:8100`.
+- **Caddy:** proxy inverso del host en puertos 80/443; termina TLS y dirige cada hostname al servicio local correspondiente.
+- **Relay:** el monitor reenvía eventos al portal por `http://127.0.0.1:8000/api/eventos`, protegido por una clave compartida de servidor a servidor.
+
+El monitor no debe exponer HTTP directamente. El APK release se compila con el hostname HTTPS del monitor. Si no puedes crear el registro DNS `monitor.protocololupita.blockcode.site`, puedes desplegar el portal principal, pero no el flujo Android integrado descrito aquí: la app requiere un origen HTTPS propio y no admite una ruta bajo el dominio principal.
+
+Este despliegue es para una demostración controlada. Usa teléfonos propios y datos sintéticos. No habilita llamadas reales, envío de SMS ni reportes a autoridades.
+
+## 1. Crear la instancia y la red en AWS
+
+1. En EC2, lanza **Ubuntu Server 24.04 LTS** en una subred pública con salida a Internet. Para construir y ejecutar los dos servicios en la misma máquina, como punto de partida usa 2 vCPU, 4 GiB de RAM y un volumen EBS de 30 GiB o mayor. Ajusta el tamaño según la concurrencia y los artefactos que guardes.
+2. Selecciona o crea un par de claves SSH y guarda la clave privada fuera del repositorio.
+3. Asocia un **Elastic IP** a la instancia para que el DNS no dependa de la IP pública temporal.
+4. En el grupo de seguridad configura estas reglas de entrada:
 
    | Protocolo | Puerto | Origen |
-   | --- | ---: | --- |
-   | SSH | 22 | Solo tu IP pública, como `203.0.113.25/32` |
-   | HTTP | 80 | `0.0.0.0/0` y `::/0` si usas IPv6 |
-   | HTTPS | 443 | `0.0.0.0/0` y `::/0` si usas IPv6 |
+   |---|---:|---|
+   | SSH | 22 | Tu IP pública, por ejemplo `203.0.113.25/32` |
+   | HTTP | 80 | `0.0.0.0/0` |
+   | HTTPS | 443 | `0.0.0.0/0` |
 
-   No abras el puerto 8000: Caddy y Uvicorn se comunican dentro de la instancia. AWS documenta que el grupo de seguridad actúa como firewall de la instancia y que SSH debe limitarse al origen que administra el servidor. [Reglas de grupos de seguridad](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html)
+   No abras 8000 ni 8100. Si configuras IPv6 en la VPC y en Ubuntu, agrega también las reglas HTTP/HTTPS para `::/0` y registros DNS `AAAA` válidos. Limita SSH a la IP desde donde administrarás la instancia.
 
-5. En el proveedor de DNS, crea un registro `A` (por ejemplo, `demo.midominio.org`) apuntando al Elastic IP. Si agregas un registro `AAAA`, verifica que la instancia también tenga IPv6 público operativo.
+5. En la zona DNS de `blockcode.site`, crea estos registros `A`, ambos apuntando al Elastic IP:
 
-Un Elastic IP se puede asociar a la instancia para darle una dirección pública persistente. [Elastic IP en EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-eips.html)
+   | Nombre | Tipo | Valor |
+   |---|---|---|
+   | `protocololupita` | A | Elastic IP de EC2 |
+   | `monitor.protocololupita` | A | El mismo Elastic IP |
 
-## 2. Conectarse e instalar herramientas
+   Espera a que ambos nombres resuelvan antes de configurar Caddy. No crees registros `AAAA` si la instancia no tiene IPv6 público operativo.
 
-Desde PowerShell, sustituye la ruta de la llave y la IP:
+AWS usa grupos de seguridad como firewall de la instancia; un Elastic IP ofrece una IPv4 persistente que puede asociarse a EC2. [Crear reglas de grupo de seguridad](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-security-group.html) · [Asociar un Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-eips.html)
+
+## 2. Entrar a Ubuntu e instalar Docker y Caddy
+
+Desde PowerShell, conecta usando la clave privada descargada de AWS:
 
 ```powershell
-ssh -i .\mi-llave.pem ubuntu@<ELASTIC_IP>
+ssh -i .\mi-clave-ec2.pem ubuntu@<ELASTIC_IP>
 ```
 
-En la instancia Ubuntu:
+Actualiza Ubuntu e instala Docker Engine y el plugin Compose desde el repositorio oficial de Docker:
 
 ```bash
 sudo apt update
 sudo apt upgrade -y
 sudo apt install -y ca-certificates curl git python3 python3-venv build-essential
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME/.local/bin/env"
-uv --version
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo tee /etc/apt/sources.list.d/docker.sources >/dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo docker version
+sudo docker compose version
 ```
 
-Instala Caddy desde su repositorio oficial de paquetes para Ubuntu:
+Instala Caddy desde su repositorio oficial; el paquete crea y activa el servicio `systemd`:
 
 ```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
   | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
@@ -54,122 +84,153 @@ sudo apt update
 sudo apt install -y caddy
 ```
 
-La instalación oficial registra Caddy como servicio `systemd`. [Instalar Caddy en Debian/Ubuntu](https://caddyserver.com/docs/install)
+Docker mantiene instrucciones específicas para Ubuntu y Compose; Caddy se encarga de solicitar y renovar HTTPS cuando el dominio resuelve a la instancia y los puertos 80/443 son accesibles. [Docker Engine en Ubuntu](https://docs.docker.com/engine/install/ubuntu/) · [Docker Compose en Linux](https://docs.docker.com/compose/install/linux/) · [Instalar Caddy en Debian/Ubuntu](https://caddyserver.com/docs/install) · [HTTPS automático en Caddy](https://caddyserver.com/docs/automatic-https)
 
-## 3. Copiar el proyecto y preparar la cuenta de servicio
-
-Usa la URL y rama reales de tu repositorio. Para un repositorio privado, configura acceso de lectura con una llave de despliegue; no copies una llave privada a la instancia dentro del código.
+Si activas UFW además del grupo de seguridad, permite SSH antes de habilitarlo para no perder acceso:
 
 ```bash
-sudo useradd --system --create-home --home-dir /var/lib/protocolo \
-  --shell /usr/sbin/nologin --user-group protocolo
-sudo install -d -o ubuntu -g protocolo -m 2750 /opt/protocolo-lupita
-git clone --branch <RAMA> <URL_REPOSITORIO> /opt/protocolo-lupita
-cd /opt/protocolo-lupita
-sudo chown -R ubuntu:protocolo /opt/protocolo-lupita
-sudo chmod -R g+rX /opt/protocolo-lupita
-sudo chmod g+s /opt/protocolo-lupita
-sudo chmod -R g+rX /opt/protocolo-lupita/data
-sudo chmod g+rwx,g+s /opt/protocolo-lupita/data
-sudo install -d -o ubuntu -g protocolo -m 2770 /opt/protocolo-lupita/data/planting
-uv sync --locked
-sudo chmod -R g+rX /opt/protocolo-lupita/.venv
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status
 ```
 
-La cuenta `protocolo` ejecutará la aplicación sin acceso SSH ni permisos de escritura sobre el código. El grupo compartido permite que esa cuenta lea la aplicación y que Git/`uv` ejecutados por `ubuntu` puedan actualizarla.
+## 3. Copiar el repositorio
 
-## 4. Configurar secretos y variables de entorno
-
-Crea un archivo que no forme parte del repositorio:
+Clona la rama que contiene la integración. Sustituye los marcadores por la URL y rama reales:
 
 ```bash
-sudo install -o root -g protocolo -m 640 /dev/null /etc/protocolo-lupita.env
-sudoedit /etc/protocolo-lupita.env
+sudo install -d -o ubuntu -g ubuntu /opt/protocololupita
+git clone --branch <RAMA> <URL_REPOSITORIO> /opt/protocololupita
+cd /opt/protocololupita
 ```
 
-Añade las variables necesarias y sustituye todos los ejemplos:
+Para un repositorio privado, configura acceso de lectura desde esta instancia mediante un mecanismo de despliegue controlado; no guardes una clave privada dentro del checkout. Protege los archivos `.env` con permisos restrictivos y no los subas al repositorio.
+
+## 4. Configurar el portal principal
+
+Crea el archivo de entorno que Compose cargará:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+python3 -c 'import secrets; print(secrets.token_hex(32))'
+```
+
+Edita `.env` y define al menos:
 
 ```dotenv
-TWILIO_AUTH_TOKEN=TOKEN_REAL_DE_TWILIO
-TWILIO_TEST_NUMBER=+52XXXXXXXXXX
-TWILIO_TEST_TRAP_ID="+52 442 000 0102"
-PUBLIC_BASE_URL=https://demo.midominio.org
-GOV_PANEL_USERNAME=operador
-GOV_PANEL_PASSWORD=CONTRASENA_LARGA_ALEATORIA
-TWILIO_GATHER_LANGUAGE=es-MX
-TWILIO_SPEECH_MODEL=deepgram_nova-3
+GOV_PANEL_USERNAME=operador-demo
+GOV_PANEL_PASSWORD=<contraseña-larga-y-exclusiva>
+APP_PORT=8000
+APP_BIND_ADDRESS=127.0.0.1
 PIPER_MODEL_PATH=
+LUPITA_DEVICE_KEY=<salida-aleatoria-de-64-caracteres-hex>
 ```
 
-`TWILIO_TEST_NUMBER` debe ser el DID asignado por Twilio; `TWILIO_TEST_TRAP_ID` es la trampa sembrada que se atribuirá. `PUBLIC_BASE_URL` debe coincidir con el dominio público, sin barra final ni prefijo de ruta. No pongas secretos en Git, en la unidad de systemd ni en comandos que queden en el historial.
+`LUPITA_DEVICE_KEY` debe ser aleatoria y de al menos 32 caracteres; más adelante se copia en `LUPITA_EVENTS_KEY` del monitor. No reutilices una contraseña personal. No cambies `APP_BIND_ADDRESS` a `0.0.0.0`: Caddy es el único servicio público y Docker publicará el portal en loopback.
 
-Si usarás Piper, instala el modelo de voz en una ruta legible por el grupo `protocolo` y pon aquí la ruta del modelo `.onnx`. Sin modelo, el motor usa sus clips y la voz de respaldo de Twilio.
-
-## 5. Crear el servicio systemd
+Construye y arranca el portal:
 
 ```bash
-sudoedit /etc/systemd/system/protocolo-lupita.service
+sudo docker compose up -d --build app
+sudo docker compose ps
+curl -fsS http://127.0.0.1:8000/api/health
 ```
 
-Contenido:
+La comprobación local debe responder con estado `ok`. Para consultar los logs:
+
+```bash
+sudo docker compose logs --tail=100 app
+```
+
+## 5. Configurar el monitor Android y el relay
+
+Prepara sus secretos y archivo `.env`:
+
+```bash
+cd /opt/protocololupita/monitor_telefono
+cp .env.example .env
+chmod 600 .env
+python3 -c 'import secrets; print(secrets.token_hex(32))'
+python3 -c 'import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())'
+```
+
+En `monitor_telefono/.env`, define:
+
+```dotenv
+SECRET_KEY=<secreto-aleatorio-hex-de-al-menos-32-caracteres>
+DATA_ENCRYPTION_KEY=<salida-base64-url-safe-generada-arriba>
+PUERTO=8100
+DATABASE_PATH=/opt/protocololupita/monitor_telefono/server/data/monitor.sqlite3
+BASE_URL_PUBLICA=https://monitor.protocololupita.blockcode.site
+COOKIE_SECURE=true
+LUPITA_EVENTS_URL=http://127.0.0.1:8000/api/eventos
+LUPITA_EVENTS_KEY=<el-mismo-valor-de-LUPITA_DEVICE_KEY>
+```
+
+La clave Fernet debe conservarse para poder descifrar los textos guardados por el monitor. El relay usa HTTP solo por loopback dentro de EC2. Las cuentas de administración del monitor son independientes de las credenciales HTTP Basic del portal.
+
+Crea la cuenta administradora del monitor y su entorno Python:
+
+```bash
+sh server/run.sh --create-admin
+```
+
+El comando puede tardar mientras instala `server/requirements.txt`; solicita usuario y contraseña de administrador. Después crea `/etc/systemd/system/monitor-telefono.service`:
 
 ```ini
 [Unit]
-Description=Protocolo Lupita FastAPI
+Description=Monitor de teléfono FastAPI
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=protocolo
-Group=protocolo
-WorkingDirectory=/opt/protocolo-lupita
-EnvironmentFile=/etc/protocolo-lupita.env
-ExecStart=/opt/protocolo-lupita/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/protocololupita/monitor_telefono/server
+EnvironmentFile=/opt/protocololupita/monitor_telefono/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/protocololupita/monitor_telefono/server/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8100 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
 Restart=on-failure
 RestartSec=3
-UMask=0027
+UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/protocolo-lupita/data
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-La aplicación necesita escribir en `data/` para SQLite y en `data/planting/` para el manifiesto de siembra. Los fixtures de `data/scenarios/` se mantienen de solo lectura. El resto del árbol queda de solo lectura para el proceso. Arranca el servicio y confirma que responde localmente:
+Activa el servicio y comprueba su endpoint local:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now protocolo-lupita
-sudo systemctl status protocolo-lupita --no-pager
-curl http://127.0.0.1:8000/api/health
+sudo systemctl enable --now monitor-telefono
+sudo systemctl status monitor-telefono --no-pager
+curl -fsS http://127.0.0.1:8100/api/salud
 ```
 
-La respuesta esperada incluye `"status":"ok"`. Consulta los logs con:
+Debe responder `{"estado":"ok"}`. Logs:
 
 ```bash
-sudo journalctl -u protocolo-lupita -n 100 --no-pager
-sudo journalctl -u protocolo-lupita -f
+sudo journalctl -u monitor-telefono -n 100 --no-pager
+sudo journalctl -u monitor-telefono -f
 ```
 
-## 6. Publicar con HTTPS mediante Caddy
+## 6. Configurar HTTPS y los dos hostnames
 
-Confirma primero que el registro DNS ya resuelve al Elastic IP y que el grupo de seguridad deja entrar por los puertos 80 y 443. Caddy usa esos puertos para validar y servir el certificado, redirige HTTP a HTTPS y renueva el certificado automáticamente. [HTTPS automático de Caddy](https://caddyserver.com/docs/automatic-https)
-
-Edita el archivo:
-
-```bash
-sudoedit /etc/caddy/Caddyfile
-```
-
-Configura el dominio real:
+Confirma primero que los registros `A` de ambos nombres resuelven al Elastic IP. Edita `/etc/caddy/Caddyfile`:
 
 ```caddyfile
-demo.midominio.org {
+protocololupita.blockcode.site {
     reverse_proxy 127.0.0.1:8000
+}
+
+monitor.protocololupita.blockcode.site {
+    reverse_proxy 127.0.0.1:8100
 }
 ```
 
@@ -177,55 +238,75 @@ Valida y recarga Caddy:
 
 ```bash
 sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl enable --now caddy
 sudo systemctl reload caddy
 sudo systemctl status caddy --no-pager
 sudo journalctl -u caddy -n 100 --no-pager
 ```
 
-Prueba desde tu computadora:
+Caddy administra los certificados y las redirecciones HTTP a HTTPS. Desde tu equipo, verifica ambas rutas:
 
 ```bash
-curl -i https://demo.midominio.org/api/health
-curl -I http://demo.midominio.org
+curl -I https://protocololupita.blockcode.site
+curl -I https://monitor.protocololupita.blockcode.site
+curl -i https://protocololupita.blockcode.site/api/health
+curl -i https://monitor.protocololupita.blockcode.site/api/salud
 ```
 
-La primera ruta debe devolver JSON con estado `ok`; la segunda debe redirigir a HTTPS. Si el certificado no se emite, revisa que el DNS apunte al Elastic IP, los puertos 80/443 estén abiertos en el grupo de seguridad y no haya un registro AAAA roto.
+Si no se emite el certificado, confirma la propagación DNS, que no exista un registro `AAAA` apuntando a una IPv6 no configurada y que el grupo de seguridad permita 80/443. Caddy también debe ser el único proceso que use esos puertos.
 
-## 7. Conectar el número de Twilio y validar el panel
+## 7. Vincular el teléfono y probar el relay
 
-En la consola de Twilio, configura el webhook de voz del DID:
+1. Compila un APK release firmado con el servidor del monitor fijado al hostname HTTPS. En el entorno de compilación Android, desde `monitor_telefono/android`:
 
-- Método: `POST`
-- URL: `https://demo.midominio.org/api/telephony/voice`
-- Callback de estado: `https://demo.midominio.org/api/telephony/status`
+   ```powershell
+   $env:MONITOR_SERVER_URL = "https://monitor.protocololupita.blockcode.site"
+   .\gradlew.bat assembleRelease
+   ```
 
-Después:
+   Firma el APK antes de distribuirlo. La URL de release no se puede cambiar desde el teléfono.
+2. En `https://monitor.protocololupita.blockcode.site`, inicia sesión con la cuenta de administrador del monitor y crea un código desde **Dispositivos > Agregar teléfono**.
+3. Instala el APK en un teléfono de prueba, escanea el QR o escribe el código, revisa las apps permitidas y acepta el aviso de privacidad.
+4. Completa los permisos de notificaciones en Android y genera una notificación sintética de una app autorizada.
+5. En `https://protocololupita.blockcode.site/gobierno`, inicia sesión con las credenciales de `.env` y abre **Eventos del teléfono** (`/mensajes`). El evento debe aparecer y el texto debe mostrar su análisis local.
 
-1. Abre `https://demo.midominio.org/gobierno` e inicia sesión con `GOV_PANEL_USERNAME` y `GOV_PANEL_PASSWORD`.
-2. Abre `https://demo.midominio.org/api/gobierno/snapshot` con las mismas credenciales; debe requerir autenticación.
-3. Haz una llamada desde el celular al DID. Verifica el saludo, una respuesta de voz, la atribución al número receptor y los eventos en el panel.
-4. Llama de nuevo mientras la primera siga activa: debe recibirse el mensaje de línea ocupada.
-5. Desde `/gobierno/escenarios`, ejecuta una prueba y confirma que aparezca etiquetada como simulación separada de la llamada.
+Si el teléfono ya estaba vinculado antes de activar el relay, desvincúlalo y vuelve a enrolarlo para aceptar el aviso actualizado. El servidor no reenvía eventos de teléfonos que no hayan aceptado esa versión. Los eventos anteriores del monitor no se importan retrospectivamente.
 
-## 8. Operación y actualización
+En `/mensajes`, la búsqueda y filtros aplican a los últimos 200 eventos que mantiene el portal en memoria. La base cifrada y la búsqueda del monitor permanecen en su propio servicio. Al reiniciar el portal, su feed temporal vuelve a quedar vacío; los eventos nuevos se seguirán reenviando.
 
-Reiniciar o actualizar la instancia no conserva los eventos de llamadas en memoria. SQLite y el manifiesto están en el volumen de la instancia; configura copias de seguridad de ese volumen o respalda `data/` antes de actualizar. No escales a varios workers ni varias instancias hasta mover el límite de llamadas y el bus SSE a un servicio compartido.
+## 8. Actualizar, respaldar y operar
 
-Para desplegar una nueva versión:
+Para actualizar el portal:
 
 ```bash
-cd /opt/protocolo-lupita
+cd /opt/protocololupita
 git pull --ff-only
-uv sync --locked
-sudo chmod -R g+rX .venv
-sudo systemctl restart protocolo-lupita
-sudo systemctl status protocolo-lupita --no-pager
+sudo docker compose up -d --build app
+sudo docker compose ps
 ```
 
-Los archivos `.env`, llaves SSH y tokens nunca deben guardarse en el repositorio. La transcripción de voz la procesa Twilio Gather; usa solo datos sintéticos y un guion de demostración para la prueba.
+Para actualizar el monitor, revisa los cambios de esquema/dependencias, conserva sus archivos `.env` y vuelve a preparar el entorno si cambian requirements:
 
-## Diagnóstico rápido
+```bash
+cd /opt/protocololupita
+git pull --ff-only
+cd monitor_telefono
+sh server/run.sh --create-admin
+sudo systemctl restart monitor-telefono
+sudo systemctl status monitor-telefono --no-pager
+```
 
-- **`status=203/EXEC` en systemd:** `ExecStart` apunta a un ejecutable que no existe o no se puede ejecutar. Comprueba `ls -l /opt/protocolo-lupita/.venv/bin/uvicorn` y que `WorkingDirectory`, `ExecStart` y `ReadWritePaths` apunten a la misma raíz del repositorio. Si el `git clone` creó una subcarpeta, corrige esas rutas para incluirla o vuelve a clonar con la ruta destino explícita como arriba.
-- **`uv sync` no instala `twilio`:** el checkout no incluye la integración telefónica. Confirma que estás desplegando la rama/commit que contiene `app/modules/telephony/`, `app/modules/government/` y la dependencia `twilio` en `pyproject.toml` antes de continuar con Twilio.
-- **El servicio arranca pero no puede crear SQLite:** confirma que la ruta de `ReadWritePaths` cubra el directorio `data/` correcto y que el grupo `protocolo` pueda escribir en él.
+Respalda por separado el volumen Docker `protocolo-lupita-data`, que contiene los datos del portal, y `monitor_telefono/server/data`, que contiene la base y datos cifrados del monitor. Programa snapshots EBS y conserva `DATA_ENCRYPTION_KEY` fuera de la instancia; perder esa clave impide descifrar eventos del monitor. Prueba la restauración antes de depender de los respaldos.
+
+El monitor devuelve `503` y Android reintenta si no logra reenviar un evento al portal. Consulta `journalctl -u monitor-telefono` y `sudo docker compose logs app` para diagnosticarlo. Revisa que `LUPITA_EVENTS_URL`, `LUPITA_EVENTS_KEY` y `LUPITA_DEVICE_KEY` coincidan y que el portal esté sano en `127.0.0.1:8000`.
+
+## Referencias oficiales
+
+- [Ubuntu 24.04 LTS](https://documentation.ubuntu.com/release-notes/24.04/)
+- [Reglas de grupos de seguridad EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-security-group.html)
+- [Pares de claves EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
+- [Elastic IP y direcciones persistentes](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-eips.html)
+- [Instalar Docker Engine en Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+- [Instalar Docker Compose](https://docs.docker.com/compose/install/linux/)
+- [Instalar Caddy en Ubuntu](https://caddyserver.com/docs/install)
+- [HTTPS automático de Caddy](https://caddyserver.com/docs/automatic-https)

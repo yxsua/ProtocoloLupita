@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import secrets
 from typing import Optional
 
 from app.modules.planting.generator import DEFAULT_PERIOD, DEFAULT_SEED, generate_synthetic_batch
@@ -10,12 +11,14 @@ from app.modules.planting.repository import (
     get_connection,
     get_manifest_hash,
     list_copies,
+    list_seed_batches,
     lookup_by_trap_id,
     normalize_trap_id,
     persist_batch,
+    seed_period_exists,
     seed_if_empty,
 )
-from app.modules.planting.schemas import AttributionResult, SeedBatchSummary, SeedCopyRecord
+from app.modules.planting.schemas import AttributionResult, SeedBatchListItem, SeedBatchSummary, SeedCopyRecord
 
 
 def ensure_seeded(db_path: Optional[str | Path] = None) -> SeedBatchSummary:
@@ -43,6 +46,67 @@ def reseed_period(
             seed=seed,
         )
         return persist_batch(conn, personas, copies, manifest_hash)
+    finally:
+        conn.close()
+
+
+def create_seed_batch(
+    *,
+    seed_period: str,
+    total_copies: int = 3,
+    db_path: Optional[str | Path] = None,
+) -> SeedBatchListItem:
+    """Crea un lote nuevo e inmutable; cada número queda único entre todos los lotes."""
+    conn = get_connection(db_path)
+    try:
+        if seed_period_exists(conn, seed_period):
+            raise ValueError("Ya existe un lote con ese identificador. Elige otro para conservar la atribución anterior.")
+
+        used_traps = {
+            normalize_trap_id(copy.trap_id)
+            for copy in list_copies(conn)
+        }
+        for _ in range(100):
+            personas, copies, manifest_hash = generate_synthetic_batch(
+                seed_period=seed_period,
+                total_copies=total_copies,
+                seed=secrets.randbits(31),
+                include_core_scenarios=False,
+            )
+            new_traps = {normalize_trap_id(copy.trap_id) for copy in copies}
+            if len(new_traps) == len(copies) and not (new_traps & used_traps):
+                break
+        else:
+            raise RuntimeError("No se pudieron asignar números trampa únicos para este lote.")
+
+        persist_batch(conn, personas, copies, manifest_hash)
+        batch = next(
+            item for item in list_seed_batches(conn)
+            if item["seed_period"] == seed_period
+        )
+        return SeedBatchListItem(**batch)
+    finally:
+        conn.close()
+
+
+def get_seed_batches(db_path: Optional[str | Path] = None) -> list[SeedBatchListItem]:
+    """Lista lotes disponibles sin exponer números trampa."""
+    conn = get_connection(db_path)
+    try:
+        seed_if_empty(conn)
+        return [SeedBatchListItem(**item) for item in list_seed_batches(conn)]
+    finally:
+        conn.close()
+
+
+def get_batch_copies(
+    seed_period: str,
+    db_path: Optional[str | Path] = None,
+) -> list[SeedCopyRecord]:
+    """Obtiene el mapa interno de una sola copia sembrada para su exportación protegida."""
+    conn = get_connection(db_path)
+    try:
+        return list_copies(conn, seed_period=seed_period)
     finally:
         conn.close()
 

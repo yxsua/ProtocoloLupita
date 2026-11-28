@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.modules.citizen.service import get_map_aggregates, submit_report
+from app.modules.planting.fixtures_local import QUERETARO_MUNICIPALITIES
 
 _TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
@@ -23,7 +24,10 @@ def citizen_portal_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "citizen/portal.html",
-        {"active_page": "citizen"},
+        {
+            "active_page": "citizen",
+            "municipalities": QUERETARO_MUNICIPALITIES,
+        },
     )
 
 

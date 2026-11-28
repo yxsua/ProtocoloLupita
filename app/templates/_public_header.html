@@ -1,13 +1,15 @@
 <a class="skip-link" href="#main-content">Ir al contenido</a>
 <header class="site-header">
+  <a class="brand-mark" href="/" aria-label="Protocolo Lupita, ir al inicio">
+    <img src="/static/brand/lupita-shield-cutout.png" alt="">
+  </a>
   <a class="brand" href="/" aria-label="Protocolo Lupita, ir al inicio">
     <span class="brand-name">Protocolo Lupita</span>
-    <span class="brand-note">Orientación y prevención</span>
   </a>
   <nav class="site-nav" aria-label="Navegación principal">
-    <a href="/sms" {% if active_page == 'sms' %}aria-current="page"{% endif %}>Revisar mensaje</a>
-    <a href="/citizen" {% if active_page == 'citizen' %}aria-current="page"{% endif %} aria-label="Reportar un mensaje o una llamada">Reportar</a>
+    <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Inicio</a>
+    <a href="/#como-funciona">Cómo funciona</a>
+    <a href="/#preguntas">Preguntas frecuentes</a>
     <a href="/dashboard" {% if active_page == 'alerts' %}aria-current="page"{% endif %}>Avisos</a>
-    <a class="gov-access-link" href="/gobierno" title="Acceso con credenciales autorizadas">Acceso Gobierno</a>
   </nav>
 </header>

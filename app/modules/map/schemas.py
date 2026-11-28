@@ -29,4 +29,4 @@ class StateMapSummary(BaseModel):
     excluded_rate_limited_count: int = 0
     municipalities: list[MunicipalityAggregate] = Field(default_factory=list)
     geojson: dict[str, Any] = Field(default_factory=dict)
-    synthetic: bool = True
+    synthetic: bool = False

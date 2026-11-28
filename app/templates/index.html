@@ -3,52 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }}</title>
+  <meta name="description" content="Orientación para reconocer y reportar intentos de fraude y extorsión.">
+  <title>{{ title }} · Orientación ciudadana</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/public.css">
+  <link rel="stylesheet" href="/static/public.css?v=20261128-9">
 </head>
-<body>
+<body class="home-page">
   {% include "_public_header.html" %}
-  <main id="main-content" class="public-main" tabindex="-1">
-    <section aria-labelledby="welcome-title">
-      <h1 id="welcome-title">¿Recibiste un mensaje o una llamada sospechosa?</h1>
-      <p class="intro-copy">Aquí puedes revisar un mensaje o una llamada y recibir consejos fáciles de seguir.</p>
-      <p class="demo-note"><strong>Es una demostración:</strong> no recibe llamadas reales ni presenta avisos oficiales. Si estás en peligro inmediato, busca ayuda de una persona de confianza o de los servicios de emergencia.</p>
-    </section>
-    <section aria-label="Qué necesitas hacer">
-      <div class="action-grid">
-        <a class="action-card" href="/sms">
-          <strong>Quiero revisar un mensaje</strong>
-          <span>Pega el SMS y te diremos si vemos señales de engaño. Los enlaces se mantienen cerrados.</span>
-          <b>Revisar un SMS</b>
-        </a>
-        <a class="action-card" href="/citizen">
-          <strong>Quiero contar qué pasó</strong>
-          <span>Cuéntanos sobre una llamada o mensaje para recibir recomendaciones.</span>
-          <b>Hacer un reporte</b>
-        </a>
-        <a class="action-card" href="/dashboard">
-          <strong>Quiero ver avisos</strong>
-          <span>Consulta recomendaciones y señales agrupadas por zona.</span>
-          <b>Ver avisos</b>
+  <main id="main-content" class="home-main" tabindex="-1">
+    <section class="home-hero" aria-labelledby="welcome-title">
+      <div class="home-hero-copy">
+        <h1 id="welcome-title">¿Recibiste un mensaje o una llamada sospechosa?</h1>
+        <p class="home-intro">Revisa un mensaje para saber si puede ser un fraude o aprende qué hacer de forma segura.</p>
+        <div class="home-primary-routes" aria-label="Acciones principales">
+          <a class="wayfinding-sign wayfinding-sign-primary" href="/sms">
+            <svg class="sign-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M9 10.5h30a4 4 0 0 1 4 4v17a4 4 0 0 1-4 4H23l-10 7v-7H9a4 4 0 0 1-4-4v-17a4 4 0 0 1 4-4Z"/><path d="M15 23.5h.1m8.9 0h.1m8.9 0h.1"/></svg>
+            <span>Revisar un SMS</span>
+            <svg class="sign-arrow" viewBox="0 0 36 24" aria-hidden="true"><path d="M2 12h28m-10-9 10 9-10 9"/></svg>
+          </a>
+          <a class="wayfinding-sign wayfinding-sign-secondary" href="/citizen">
+            <svg class="sign-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m24 6 20 35H4L24 6Z"/><path d="M24 18v11m0 6h.1"/></svg>
+            <span>Hacer un reporte</span>
+            <svg class="sign-arrow" viewBox="0 0 36 24" aria-hidden="true"><path d="M2 12h28m-10-9 10 9-10 9"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="route-diagram" aria-label="Elige tu siguiente paso">
+        <svg class="route-lines" viewBox="0 0 560 390" preserveAspectRatio="none" aria-hidden="true">
+          <path class="route-line" d="M22 195h310"/>
+          <circle class="route-origin" cx="22" cy="195" r="14"/>
+        </svg>
+        <a class="route-destination route-alerts" href="/dashboard">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15"/><path d="M20 18v10m0-17h.1"/></svg>
+          <span>Consultar avisos</span><b aria-hidden="true">→</b>
         </a>
       </div>
-      <p class="government-entry">
-        <strong>¿Eres parte del equipo de gobierno?</strong>
-        <span>Los resultados detallados de las llamadas trampa están en el panel privado.</span>
-        <a href="/gobierno">Acceso Gobierno <span aria-hidden="true">→</span></a>
-      </p>
     </section>
-    <section class="public-card" aria-labelledby="how-title">
-      <h2 id="how-title">¿Cómo funciona?</h2>
-      <ol class="steps-list">
-        <li><strong>Cuéntanos</strong><br>Comparte el mensaje o describe la llamada. No escribas contraseñas ni códigos.</li>
-        <li><strong>Revisamos señales</strong><br>Buscamos patrones que podrían indicar un intento de engaño.</li>
-        <li><strong>Te orientamos</strong><br>Recibes pasos seguros para verificar por un canal oficial.</li>
-      </ol>
-      <p class="help-text">Una coincidencia es una señal preventiva que debe revisarse antes de tomar decisiones.</p>
+
+    <section class="home-service-strip" aria-label="Acceso a gobierno y aviso de demostración">
+      <a class="government-entry" href="/gobierno">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 16 24 5l20 11H4Zm4 4h32M9 20v19m10-19v19m10-19v19m10-19v19M5 42h38"/></svg>
+        <span class="government-entry-copy"><strong>Entrada para gobierno <span aria-hidden="true">→</span></strong><small>Acceso con credenciales autorizadas</small></span>
+      </a>
+      <div class="demo-note">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16"/><path d="M20 18v10m0-17h.1"/></svg>
+        <p><strong>Demostración local</strong><span>Este es un prototipo de interés público en fase de demostración con datos ficticios. No representa un servicio gubernamental en operación.</span></p>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="home-guidance" aria-labelledby="guidance-title">
+      <div class="home-section-heading">
+        <h2 id="guidance-title">Una ruta segura empieza con una pausa</h2>
+        <p>Evita responder en el momento. Revisa las señales y decide qué hacer con calma.</p>
+      </div>
+      <div class="guidance-route">
+        <ol class="guidance-steps">
+          <li><strong>Cuéntanos</strong><span>Comparte el mensaje o describe la llamada. No incluyas contraseñas, códigos ni datos de tu cuenta.</span></li>
+          <li><strong>Revisamos señales</strong><span>Buscamos patrones que podrían indicar un intento de engaño. Una coincidencia no confirma un fraude.</span></li>
+          <li><strong>Te orientamos</strong><span>Recibes pasos seguros para verificar por un canal oficial que ya conozcas.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="home-signal-section" aria-labelledby="signals-title">
+      <div>
+        <h2 id="signals-title">Señales para decidir con mejor información</h2>
+        <p>En esta demostración, números trampa y copias sintéticas ayudan a ilustrar cómo se relacionan señales de llamadas y mensajes. Los datos son ficticios y no confirman delitos.</p>
+      </div>
+      <aside class="signal-route" aria-label="Alcance de los indicadores">
+        <span>Indicadores agregados</span>
+        <small>Señales de demostración; no confirman delitos ni sustituyen una denuncia.</small>
+      </aside>
+    </section>
+
+    <section id="preguntas" class="home-faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Preguntas frecuentes</h2>
+      <details>
+        <summary>¿El portal recibe llamadas reales?</summary>
+        <p>No. Es una demostración local; no marca, recibe ni monitorea llamadas telefónicas.</p>
+      </details>
+      <details>
+        <summary>¿Un aviso confirma que ocurrió un fraude?</summary>
+        <p>No. Una señal puede servir para revisar un caso, pero por sí sola no confirma un delito ni representa un aviso oficial.</p>
+      </details>
+      <details>
+        <summary>¿Cómo verifico un mensaje sospechoso?</summary>
+        <p>No abras enlaces ni compartas códigos. Contacta directamente a la institución mediante una aplicación, sitio o número que ya conozcas.</p>
+      </details>
     </section>
   </main>
-  <footer class="public-footer">Protocolo Lupita · Demostración para aprender a reconocer y reportar engaños.</footer>
+  <footer class="public-footer">Protocolo Lupita <span aria-hidden="true">·</span> Orientación ciudadana para prevenir estafas y extorsiones</footer>
 </body>
 </html>

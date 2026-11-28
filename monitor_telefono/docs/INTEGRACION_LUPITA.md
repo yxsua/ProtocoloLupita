@@ -1,21 +1,38 @@
-# Posible integración futura con Protocolo Lupita
+# Integración local con Protocolo Lupita
 
-Esta nota describe una alternativa de diseño; **no implementa ni habilita una integración**. `monitor_telefono/` permanece aislado: no importa módulos de voz, no modifica `/app` y no añade dependencias al monitor.
+El servidor independiente `monitor_telefono` puede reenviar eventos aceptados al feed `/mensajes` de la aplicación principal. El reenvío es opcional y se ejecuta entre los dos procesos del equipo local; Android sigue enviando primero al monitor, que conserva el evento cifrado en su base local.
 
-## Idea
+## Configuración para la demo local
 
-Una futura función podría mostrar al administrador una lista de eventos seleccionados o permitir una lectura manual de texto. El usuario tendría que elegir explícitamente qué evento compartir, confirmar el propósito y revisar el contenido antes de enviarlo al módulo de voz. No se deberían reproducir mensajes automáticamente ni iniciar llamadas, contestar remitentes o generar respuestas a partir de ellos.
+1. Arranca la aplicación principal en la laptop, escuchando en el puerto local `8000`, y define en su `.env` una clave aleatoria de al menos 32 caracteres en `LUPITA_DEVICE_KEY`.
+2. En `monitor_telefono/.env`, configura el endpoint y la misma clave de integración:
 
-## Requisitos previos de seguridad y privacidad
+   ```dotenv
+   LUPITA_EVENTS_URL=http://127.0.0.1:8000/api/eventos
+   LUPITA_EVENTS_KEY=<misma clave aleatoria que LUPITA_DEVICE_KEY>
+   ```
 
-- Definir finalidad, consentimiento, retención y responsables para el nuevo flujo; el consentimiento de notificaciones no debe suponerse como consentimiento para análisis por voz.
-- Minimizar campos y permitir excluir dispositivos, aplicaciones y eventos; mantener una opción de revocación y borrado.
-- Autenticar el acceso entre servicios con credenciales distintas a `X-Device-Key`. El token de ingesta identifica un dispositivo y no debe reutilizarse para leer eventos.
-- Diseñar autorización de solo lectura y auditoría que no almacene tokens ni copie el contenido de mensajes a logs.
-- Mantener la integración opcional, con límites de acceso, revisión humana y pruebas aisladas.
+   El monitor requiere que ambas variables estén definidas juntas. HTTP se acepta solo para loopback; para integrar servidores en hosts distintos, usa HTTPS.
+3. Reinicia ambos servidores. En teléfonos ya vinculados, desvincula y vuelve a enrolar para aceptar el nuevo aviso. Después activa las notificaciones de las apps de prueba autorizadas.
+4. Abre `/mensajes` en la aplicación principal con las credenciales gubernamentales. Los eventos nuevos aparecen en vivo, y los que el monitor reintente conservan su `id_evento` para deduplicarlos.
 
-Actualmente `GET /api/eventos` y `/ws/eventos` requieren una sesión autenticada del monitor. Antes de integrar un consumidor servidor-a-servidor habría que definir expresamente una identidad de servicio de mínimo privilegio; no se debe compartir la cookie de administrador.
+Al habilitar el relay cambia el texto y la versión del consentimiento del enrolamiento. Los teléfonos vinculados antes del cambio no se reenvían al portal hasta que su dueño desvincule y vuelva a vincular aceptando el aviso actualizado. Los eventos anteriores tampoco se importan retrospectivamente.
 
-## Fuera de alcance
+La clave se comparte únicamente entre los dos procesos servidores y no se instala en el APK. El monitor entrega al endpoint principal solo el id, nombre visible del dispositivo, tipo, app, remitente, texto, datos de llamada y fecha. No reenvía el token Android, consentimiento ni la clave de integración en el cuerpo.
 
-No se incorpora aquí una ruta nueva, cliente, puente, automatización, análisis de audio, transcripción, síntesis de voz ni transferencia de eventos a Protocolo Lupita. El monitor continúa funcionando y probándose de forma independiente.
+## Análisis y consulta
+
+- El portal principal llama a `analyze_sms` para SMS y notificaciones con texto; el análisis usa las reglas, extractores, dominios, patrones circulares y adaptador del motor ya existentes.
+- Las llamadas conservan su tipo y se muestran sin análisis de texto.
+- En `/mensajes` se pueden buscar coincidencias de texto, remitente, aplicación, dispositivo y explicación, y filtrar por tipo, app, dispositivo y fechas.
+- El feed principal transmite por WebSocket y retiene solo los 200 eventos recientes en memoria. El monitor mantiene su propia persistencia, historial cifrado, búsqueda y análisis de riesgo. Reiniciar el portal limpia su feed temporal; la integración no copia a SQLite principal.
+- El relay publica eventos de teléfonos que aceptaron la versión de consentimiento con la integración; no importa retrospectivamente el historial que ya existía en el monitor.
+- El análisis se presenta como una señal orientativa para revisión humana. No confirma fraude ni abre enlaces.
+
+## Operación y recuperación
+
+El monitor guarda el evento antes de reenviarlo. Si el portal no responde, el endpoint del monitor devuelve `503`; Android conserva el evento pendiente y WorkManager lo reintenta. El monitor acepta el reintento duplicado y vuelve a intentar el relay; la aplicación principal ignora un `id_evento` que ya esté en su ventana de 200 eventos.
+
+Para una demo, arranca primero el portal principal y después el servidor del monitor. Verifica que el endpoint principal sea accesible desde el equipo que ejecuta el monitor; por ejemplo, si el portal está dentro de Docker, el puerto publicado del host debe ser alcanzable en `127.0.0.1:8000`.
+
+Usa solo teléfonos propios y mensajes sintéticos. El consentimiento del usuario del teléfono sigue siendo obligatorio y se conserva la selección explícita de apps del enrolamiento.

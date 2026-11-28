@@ -1,0 +1,207 @@
+{
+  "title": "Choose the visual world",
+  "question": "Choose a direction for Protocolo Lupita’s citizen homepage and government console. The supplied shield and your navy, warm off-white, and gold palette stay fixed.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Puente de señales",
+      "kicker": "THE ROLL",
+      "lineage": "VU meter bridges on an audio recording desk",
+      "thesis": "Read each signal as a labeled channel; keep its state beside the evidence, not as an accusation.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "ivory meter faces",
+        "navy enamel",
+        "calibrated gold ticks",
+        "clear glass"
+      ],
+      "viewport": "Off-white citizen homepage with the supplied shield in a navy header; the existing citizen question and next-step actions on the left; three quiet meter channels for SMS, calls, and reports on the right, each labeled as synthetic demonstration content.",
+      "risk": "Meter language can feel technical or imply live certainty; use no fabricated counts and label every illustrative state.",
+      "raised": [
+        {
+          "from": "Doujin event catalog",
+          "raise": "Keep list and map cross-references explicit, so each channel keeps a stable label wherever it appears."
+        },
+        {
+          "from": "Bioluminescent plankton",
+          "raise": "Make state changes legible through clear contrast; resting states remain still."
+        },
+        {
+          "from": "Drawcord cape",
+          "raise": "Use the supplied shield as the product’s protective outline, unchanged and as a real asset."
+        },
+        {
+          "from": "Suminagashi basin",
+          "raise": "Show signal relationships as labeled, inspectable paths."
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.png",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "Wayfinding de servicio",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Civic wayfinding signs and service directories",
+      "thesis": "Treat every safe next step as a clearly marked route through the public service.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "directional rails",
+        "high-contrast service plaques",
+        "gold route markers",
+        "the supplied shield"
+      ],
+      "viewport": "A public-service header leads into the existing citizen question; a legible route diagram points directly to SMS review, citizen report, and public alerts, with a separate government entrance.",
+      "risk": "Wayfinding can read as a generic municipal portal unless the signal-to-copy mechanism stays visible.",
+      "comp": ".impeccable/mocks/decision/model-pick.png"
+    },
+    {
+      "id": "challenger-ticket",
+      "label": "Billetera de trayectos",
+      "verdict": "declined",
+      "lineage": "Jet-age airline ticket wallets",
+      "thesis": "Present citizen actions as a sequence of paper stubs.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "coupon stock",
+        "ruled fields",
+        "gold route marks"
+      ],
+      "viewport": "A stub sequence links SMS review, reporting, and public advice.",
+      "case": "The journey reads clearly, but the prototype has no persistent citizen ticket or journey status.",
+      "risk": "The travel form would promise saved progress that does not exist.",
+      "kept": "Keep next-step cues explicit without implying saved progress.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-jet-age-ticket-wallet-hero.webp"
+    },
+    {
+      "id": "challenger-catalog",
+      "label": "Catálogo de señales",
+      "verdict": "declined",
+      "lineage": "Dense convention catalogs and keyed floor maps",
+      "thesis": "Index reports and zones as a compact grid tied to a map.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "numbered grid",
+        "index marks",
+        "fold-out map"
+      ],
+      "viewport": "A dense map and signal grid dominate the public homepage.",
+      "case": "The map relationship suits analysis, but the citizen’s immediate task disappears inside the grid.",
+      "risk": "Dense catalog navigation obscures plain-language actions.",
+      "kept": "Maintain explicit links between map entries and their labels.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-doujin-event-catalog-hero.webp"
+    },
+    {
+      "id": "challenger-plankton",
+      "label": "Estela de señales",
+      "verdict": "declined",
+      "lineage": "Bioluminescent plankton wakes",
+      "thesis": "Let a trace of light reveal where activity has passed.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "dark water",
+        "electric light",
+        "fading traces"
+      ],
+      "viewport": "An animated dark field becomes the main signal visualization.",
+      "case": "A luminous wake obscures the next action and can make illustrative activity seem live.",
+      "risk": "Glow and fading trails weaken text clarity and overstate the evidence.",
+      "kept": "Use unmistakable active and resting states, still and legible by default.",
+      "hero": "https://impeccable.style/worlds/cards/reefs-bioluminescent-nocturnal-plankton-wake-stars-hero.webp"
+    },
+    {
+      "id": "challenger-cape",
+      "label": "Contorno protector",
+      "verdict": "declined",
+      "lineage": "A drawcord cape that gathers into a protective form",
+      "thesis": "Use a transforming silhouette to express protection.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "gathered cloth",
+        "gold cord",
+        "stitched channels"
+      ],
+      "viewport": "A large fabric form occupies the citizen hero.",
+      "case": "The textile metaphor competes with the supplied fox shield and says little about reviewing signals.",
+      "risk": "A second invented protection symbol would dilute the real logo.",
+      "kept": "Use the supplied shield unchanged as the sole brand emblem.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape-hero.webp"
+    },
+    {
+      "id": "challenger-ink",
+      "label": "Corriente de tinta",
+      "verdict": "declined",
+      "lineage": "Suminagashi ink currents",
+      "thesis": "Represent correlation as currents that gather into visible patterns.",
+      "palette": [
+        "#10213F",
+        "#F3F0E6",
+        "#D5A928"
+      ],
+      "materials": [
+        "indigo ink",
+        "paper-white field",
+        "flowing traces"
+      ],
+      "viewport": "An animated ink basin becomes the first screen’s dominant visual.",
+      "case": "Fluid patterns do not map to an actual quantitative signal or specific action in the prototype.",
+      "risk": "Decorative flow could imply stronger evidence than the prototype establishes.",
+      "kept": "Show relationships as fixed, labeled, inspectable connections.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-fluid-ink-basin-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "La página estándar de ciberseguridad",
+    "thesis": "Una portada institucional de seguridad, ejecutada con claridad y oficio.",
+    "palette": [
+      "#10213F",
+      "#F3F0E6",
+      "#D5A928"
+    ],
+    "materials": [
+      "hero editorial",
+      "captura de producto",
+      "rejilla de funciones"
+    ],
+    "viewport": "Navegación institucional sobre un hero azul marino con titular y acción a la izquierda, vista del producto a la derecha y funciones debajo.",
+    "risk": "Es familiar y fácil de entender, con menos identidad propia.",
+    "comp": ".impeccable/mocks/decision/canon.png"
+  },
+  "steer": true
+}

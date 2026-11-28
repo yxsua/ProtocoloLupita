@@ -67,3 +67,36 @@
   .table-heading { align-items: flex-end; }
 }
 @media (prefers-reduced-motion: reduce) { .type-bar { transition: none; } }
+
+/* Wayfinding palette: source figures stay explicit while the interface inherits navy and gold. */
+.period-filter { color: var(--navy); }
+.report-metrics { border-color: var(--border); background: var(--surface); }
+.metric-block { border-color: var(--border); }
+.metric-value, .chart-total { color: var(--navy); }
+.metric-label, .chart-heading p, .table-heading p, .risk-summary, .table-count { color: var(--muted); }
+.chart-panel, .reports-table-section { border-color: var(--border); border-radius: 0; background: var(--surface); }
+.chart-gridline { stroke: #d8d4ca; }
+.chart-area { fill: #f0e6c8; }
+.chart-line, .chart-point { stroke: var(--gold-deep); }
+.chart-point { fill: var(--paper-light); }
+.chart-axis-label { fill: var(--muted); font-family: "Zalando Sans", sans-serif; }
+.type-row { color: var(--navy); }
+.type-track { border-radius: 0; background: #ece8df; }
+.type-bar, .type-row:nth-child(2) .type-bar, .type-row:nth-child(3) .type-bar { border-radius: 0; background: var(--gold); }
+.type-row:nth-child(2) .type-bar { background: var(--navy); }
+.type-row:nth-child(3) .type-bar { background: #75849b; }
+.risk-summary { border-color: var(--border); }
+.risk-dot { border-radius: 0; background: var(--gold-deep); }
+.reports-table th { border-color: var(--border); color: var(--muted); }
+.reports-table td { border-color: #e8e4da; color: var(--ink); }
+.record-origin { color: var(--muted); }
+.status-tag { border-radius: 2px; background: #ecebe7; color: #3f4d61; }
+.status-tag[data-status="indicio"], .status-tag[data-status="sospechoso"] { background: #f6edcf; color: #513b0d; }
+.status-tag[data-status="campana_corroborada"], .status-tag[data-status="corroborada"] { background: #e6edf2; color: #183d63; }
+.table-empty { color: var(--muted) !important; }
+.report-view-button, .secondary-button { border-color: #8995a3; border-radius: 2px; background: var(--paper-light); color: var(--navy); }
+.report-view-button:hover, .secondary-button:hover { background: #e7e3d7; color: var(--navy); }
+.report-detail-dialog { border-color: var(--border); border-radius: 2px; color: var(--ink); }
+.report-detail-dialog::backdrop { background: #09182dcc; }
+.report-detail-heading p { color: #695018; }
+.report-detail-content { border-radius: 0; background: var(--paper-light); color: var(--ink); }

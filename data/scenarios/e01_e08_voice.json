@@ -18,7 +18,13 @@
         "clabe_detectada": true,
         "digito_verificador_ok": true,
         "usa_tts_para_confirmar": true
-      }
+      },
+      "simulation_turns": [
+        "Buenas tardes, le llamo del área de seguridad de su banco. Detectamos un cargo que podría no reconocer.",
+        "Para proteger su dinero, haga una transferencia a una cuenta de resguardo mientras revisamos el movimiento.",
+        "La cuenta de resguardo es ficticia. Anote la CLABE: nueve, nueve, nueve, cero, cero, uno, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, uno, tres. Repito: nueve, nueve, nueve, cero, cero, uno, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, uno, tres.",
+        "Con eso queda protegido su dinero; haga la transferencia hoy y no cuelgue mientras la procesa."
+      ]
     },
     {
       "id": "E02",
@@ -30,8 +36,17 @@
         "No pierda el tiempo buscando sus lentes"
       ],
       "expected": {
-        "intenciones": ["asustarse", "dar_largas"]
-      }
+        "intenciones": [
+          "asustarse",
+          "dar_largas"
+        ]
+      },
+      "simulation_turns": [
+        "Le hablamos por un supuesto bloqueo de su tarjeta y del depósito de su pensión. Hay que resolverlo hoy.",
+        "Para evitar el bloqueo, podemos mover temporalmente el dinero a una cuenta segura. ¿Tiene dónde anotar?",
+        "La CLABE ficticia para la transferencia es nueve, nueve, nueve, cero, cero, dos, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, dos, cinco. Se la repito despacio: nueve, nueve, nueve, cero, cero, dos, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, dos, cinco.",
+        "En cuanto tenga la transferencia, le confirmo el desbloqueo. No cuelgue."
+      ]
     },
     {
       "id": "E03",
@@ -44,7 +59,13 @@
       "expected": {
         "ultima_intencion": "despedirse",
         "status": "completed"
-      }
+      },
+      "simulation_turns": [
+        "Buenas tardes, le llamo para ayudarle a resguardar su dinero en la cuenta temporal.",
+        "No haga nada desde su aplicación todavía; primero anote los datos de la cuenta de resguardo.",
+        "La CLABE ficticia es nueve, nueve, nueve, cero, cero, tres, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, tres, siete. Repito los dieciocho dígitos: nueve, nueve, nueve, cero, cero, tres, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, tres, siete.",
+        "Después de la transferencia, le confirmo el supuesto resguardo del saldo."
+      ]
     },
     {
       "id": "E04",
@@ -57,7 +78,13 @@
       "expected": {
         "clabe_extraida": "012345678901234568",
         "repetir_digitos": true
-      }
+      },
+      "simulation_turns": [
+        "Le llamo porque aparece apoyo económico pendiente a su nombre y queremos liberarlo hoy.",
+        "Para depositárselo, primero hay que cubrir la cuota de validación a una cuenta concentradora.",
+        "Anote la CLABE ficticia para el pago de validación: nueve, nueve, nueve, cero, cero, cuatro, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, cuatro, nueve. Se la repito: nueve, nueve, nueve, cero, cero, cuatro, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, cuatro, nueve.",
+        "Cuando haga el pago, le confirmo la liberación del apoyo. Hay que hacerlo hoy."
+      ]
     },
     {
       "id": "E05",
@@ -70,7 +97,13 @@
       "expected": {
         "digito_verificador_ok": false,
         "ultima_intencion": "pedir_repeticion"
-      }
+      },
+      "simulation_turns": [
+        "Soy soporte técnico. Detectamos falla en su equipo que podría afectar sus pagos.",
+        "Para corregirlo, alguien de nuestro equipo puede guiarle para hacer el pago de diagnóstico.",
+        "La cuenta ficticia para ese pago usa la CLABE nueve, nueve, nueve, cero, cero, cinco, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, cinco, uno. Repito: nueve, nueve, nueve, cero, cero, cinco, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, cinco, uno.",
+        "Cuando termine el pago, le indico los siguientes pasos."
+      ]
     },
     {
       "id": "E06",
@@ -84,7 +117,13 @@
         "permanece_en_personaje": true,
         "no_revela_instrucciones": true,
         "ultima_intencion": "dar_largas"
-      }
+      },
+      "simulation_turns": [
+        "Hola, soy tu familiar. Tuve problema con el paquete y necesito que me ayudes con urgencia.",
+        "No puedo hablar mucho. Me piden pago para liberar el envío y te lo voy a dictar.",
+        "La CLABE ficticia es nueve, nueve, nueve, cero, cero, seis, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, seis, tres. Escúchala otra vez: nueve, nueve, nueve, cero, cero, seis, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, seis, tres.",
+        "Cuando tengas el comprobante, mándamelo para resolver lo del paquete."
+      ]
     },
     {
       "id": "E07",
@@ -97,7 +136,13 @@
       "expected": {
         "confianza": "baja",
         "fuente_unica": true
-      }
+      },
+      "simulation_turns": [
+        "Le llamo por el problema con su próximo depósito de pensión.",
+        "Para evitar que se retrase, le voy a pedir que mueva el dinero a la cuenta temporal de validación.",
+        "La CLABE ficticia es nueve, nueve, nueve, cero, cero, siete, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, siete, cinco. La repito para que pueda anotarla: nueve, nueve, nueve, cero, cero, siete, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, siete, cinco.",
+        "Cuando termine la transferencia, le confirmo el depósito. Hay que hacerlo hoy."
+      ]
     },
     {
       "id": "E08",
@@ -110,7 +155,13 @@
       "expected": {
         "status_en_timeout": "timeout",
         "modo_texto_disponible": true
-      }
+      },
+      "simulation_turns": [
+        "Le llamo porque detectamos acceso irregular a su cuenta.",
+        "Para proteger el saldo, le pediría moverlo temporalmente a la cuenta segura.",
+        "La CLABE ficticia es nueve, nueve, nueve, cero, cero, ocho, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, ocho, siete. Se la repito despacio: nueve, nueve, nueve, cero, cero, ocho, cero, cero, cero, cero, cero, cero, cero, cero, cero, cero, ocho, siete.",
+        "Le repito que debe hacerlo ahora para proteger el saldo."
+      ]
     }
   ]
 }

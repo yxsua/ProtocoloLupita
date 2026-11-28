@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,8 @@ class Settings:
     risk_medium_threshold: int = 40
     risk_high_threshold: int = 70
     fraud_rules_path: Path = SERVER_DIR / "data" / "reglas_fraude.csv"
+    lupita_events_url: str | None = None
+    lupita_events_key: str | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -77,6 +80,43 @@ class Settings:
         ).expanduser()
         public_base_url = os.getenv("BASE_URL_PUBLICA", "").strip()
         android_download_url = os.getenv("ANDROID_DOWNLOAD_URL", "").strip()
+        lupita_events_url = os.getenv("LUPITA_EVENTS_URL", "").strip()
+        lupita_events_key = os.getenv("LUPITA_EVENTS_KEY", "").strip()
+        if bool(lupita_events_url) != bool(lupita_events_key):
+            raise RuntimeError(
+                "LUPITA_EVENTS_URL y LUPITA_EVENTS_KEY deben configurarse juntos."
+            )
+        if lupita_events_key and len(lupita_events_key) < 32:
+            raise RuntimeError("LUPITA_EVENTS_KEY debe tener al menos 32 caracteres aleatorios.")
+        if lupita_events_url:
+            try:
+                parsed_lupita_url = urlsplit(lupita_events_url)
+                parsed_lupita_url.port
+            except ValueError as exc:
+                raise RuntimeError("LUPITA_EVENTS_URL debe ser una URL válida.") from exc
+            if (
+                parsed_lupita_url.scheme not in {"http", "https"}
+                or not parsed_lupita_url.netloc
+                or not parsed_lupita_url.hostname
+                or parsed_lupita_url.username
+                or parsed_lupita_url.password
+                or parsed_lupita_url.path.rstrip("/") != "/api/eventos"
+                or parsed_lupita_url.query
+                or parsed_lupita_url.fragment
+            ):
+                raise RuntimeError(
+                    "LUPITA_EVENTS_URL debe apuntar al endpoint /api/eventos, sin credenciales ni parámetros."
+                )
+            if parsed_lupita_url.scheme == "http":
+                host = parsed_lupita_url.hostname.lower()
+                try:
+                    local_http = host == "localhost" or ipaddress.ip_address(host).is_loopback
+                except ValueError:
+                    local_http = False
+                if not local_http:
+                    raise RuntimeError(
+                        "LUPITA_EVENTS_URL solo admite HTTP en loopback; usa HTTPS para otro host."
+                    )
         if public_base_url:
             try:
                 parsed_public_url = urlsplit(public_base_url)
@@ -130,4 +170,6 @@ class Settings:
             risk_medium_threshold=risk_medium_threshold,
             risk_high_threshold=risk_high_threshold,
             fraud_rules_path=fraud_rules_path,
+            lupita_events_url=lupita_events_url or None,
+            lupita_events_key=lupita_events_key or None,
         )
