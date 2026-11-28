@@ -1,0 +1,20 @@
+{
+  "scenario_id": "E14",
+  "title": "Limite de tasa, estado sin verificar y no publicacion de negocio",
+  "owner": "Integrante 5",
+  "type": "citizen_rate_limit",
+  "repeat_count": 3,
+  "input": {
+    "channel": "sms",
+    "municipality": "Zapopan",
+    "reported_business_name": "Gestoria Fantasma SA",
+    "reported_sender_or_phone": "3399887766",
+    "description": "Me cobraron anticipo por un tramite que no realizaron.",
+    "session_token": "e14-user-session"
+  },
+  "expected": {
+    "third_attempt_rate_limited": true,
+    "verification_status": "sin_verificar",
+    "business_published": false
+  }
+}
