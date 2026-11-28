@@ -44,6 +44,21 @@ class ExtractorsTests(unittest.TestCase):
         self.assertEqual(urls[0].metadata["is_shortener"], "true")
         self.assertEqual(urls[1].metadata["is_punycode"], "true")
 
+    def test_ip_url_and_executable_download_detection(self) -> None:
+        text = "Descarga la app de credito rapido en http://198.51.100.5/credito-demo.apk hoy."
+        inds = extract_indicators(text, channel="sms")
+        urls = [ind for ind in inds if ind.type == "url"]
+        self.assertEqual(len(urls), 1)
+        self.assertEqual(urls[0].value_masked, "hxxp://198.51.100.5/credito-demo.apk")
+        self.assertEqual(urls[0].metadata["is_ip_url"], "true")
+        self.assertEqual(urls[0].metadata["is_executable_download"], "true")
+        self.assertFalse(any(ind.type == "contact_phone" for ind in inds))
+
+        threat, legal_tag, reasons = classify_threat(text, "sms", inds)
+        self.assertEqual(threat, "montadeudas_empleo_inversion")
+        self.assertEqual(legal_tag, "posible_fraude_suplantacion")
+        self.assertTrue(any("ejecutable" in r.lower() for r in reasons))
+
     def test_prompt_injection_ignored_e11(self) -> None:
         text = (
             "BBVA alerta: verifique su cuenta en http://bbva-demo.example.com. "

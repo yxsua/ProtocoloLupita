@@ -123,8 +123,11 @@ SPOKEN_HUNDREDS: dict[str, int] = {
     "novecientos": 900,
 }
 
+EXECUTABLE_EXTENSIONS: tuple[str, ...] = (".apk", ".exe", ".msi", ".bat", ".scr", ".ipa")
+
 URL_REGEX = re.compile(
     r"(?:hxxps?|https?)://[^\s<>'\"()]+|"
+    r"\b(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?/[^\s<>'\"()]*|"
     r"\b(?:[a-z0-9-]+\.)+(?:com|mx|org|net|gob|info|xyz|ly|co|gy|app|site|online)"
     r"(?:\.[a-z]{2,3})?(?:/[^\s<>'\"()]*)?",
     re.IGNORECASE,
@@ -163,6 +166,22 @@ def extract_domain(defanged_url: str) -> str:
     without_scheme = re.sub(r"^hxxps?://", "", defanged_url, flags=re.IGNORECASE)
     host = without_scheme.split("/", 1)[0].split("?", 1)[0].split(":", 1)[0]
     return host.lower()
+
+
+def _is_valid_ipv4(host: str) -> bool:
+    parts = host.split(".")
+    if len(parts) != 4:
+        return False
+    return all(part.isdigit() and 0 <= int(part) <= 255 for part in parts)
+
+
+def _is_executable_url(defanged_url: str) -> bool:
+    without_scheme = re.sub(r"^hxxps?://", "", defanged_url, flags=re.IGNORECASE)
+    if "/" not in without_scheme:
+        return False
+    path = "/" + without_scheme.split("/", 1)[1]
+    clean_path = path.split("?", 1)[0].split("#", 1)[0].lower()
+    return clean_path.endswith(EXECUTABLE_EXTENSIONS)
 
 
 def mask_phone(digits_10: str) -> str:
@@ -302,13 +321,17 @@ def extract_indicators(text: str, channel: Channel | str = "call") -> list[Extra
         raw_url = match.group(0)
         defanged = defang_url(raw_url)
         domain = extract_domain(defanged)
-        if not domain or domain[0].isdigit():
+        is_ip_url = _is_valid_ipv4(domain)
+        if not domain or (domain.replace(".", "").isdigit() and not is_ip_url):
             continue
         occupied_spans.append(match.span())
+        is_exec = _is_executable_url(defanged)
         meta = {
             "domain": domain,
             "is_shortener": "true" if domain in SHORTENER_DOMAINS else "false",
             "is_punycode": "true" if "xn--" in domain else "false",
+            "is_ip_url": "true" if is_ip_url else "false",
+            "is_executable_download": "true" if is_exec else "false",
             "defanged": "true",
         }
         add_indicator(
@@ -433,9 +456,19 @@ def classify_threat(
     reasons: list[str] = []
 
     has_financial = any(ind.type in ("clabe", "card") for ind in indicators)
-    has_url = any(ind.type == "url" for ind in indicators)
+    url_indicators = [ind for ind in indicators if ind.type == "url"]
+    has_url = bool(url_indicators)
+    has_exec_url = any(
+        ind.metadata.get("is_executable_download") == "true" for ind in url_indicators
+    )
+    has_ip_url = any(ind.metadata.get("is_ip_url") == "true" for ind in url_indicators)
     brands = {ind.value_masked for ind in indicators if ind.type == "brand"}
     requested = {ind.value_masked for ind in indicators if ind.type == "requested_data"}
+
+    if has_exec_url:
+        reasons.append("Enlace hacia archivo ejecutable de riesgo (.apk/.exe) desactivado.")
+    if has_ip_url:
+        reasons.append("Enlace apunta a una dirección IP directa en lugar de dominio oficial.")
 
     # Secuestro virtual / suplantación familiar (E02)
     if re.search(
@@ -481,7 +514,7 @@ def classify_threat(
     if re.search(
         r"\b(prestamo inmediato|sin buro|montadeudas|inversion garantizada|trabajo desde casa)\b",
         plain,
-    ):
+    ) or (has_exec_url and re.search(r"\b(prestamo|credito|descarga|instala|app)\b", plain)):
         reasons.append("Patrón de préstamo fraudulento o fraude de empleo/inversión.")
         return "montadeudas_empleo_inversion", "posible_fraude_suplantacion", reasons
 
