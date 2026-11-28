@@ -6,29 +6,32 @@
 
 Construir la siembra de registros sintéticos del sistema **Mosca Estéril** y demostrar qué copia de base de datos corresponde a un número trampa que recibió una llamada o SMS. Mostrar la atribución de fugas para la Contraloría, el boletín epidemiológico de campañas, la ventaja de tiempo frente al primer reporte ciudadano y el mapa local de los 18 municipios de **Querétaro**.
 
+La siembra, atribución individual y dashboards detallados pertenecen a la **sección privada de Gobierno** (`/gobierno`). La sección pública Ciudadanía solo podrá consultar un producto agregado con supresión de grupos pequeños y sin campos que permitan reconstruir la copia o el evento interno.
+
 ## Alcance asignado
 
 - **Siembra determinista (`Faker('es_MX')`):** Generar al menos 15 personajes y copias ficticias usando semilla fija (p. ej. `seed=2026`) para que los fixtures sean reproducibles tras cualquier reinicio (ej. `Proveedor A - padrón predial - 2026-10`).
 - **Mapeo 1 a 1 copia ↔ trampa y resguardo criptográfico:** Insertar un identificador trampa sintético por copia y periodo (`seed_period`, p. ej. `2026-10`); asignar una única copia a cada número trampa. Un mismo `trap_id` puede recibir llamadas y SMS (uso multicanal) para esa copia. El mapeo completo número↔copia es el secreto del sistema: se guarda protegido/separado para rol **Contraloría / tablero interno** (nunca expuesto en rutas ciudadanas públicas) y se publica su **hash SHA-256 de manifiesto (`seed_manifest_hash`)** para probar que no fue alterado.
 - **Formato y normalización de números trampa:** Generar números exclusivamente ficticios con formato local de Querétaro **`+52 442`** (ej. `+52 442 XXX 0101 (ficticio)` / `+52 442 000 0101`), marcados visualmente como `[FICTICIO / SINTÉTICO]` en UI y fixtures, y nunca usados para marcar o enviar mensajes reales. Normalizar `trap_id` en una función pura (limpiando etiquetas como `(ficticio)`, espacios, guiones y prefijo `+52`/`52`) antes de consultar SQLite.
 - **Atribución estricta por receptor:** Atribuir exclusivamente por el número trampa receptor; nunca deducir identidad por número de origen (el número de origen solo se conserva como dato secundario). Si un reporte (p. ej. portal ciudadano `E12–E14`) llega sin `trap_id` o con un número no sembrado, devolver un estado controlado `"no_atribuido"` sin lanzar error fatal.
-- **Vista de siembra (`/planting`):** Mostrar catálogo interno de personajes, copias y números trampa ficticios, el `seed_manifest_hash` publicado, permitir resembrar/generar un nuevo periodo de prueba e incluir un probador manual de `attribute(trap_id)`.
-- **Tablero (`/dashboard`):**
+- **Vista de siembra (`/gobierno/siembra`, migrar `/planting`):** Mostrar catálogo interno de personajes, copias y números trampa ficticios, el `seed_manifest_hash`, permitir resembrar/generar un periodo de prueba e incluir probador manual de `attribute(trap_id)`. Exigir rol de gobierno para vista y cada endpoint de lectura/escritura; no publicar el mapeo en la sección ciudadana.
+- **Tablero privado (`/gobierno/dashboard`, migrar `/dashboard`):**
   - Mostrar atribuciones explicadas (`copy_id`, `provider`, `seed_period`, tipo de ataque), indicadores enmascarados y campañas recibidas desde el motor de inteligencia, sin volver a clasificarlas ni elevar su confianza.
   - Mostrar productos de inteligencia para tablero: **Atribución de fugas (Contraloría)**, **Boletín epidemiológico** (campañas activas, variantes de guion y **cuántos números trampa distintos alcanzó cada una**, sin audios ni datos personales) y **métrica clave de ventaja de tiempo** (horas entre el primer contacto a una trampa y el primer reporte ciudadano de la misma campaña, medible entre `E01` y `E12`).
   - Etiquetar explícitamente cualquier acción hacia terceros (bancos, telefónica, UIF, Fiscalía / autoridad competente) como **Simulado (prototipo)** y nunca afirmar bloqueos automáticos ni fraude confirmado por una sola fuente.
   - Soportar estados vacíos claros y ordenamiento cronológico inverso (`limit` configurable, por defecto 50).
-- **Mapa agregado de los 18 municipios de Querétaro (`/api/map`):**
+- **Mapa agregado público de los 18 municipios de Querétaro (`/api/public/map`):**
   - Usar el GeoJSON oficial de los 18 municipios de **Querétaro** empaquetado localmente en `data/geo/municipios_18.geojson`, indexado por `municipality_code` (clave INEGI de 5 dígitos) y `municipality_name`.
   - Aplicar **umbral de publicación de `>= 5` reportes en el backend** antes de serializar la respuesta al frontend: los municipios con `1–4` reportes devuelven `count: null, suppressed: true`, pero **sí se suman al agregado estatal (`state_total`)**.
   - Contabilizar reportes ciudadanos saneados válidos (`E13`); excluir duplicados rechazados por límite de tasa (`E14`) y mostrar eventos sin municipio solo en el tablero general, sin inventar municipio.
 - **Operación 100% offline:** Renderizar `data/geo/municipios_18.geojson` en `app/static/dashboard.js` usando **SVG en JavaScript puro** (o Leaflet local empaquetado en `app/static/` sin capa de teselas), sin teselas externas, geocodificación en internet ni CDNs.
+- **Separación de acceso:** Toda ruta interna de tablero, siembra, evento, atribución, cadena de evidencia o paquete institucional requiere sesión autenticada de gobierno verificada en backend. La respuesta pública del mapa se construye con un esquema público explícito y aplica el umbral antes de serializar; ocultar controles del frontend no cuenta como autorización.
 - **Prioridad y orden de recorte:** Prioridad 1 para Siembra y atribución, Prioridad 3 para Tablero y mapa. Si falta tiempo hacia el cierre, el mapa se recorta primero antes de afectar siembra, atribución o flujo principal de tablero.
 
 ## Archivos bajo responsabilidad
 
 - `app/modules/planting/` — `generator.py`, `repository.py`, `service.py`, `schemas.py`, `router.py`, `fixtures_local.py`.
-- `app/modules/dashboard/` — `service.py`, `schemas.py`, `router.py` (endpoints de lectura, boletín, métrica de ventaja de tiempo y agregados).
+- `app/modules/dashboard/` — `service.py`, `schemas.py`, `router.py` (dashboard privado y endpoints de lectura, boletín, métrica de ventaja de tiempo y agregados públicos depurados).
 - `app/modules/map/` — `aggregator.py`, `schemas.py`, `router.py` (agregación, umbral y GeoJSON estático).
 - `app/templates/planting/index.html`, `app/templates/dashboard/index.html` (Jinja2 extendiendo `app/templates/base.html` mediante `{% block content %}` y `{% block scripts %}`), `app/static/dashboard.js`.
 - `data/planting/seed_copies.json` y `data/geo/municipios_18.geojson` (coordinado con Integrante 1 para no duplicar fixtures).

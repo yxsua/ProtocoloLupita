@@ -4,12 +4,18 @@
 
 ## Objetivo
 
-Entregar la aplicación local que conecta los módulos, conserva resultados sintéticos y permite ejecutar y demostrar los 14 escenarios de principio a fin. Este plan no reduce el alcance: da soporte a siembra y atribución, voz, extracción y evidencia, inteligencia, SMS, portal ciudadano y tablero/mapa.
+Entregar la aplicación local con dos secciones: **Ciudadanía pública** para orientación y reportes saneados, y **Gobierno privada** para los dashboards detallados de llamadas trampa, atribución y evidencia. La demo tendrá dos dispositivos coordinados: simulador desde la sección ciudadana en el celular y dashboard autenticado en la laptop. El expediente final será sintético. No habrá llamadas, mensajes ni reportes enviados a terceros reales.
 
 ## Arquitectura acordada
 
 - Monolito modular en Python con FastAPI; interfaz HTML/CSS/JavaScript sencilla.
 - SQLite para persistencia local. JSON para escenarios y datos de muestra. Sin dependencias de servicios remotos durante la demo.
+- Para el uso desde celular, el servidor se podrá enlazar a la interfaz de red local y anunciar una URL/QR de sesión; el acceso queda limitado a la LAN de demostración. Evitar exponer información real.
+- La pantalla móvil y el monitor compartirán un `session_id` local. El monitor consultará el estado/eventos de la sesión (polling como primera opción) y conservará el resultado tras colgar.
+- La conexión de audio desde navegador móvil depende de permisos y contexto seguro. El guion/texto debe completar el recorrido sin micrófono ni modelos; audio grabado o voz del navegador puede servir como alternativa.
+- El reporte institucional se genera como artefacto local imprimible/descargable, claramente sintético; no incluye función para enviarlo a autoridades.
+- Separar rutas públicas (`/ciudadania`, `/api/public/*`) y privadas (`/gobierno`, `/api/gobierno/*`). Toda ruta privada requiere autenticación y autorización comprobadas en backend; la sección ciudadana solo recibe DTOs públicos con allowlist y agregación segura.
+- Para la demo, implementar un rol de gobierno local y una sesión de servidor; no es un sistema de identidad real. El QR del celular contiene un token de corta duración que solo habilita la sesión telefónica asignada.
 - Cada integrante es dueño de su módulo y de sus archivos; se integra mediante los contratos de este documento, no editando el módulo de otra persona.
 - Todos los datos y números del prototipo son sintéticos y se muestran como tales.
 - Los modelos locales y archivos del mapa deben estar disponibles antes de desconectar internet.
@@ -38,17 +44,22 @@ Interfaces internas estables: `attribute(trap_id)`, `process_call(input)`, `anal
 
 | Tiempo | Entrega |
 |---|---|
-| 0–1 h | Acordar contratos, rutas internas, estructura de carpetas y cómo correr el proyecto. Crear repo ejecutable mínimo. |
+| 0–1 h | Resolver conflictos pendientes de `app/main.py`; acordar contratos, rutas, audiencia pública/privada y dueño de autenticación; confirmar cómo correr el proyecto. |
 | 1–4 h | Crear FastAPI, SQLite, carga de configuración, layout de navegación y datos sintéticos iniciales. |
-| 4–8 h | Integrar un adaptador por módulo y asegurar que cada pantalla pueda abrirse aunque use datos provisionales. |
-| 8–12 h | Implementar cargador de escenarios JSON, runner y registro de esperado/obtenido; consolidar los 14 casos. |
-| 12–15 h | Ejecutar recorrido integrado, corregir errores de rutas, persistencia y campos compartidos; habilitar modo demo sin internet. |
-| 15–16 h | Congelar funciones y código; etiquetar versión de demo y respaldar datos. |
-| 16–18 h | Ensayar demo de tres minutos, registrar métricas reales del prototipo y grabar video de respaldo. |
+| 4–7 h | Integrar el límite público/privado y proteger endpoints internos; enlazar sesión de llamada con inteligencia/evidencia y dashboard privado en vivo. |
+| 7–9 h | Preparar la URL/QR LAN de alcance limitado, adaptación móvil, estado de conexión y expediente sintético final. |
+| 9–12 h | Implementar runner y validar los escenarios que sostienen el recorrido de demo; después completar el resto del catálogo si hay tiempo. |
+| 12–15 h | Ejecutar recorrido integrado en dos dispositivos, corregir persistencia, red local, latencia y campos compartidos; habilitar demo sin internet. |
+| 15–16 h | Congelar funciones y contratos; respaldar datos/artefactos sintéticos. |
+| 16–18 h | Ensayar demo de tres minutos, registrar métricas observadas y grabar video de respaldo. |
 
 ## Aceptación
 
-- Un comando inicia la app en laptop sin internet y muestra datos sintéticos.
+- Un comando inicia la app en laptop sin internet; el celular se conecta a la misma red local y abre el simulador sin números reales.
+- El monitor de la laptop recibe los turnos de la llamada y muestra transcripción, atributos ficticios, atribución, indicadores, confianza y evidencia durante la sesión.
+- La sección pública permite orientación y reporte ciudadano sin revelar atribución interna; el dashboard de llamadas trampa requiere iniciar sesión como gobierno.
+- Consultar directamente APIs privadas sin sesión produce rechazo de autorización; APIs públicas devuelven solo datos aprobados para ciudadanía.
+- Al cerrar la llamada se puede consultar y exportar/imprimir el expediente sintético, rotulado como demostración y sin envío a autoridades.
 - Se puede navegar por todos los módulos y seguir un evento desde la trampa hasta tablero y ruta ciudadana.
 - Los 14 JSON se cargan y el runner registra esperado y obtenido sin inventar porcentajes.
 - Los registros de reporte almacenados no incluyen datos personales del formulario original.

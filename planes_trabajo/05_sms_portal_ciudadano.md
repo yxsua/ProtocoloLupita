@@ -6,6 +6,8 @@
 
 Construir la bandeja de SMS sintéticos y el portal donde una persona pega un mensaje sospechoso o envía un reporte. El mismo motor devuelve una explicación comprensible, cruza el indicador con campañas y ofrece una ruta de respuesta. La aplicación nunca abre enlaces ni responde SMS.
 
+Este plan corresponde a la **sección pública Ciudadanía** (`/ciudadania`, conservando `/citizen` como alias durante la migración). No incorpora dashboards internos. La consulta ciudadana usa explicaciones redactadas y agregados públicos; la atribución de trampas, las llamadas en curso y los paquetes de evidencia quedan solo en la sección privada de Gobierno.
+
 ## Alcance asignado
 
 - Bandeja alimentada por fixtures; extraer remitente, enlaces, teléfonos y cuentas del mensaje.
@@ -15,12 +17,16 @@ Construir la bandeja de SMS sintéticos y el portal donde una persona pega un me
 - Formulario ciudadano para llamada/SMS; limpiar nombre, CURP, teléfono y otros datos personales antes de persistir. Pasar solo campos sanitizados e indicadores al motor de inteligencia.
 - Explicar el resultado en lenguaje claro, indicar si es indicio/campaña corroborada/sin verificar y mostrar ruta guiada local para reportar o protegerse.
 - Límite de tasa para reportes repetidos y estado “sin verificar”; integrar agregados municipales con el mapa de Integrante 2.
+- Mantener una allowlist pública de respuesta: recomendación, estado general de campaña y conteos agregados sobre el umbral. Nunca devolver `copy_id`, proveedor/dataset sembrado, `trap_id`, transcripción de llamada trampa, hash de evidencia ni paquetes institucionales.
+- La vista y API pública de reporte no requieren cuenta, pero deben sanear PII antes de persistir. No reutilizar DTOs de dashboard o inteligencia interna directamente en respuestas públicas.
+- El modo de llamada del jurado será un simulador ficticio dentro de la sección pública, autorizado por un token aleatorio limitado a esa sesión; no permite consultar resultados del dashboard.
 
 ## Archivos bajo responsabilidad
 
 - `app/modules/sms/` — parser, reglas, comparación de dominios y router.
 - `app/modules/citizen/` — formulario, saneamiento, límite de tasa y ruta guiada.
 - `app/templates/sms/`, `app/templates/citizen/`, `app/static/citizen.js`.
+- Layout y navegación pública compartidos con la sección privada, sin enlaces a rutas internas; coordinar aliases con Integrante 1.
 - Casos E09–E14 en `data/scenarios/`; Integrante 1 los consolida.
 
 ## Contrato de integración
@@ -49,6 +55,7 @@ Exponer `analyze_sms(input) -> SmsAnalysis` y `submit_report(input) -> CitizenRe
 - E13 respeta el umbral de 5 al mostrar el municipio y conserva el total agregado.
 - E14 activa límite de tasa, conserva estado “sin verificar” y no publica el negocio.
 - La respuesta nunca afirma certeza mayor que la confianza recibida del motor.
+- Las páginas públicas no exponen atribuciones ni detalles de llamadas trampa; probar también acceso directo a endpoints, no solo navegación visual.
 
 ## Trabajo independiente
 

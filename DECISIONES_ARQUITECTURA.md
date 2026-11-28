@@ -5,7 +5,7 @@ Estado: decisiones de arranque para el prototipo del hackathon. Se pueden revisa
 ## Decisiones cerradas para desbloquear trabajo
 
 1. **Aplicación:** monolito modular en Python. FastAPI expone vistas y API en el mismo proceso; Jinja2 sirve una interfaz HTML ligera con JavaScript sin framework.
-2. **Ejecución:** local en una laptop, sin llamadas a servicios remotos durante la demo. Whisper/Ollama/Piper y los recursos geográficos se preparan antes de desconectar internet.
+2. **Ejecución:** local en una laptop, sin llamadas a servicios remotos durante la demo. La llamada de demostración se simula; no se marca ni envía mensaje a ningún número real. Whisper/Ollama/Piper son opcionales y cualquier recurso necesario se prepara antes de desconectar internet.
 3. **Persistencia:** SQLite con `sqlite3` de la biblioteca estándar. Eventos, indicadores, campañas y corridas de escenarios se guardan localmente. Los escenarios fuente permanecen como JSON en `data/scenarios/`.
 4. **Datos:** todo dato de producto es sintético. Los textos entrantes de llamada/SMS/reporte son entradas transitorias; la base común no guarda texto crudo ni datos personales.
 5. **Contrato común:** modelos Pydantic en `app/core/schemas.py`; fechas en ISO 8601 con zona horaria; identificadores legibles como `E01`; confianza `low|medium|high`; estado `new|indicative|corroborated|unverified|dismissed`. No existe estado de “fraude confirmado” automático.
@@ -13,7 +13,7 @@ Estado: decisiones de arranque para el prototipo del hackathon. Se pueden revisa
 7. **Atribución:** se resuelve por el identificador/número trampa receptor y devuelve la copia sembrada. El número de origen no determina la copia.
 8. **Integración de módulos:** cada integrante entrega funciones de servicio importables y, cuando necesite endpoints, un router FastAPI propio. La app principal incluye routers; nadie más edita `app/main.py` ni `app/core/schemas.py` sin coordinar el cambio.
 9. **Corridas:** `POST /api/scenarios/{id}/run` ejecuta la definición desde disco; `POST /api/scenarios/run-all` ejecuta el catálogo y `GET /api/scenarios/results` devuelve resultados guardados. La entrada y el resultado esperado no se aceptan del navegador.
-10. **Inicio de demo:** `uv run uvicorn app.main:app --host 127.0.0.1 --port 8000`. `GET /api/health` confirma que la app y SQLite iniciaron.
+10. **Inicio de demo:** en modo local de un solo dispositivo: `uv run uvicorn app.main:app --host 127.0.0.1 --port 8000`. Para el demo de dos dispositivos, enlazar temporalmente a la interfaz LAN (`--host 0.0.0.0`) y mostrar una URL/QR con la IP local; no publicar el servidor en internet. `GET /api/health` confirma que la app y SQLite iniciaron.
 11. **Integración de equipo:** el proyecto ya tiene Git, rama `yasua` y remoto `origin`. Para trabajar en paralelo, cada integrante conserva propiedad de sus archivos; Integrante 1 integra routers y contratos compartidos varias veces durante la jornada, no solo al final.
 
 ## Contratos de servicio
@@ -50,6 +50,22 @@ Los manejadores se registran en `app/core/scenario_runner.py` antes de correr es
 Persistencia de una observación: guardar primero el `Event`, después sus `Indicator` (la tabla usa llave foránea) y al final la `Campaign` actualizada.
 
 La ruta de voz acepta audio en el router del módulo; la función `process_call` trabaja sobre una transcripción, para separar navegador/micrófono de la conversación y permitir el modo texto.
+
+## Alcance acordado para la siguiente demo
+
+- La plataforma se separa en **Ciudadanía pública** (`/ciudadania`, APIs `/api/public/*`) y **Gobierno privada** (`/gobierno`, APIs `/api/gobierno/*`). Ciudadanía recibe orientación, reporte saneado y agregados que cumplan el umbral; Gobierno ve dashboards detallados de llamadas trampa, atribución, eventos y evidencia.
+- Proteger rutas y APIs privadas en el servidor con sesión autenticada y rol autorizado. La ocultación de enlaces en HTML no es control de acceso. La demo usa una cuenta local simulada, claramente marcada como tal, sin representar identidad gubernamental real.
+- Las APIs públicas usan esquemas de respuesta separados con allowlist: nunca devuelven mapeo copia↔trampa, `copy_id`, proveedor/dataset, transcripciones de trampas, IDs internos o evidencia privada. Aplicar supresión de grupos pequeños del lado servidor.
+- El simulador móvil es una ruta pública de demostración con token aleatorio, revocable y limitado a una llamada; no entrega permisos de gobierno. Cada llamada sigue siendo ficticia.
+- Al migrar, proteger o retirar endpoints internos antiguos (`/dashboard`, `/planting`, `/api/planting/*`, `/api/intel/*` y similares) antes de enlazar la app a la LAN.
+- La pantalla `/voice/` representa una llamada ficticia operada desde el celular; un monitor separado muestra el análisis en vivo en la laptop. Los dos clientes comparten un `session_id`.
+- Priorizar polling local de una lectura de sesión cada 1–2 segundos. Solo cambiar a SSE/WebSocket si el volumen o la latencia medida lo exige.
+- La sesión conserva metadatos sintéticos (origen, trampa receptora, fechas/duración, escenario de filtración y datos observados) y eventos saneados después de colgar, para alimentar el expediente de demostración.
+- Transcripciones y audio crudos no se incorporan a la cadena de evidencia. El contenido guardado debe limitarse a texto saneado, indicadores enmascarados/hash y metadatos de la llamada. Todos los teléfonos, cuentas, entidades y ubicaciones son sintéticos.
+- El expediente se genera localmente para imprimir/descargar, lleva la leyenda “SIMULADO — sin validez oficial” y no ofrece envío a autoridades.
+- La entrada de micrófono desde IP local puede no estar disponible en el navegador por la política de contexto seguro. El flujo de guion/texto debe poder demostrar el sistema completo; audio pregrabado o TTS del navegador son alternativas locales.
+
+La app actual no tiene autenticación ni autorización registradas y `app/main.py` contiene marcadores de conflicto Git. Resolver el arranque y establecer el límite de acceso son prerrequisitos para exponer la demo en la LAN.
 
 ## Decisiones abiertas, sin bloquear el esqueleto
 
