@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections import deque
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any
+import uuid
 
 from app.modules.citizen.guided_route import build_guided_route
 from app.modules.sms.circular_store import CircularMatch, CircularPatternStore
@@ -234,3 +237,105 @@ def analyze_sms(
         circular_matches=[m.to_dict() for m in circular_matches],
         preventive_warning=preventive_warning,
     )
+
+
+class InMemoryLiveSmsInbox:
+    """Bandeja en memoria para SMS reenviados desde telefono (ya saneados y con URLs hxxp)."""
+
+    def __init__(self, *, max_items: int = 50) -> None:
+        self._items: deque[dict[str, Any]] = deque(maxlen=max_items)
+
+    def add(self, entry: dict[str, Any]) -> None:
+        self._items.appendleft(entry)
+
+    def list_items(self) -> list[dict[str, Any]]:
+        return list(self._items)
+
+    def clear(self) -> None:
+        self._items.clear()
+
+
+_DEFAULT_LIVE_INBOX = InMemoryLiveSmsInbox()
+
+
+def get_default_live_inbox() -> InMemoryLiveSmsInbox:
+    """Devuelve la bandeja en vivo compartida para mensajes recibidos via webhook."""
+    return _DEFAULT_LIVE_INBOX
+
+
+def ingest_device_sms(
+    payload: dict[str, Any],
+    *,
+    live_inbox: InMemoryLiveSmsInbox | None = None,
+    engine: IntelligenceEnginePort | None = None,
+    circular_store: CircularPatternStore | None = None,
+) -> dict[str, Any]:
+    """Recibe SMS desde puente de telefono (MacroDroid/Atajos), sanea PII, analiza y guarda sin links vivos."""
+    import re as _re
+    from app.modules.sms.parser import defang_url as _defang_url
+
+    raw_body = str(payload.get("body", "")).strip()
+    raw_sender = str(payload.get("sender", "")).strip() or "DESCONOCIDO"
+    municipality = str(payload.get("municipality", "")).strip() or "No especificado"
+
+    # Saneamiento basico de PII inline (evita import circular con citizen.sanitizer)
+    _CURP = _re.compile(r"\b[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d\b", _re.IGNORECASE)
+    _RFC  = _re.compile(r"\b[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}\b", _re.IGNORECASE)
+    _EMAIL = _re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
+    _URL_LIVE = _re.compile(r"(?i)\bhttps?://[^\s<>\"'\]\)]+")
+    _SELF_NAME = _re.compile(
+        r"(?i)\b(?:me\s+llamo|mi\s+nombre\s+es|soy)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,3}"
+    )
+
+    cleaned = raw_body
+    cleaned = _CURP.sub("[CURP_REDACTADA]", cleaned)
+    cleaned = _RFC.sub("[RFC_REDACTADO]", cleaned)
+    cleaned = _EMAIL.sub("[CORREO_REDACTADO]", cleaned)
+    cleaned = _SELF_NAME.sub("[NOMBRE_REDACTADO]", cleaned)
+    # Desactivar URLs vivas
+    cleaned = _URL_LIVE.sub(lambda m: _defang_url(m.group(0)), cleaned)
+    # Eliminar campos PII opcionales que vengan en el payload (no se usan, solo se descartan)
+    for _pii_key in ("reporter_name", "reporter_curp", "reporter_phone", "reporter_email", "reporter_address"):
+        payload.pop(_pii_key, None)
+
+    msg_id = str(payload.get("message_id") or f"SMS-DEV-{uuid.uuid4().hex[:6].upper()}")
+    received_at = str(payload.get("received_at") or datetime.now(timezone.utc).isoformat())
+
+    active_circular = circular_store or _DEFAULT_CIRCULAR_STORE
+    analysis = analyze_sms(
+        SmsInput(
+            message_id=msg_id,
+            sender=raw_sender,
+            body=cleaned,
+            received_at=received_at,
+            municipality=municipality,
+        ),
+        engine=engine,
+        circular_store=active_circular,
+    )
+
+    if analysis.is_suspicious:
+        active_circular.record_citizen_pattern(
+            sanitized_text=cleaned,
+            indicators=analysis.indicators,
+            impersonated_entity=analysis.impersonated_entity,
+            scam_type=analysis.scam_type,
+            verification_status=analysis.verification_status,
+            rate_limited=False,
+        )
+
+    entry = {
+        "source": "dispositivo",
+        "raw": {
+            "message_id": msg_id,
+            "sender": raw_sender,
+            "received_at": received_at,
+            "municipality": municipality,
+            "body": cleaned,
+        },
+        "analysis": analysis.to_dict(),
+    }
+    target_inbox = live_inbox or _DEFAULT_LIVE_INBOX
+    target_inbox.add(entry)
+    return entry
+

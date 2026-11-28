@@ -122,17 +122,117 @@
     }
   }
 
-  // Bandeja SMS: cargar fixture en formulario y analizar SMS pegado
+  // Bandeja SMS: cargar fixture en formulario, refrescar bandeja en vivo y analizar SMS pegado
   const smsForm = document.getElementById("sms-analyze-form");
   if (smsForm) {
-    document.querySelectorAll(".js-load-sms").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        document.getElementById("sms-sender").value = btn.dataset.sender || "";
-        document.getElementById("sms-municipality").value = btn.dataset.municipality || "";
-        document.getElementById("sms-body").value = btn.dataset.body || "";
-        smsForm.requestSubmit();
+    function bindInboxLoadButtons(root) {
+      root.querySelectorAll(".js-load-sms").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.getElementById("sms-sender").value = btn.dataset.sender || "";
+          document.getElementById("sms-municipality").value = btn.dataset.municipality || "";
+          document.getElementById("sms-body").value = btn.dataset.body || "";
+          smsForm.requestSubmit();
+        });
       });
-    });
+    }
+
+    async function refreshSmsInbox() {
+      const listEl = document.getElementById("sms-inbox-list");
+      if (!listEl) return;
+      const res = await fetch("/sms/api/inbox");
+      const data = await res.json();
+      clearNode(listEl);
+
+      (data.items || []).forEach(function (entry) {
+        const raw = entry.raw || {};
+        const analysis = entry.analysis || {};
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "center";
+        header.style.gap = "0.5rem";
+
+        const title = document.createElement("strong");
+        const prefix = entry.source === "dispositivo" ? "[En vivo] " : "";
+        title.textContent = prefix + (raw.message_id || "") + " · Remitente: " + (raw.sender || "");
+
+        const badge = document.createElement("span");
+        if (analysis.verification_status === "campana_corroborada") {
+          badge.className = "badge badge-danger";
+          badge.textContent = "Campana corroborada";
+        } else if (analysis.is_suspicious) {
+          badge.className = "badge badge-warn";
+          badge.textContent = "Indicio / Sospechoso";
+        } else {
+          badge.className = "badge badge-muted";
+          badge.textContent = "Sin verificar / Informativo";
+        }
+
+        header.appendChild(title);
+        header.appendChild(badge);
+        card.appendChild(header);
+
+        const bodyP = document.createElement("p");
+        bodyP.style.margin = "0.5rem 0";
+        bodyP.style.color = "#334155";
+        bodyP.textContent = raw.body || "";
+        card.appendChild(bodyP);
+
+        const metaP = document.createElement("p");
+        metaP.style.fontSize = "0.875rem";
+        metaP.style.color = "#475569";
+        const pct = Math.round((analysis.engine_confidence || 0) * 100);
+        metaP.textContent =
+          "Entidad: " + (analysis.impersonated_entity || "") +
+          " · Tipo: " + (analysis.scam_type || "") +
+          " · Confianza motor: " + pct + "%";
+        card.appendChild(metaP);
+
+        const urls = (analysis.indicators && analysis.indicators.defanged_urls) || [];
+        if (urls.length > 0) {
+          const urlWrap = document.createElement("div");
+          urls.forEach(function (u) {
+            const code = document.createElement("span");
+            code.className = "defanged-url";
+            code.textContent = u;
+            const uBadge = document.createElement("span");
+            uBadge.className = "badge badge-muted";
+            uBadge.style.marginLeft = "0.35rem";
+            uBadge.textContent = "Enlace desactivado · No abierto";
+            urlWrap.appendChild(code);
+            urlWrap.appendChild(uBadge);
+          });
+          card.appendChild(urlWrap);
+        }
+
+        const btnWrap = document.createElement("div");
+        btnWrap.style.marginTop = "0.75rem";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "secondary js-load-sms";
+        btn.dataset.sender = raw.sender || "";
+        btn.dataset.municipality = raw.municipality || "";
+        btn.dataset.body = raw.body || "";
+        btn.textContent = "Analizar en detalle";
+        btnWrap.appendChild(btn);
+        card.appendChild(btnWrap);
+
+        listEl.appendChild(card);
+      });
+
+      bindInboxLoadButtons(listEl);
+    }
+
+    bindInboxLoadButtons(document);
+
+    const refreshBtn = document.getElementById("refresh-inbox-btn");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", refreshSmsInbox);
+    }
+    setInterval(refreshSmsInbox, 5000);
 
     smsForm.addEventListener("submit", async function (evt) {
       evt.preventDefault();

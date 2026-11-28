@@ -38,11 +38,17 @@
 
   <div class="grid">
     <section>
-      <h2>Mensajes en bandeja (fixtures)</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+        <h2 style="margin:0;">Mensajes en bandeja</h2>
+        <button type="button" id="refresh-inbox-btn" class="secondary">Actualizar bandeja</button>
+      </div>
+      <div id="sms-inbox-list" style="margin-top:0.75rem;">
       {% for item in items %}
       <article class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
-          <strong>{{ item.raw.message_id }} · Remitente: {{ item.raw.sender }}</strong>
+          <strong>
+            {% if item.source == "dispositivo" %}[En vivo] {% endif %}{{ item.raw.message_id }} · Remitente: {{ item.raw.sender }}
+          </strong>
           {% if item.analysis.verification_status == "campana_corroborada" %}
             <span class="badge badge-danger">Campana corroborada</span>
           {% elif item.analysis.is_suspicious %}
@@ -76,6 +82,7 @@
         </div>
       </article>
       {% endfor %}
+      </div>
     </section>
 
     <section>
