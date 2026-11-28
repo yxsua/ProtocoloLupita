@@ -1,0 +1,475 @@
+{
+  "version": "2.0",
+  "voz": "es-MX-DaliaNeural",
+  "descripcion": "Inventario de fragmentos neuronales fluidos por intencion y espera",
+  "intenciones": {
+    "asustarse": {
+      "fragmentos": [
+        {
+          "archivo": "asustarse_01.mp3",
+          "texto": "¡Ay, Dios mío de mi vida! ¿Cómo que me van a bloquear mi tarjetita?"
+        },
+        {
+          "archivo": "asustarse_02.mp3",
+          "texto": "¡Virgen santísima! ¿Me van a quitar mi pensión? ¡No puede ser!"
+        },
+        {
+          "archivo": "asustarse_03.mp3",
+          "texto": "¡Ay, no me diga eso, joven, que se me va a subir la presión!"
+        },
+        {
+          "archivo": "asustarse_04.mp3",
+          "texto": "¡Jesús me ampare! ¿Y ahora qué hice yo si ni salgo de mi casa?"
+        },
+        {
+          "archivo": "asustarse_05.mp3",
+          "texto": "¡Ay, corazón de Jesús! ¿De veras está en peligro mi dinerito?"
+        },
+        {
+          "archivo": "asustarse_06.mp3",
+          "texto": "¡No me asuste así, por favor, que estoy sola en la casa!"
+        },
+        {
+          "archivo": "asustarse_07.mp3",
+          "texto": "¡Ay, nanita! ¿Y si me dejan sin nada para mis medicinas?"
+        },
+        {
+          "archivo": "asustarse_08.mp3",
+          "texto": "¡Santo Niño de Atocha! ¿Cómo pasó eso si yo nunca le muevo a nada?"
+        },
+        {
+          "archivo": "asustarse_09.mp3",
+          "texto": "¡Ay, me está temblando hasta la mano del puro susto!"
+        },
+        {
+          "archivo": "asustarse_10.mp3",
+          "texto": "¡No diga eso, licenciado, que me va a dar el patatús aquí mismo!"
+        },
+        {
+          "archivo": "asustarse_11.mp3",
+          "texto": "¡Ay, Diosito! ¿A poco sí me pueden vaciar lo poquito que junté?"
+        },
+        {
+          "archivo": "asustarse_12.mp3",
+          "texto": "¡Madre mía! Yo sabía que algo malo iba a pasar hoy, me latía el ojo."
+        },
+        {
+          "archivo": "asustarse_13.mp3",
+          "texto": "¡Ay, no, no, no! ¿Y qué va a decir mi hijo cuando se entere?"
+        },
+        {
+          "archivo": "asustarse_14.mp3",
+          "texto": "¡Válgame Dios! Si ese dinero es todo lo que tengo para el mes."
+        },
+        {
+          "archivo": "asustarse_15.mp3",
+          "texto": "¡Ay, joven, no me hable tan golpeado que me pongo más nerviosa!"
+        },
+        {
+          "archivo": "asustarse_16.mp3",
+          "texto": "¡Por el amor de Dios, ayúdeme a que no se pierda mi ahorro!"
+        },
+        {
+          "archivo": "asustarse_17.mp3",
+          "texto": "¡Ay, siento que se me bajó el azúcar nomás de oírlo!"
+        },
+        {
+          "archivo": "asustarse_18.mp3",
+          "texto": "¡Ave María Purísima! ¿Cómo supieron mi número si casi nadie lo tiene?"
+        },
+        {
+          "archivo": "asustarse_19.mp3",
+          "texto": "¡No puede ser verdad, joven, si yo apenas ayer fui a revisar y todo estaba bien!"
+        },
+        {
+          "archivo": "asustarse_20.mp3",
+          "texto": "¡Ay, señor, me tiene con el alma en un hilo, dígame qué hacemos!"
+        }
+      ]
+    },
+    "dar_largas": {
+      "fragmentos": [
+        {
+          "archivo": "dar_largas_01.mp3",
+          "texto": "Ay, esta pluma no pinta... déjeme buscar un lápiz en el cajón."
+        },
+        {
+          "archivo": "dar_largas_02.mp3",
+          "texto": "Espéreme tantito, joven, que dejé los lentes en la cocina y sin ellos no veo ni gota."
+        },
+        {
+          "archivo": "dar_largas_03.mp3",
+          "texto": "Aguánteme un segundito, es que está tocando el señor del gas y si no salgo se va."
+        },
+        {
+          "archivo": "dar_largas_04.mp3",
+          "texto": "Ay, espere, que se me está tirando el agua de los frijoles, ahorita vuelvo, no cuelgue."
+        },
+        {
+          "archivo": "dar_largas_05.mp3",
+          "texto": "Déjeme sentarme en la sala porque aquí parado me canso mucho de la rodilla."
+        },
+        {
+          "archivo": "dar_largas_06.mp3",
+          "texto": "Ay, qué barbaridad, esta libreta tiene puras hojas arrancadas, déjeme buscar otra."
+        },
+        {
+          "archivo": "dar_largas_07.mp3",
+          "texto": "Un momentito, joven, déjeme bajarle a la tele porque está muy fuerte la novela."
+        },
+        {
+          "archivo": "dar_largas_08.mp3",
+          "texto": "Espéreme tantito, voy por un vasito de agua porque con el susto se me secó la boca."
+        },
+        {
+          "archivo": "dar_largas_09.mp3",
+          "texto": "Ay, es que el perrito se metió al cuarto y me va a morder las chanclas, aguánteme."
+        },
+        {
+          "archivo": "dar_largas_10.mp3",
+          "texto": "Déjeme prender la luz porque ya oscureció y aquí no alcanzo a distinguir nada."
+        },
+        {
+          "archivo": "dar_largas_11.mp3",
+          "texto": "Un segundo, joven, estoy buscando mi libretita azul donde apunto todo... ¿dónde la dejé?"
+        },
+        {
+          "archivo": "dar_largas_12.mp3",
+          "texto": "Ay, perdón, es que me entró una llamada en el teléfono de casa, pero ya lo dejé sonar."
+        },
+        {
+          "archivo": "dar_largas_13.mp3",
+          "texto": "Espéreme tantito, déjeme quitarme el mandil y acomodarme bien para apuntar."
+        },
+        {
+          "archivo": "dar_largas_14.mp3",
+          "texto": "Ahorita le digo, nada más déjeme encontrar un pedazo de papel limpio en este montón."
+        },
+        {
+          "archivo": "dar_largas_15.mp3",
+          "texto": "Ay, este lápiz tiene la punta quebrada, déjeme sacarle filo con el cuchillo de la cocina."
+        },
+        {
+          "archivo": "dar_largas_16.mp3",
+          "texto": "Aguánteme tantito, que mi vecino me está gritando desde la ventana, ya le hice señas."
+        },
+        {
+          "archivo": "dar_largas_17.mp3",
+          "texto": "Un momento, joven, es que este teléfono se me apaga la pantalla y no le hallo cómo prenderla."
+        },
+        {
+          "archivo": "dar_largas_18.mp3",
+          "texto": "Déjeme ir por mi bolsita donde guardo los papeles del banco, la dejé en el ropero."
+        },
+        {
+          "archivo": "dar_largas_19.mp3",
+          "texto": "Ay, espéreme, que se me cayó la pluma abajo de la mesa y me cuesta trabajo agacharme."
+        },
+        {
+          "archivo": "dar_largas_20.mp3",
+          "texto": "Tantito, joven, estoy tomando mi pastilla de las siete porque si no se me olvida."
+        },
+        {
+          "archivo": "dar_largas_21.mp3",
+          "texto": "Déjeme cerrar la ventana porque está entrando mucho aire y no oigo bien lo que me dice."
+        },
+        {
+          "archivo": "dar_largas_22.mp3",
+          "texto": "Ay, espere, que me equivoqué de libreta, esta es la de las recetas de cocina."
+        },
+        {
+          "archivo": "dar_largas_23.mp3",
+          "texto": "Un segundito nada más, déjeme ponerme los anteojos de cerca porque estos son los de ver de lejos."
+        },
+        {
+          "archivo": "dar_largas_24.mp3",
+          "texto": "Espéreme, joven, que el gato se subió a la mesa y me va a tirar el florero."
+        },
+        {
+          "archivo": "dar_largas_25.mp3",
+          "texto": "Ya mero, ya mero, nomás déjeme encontrar un espacio en blanco en este recibo viejo."
+        }
+      ]
+    },
+    "pedir_repeticion": {
+      "fragmentos": [
+        {
+          "archivo": "pedir_repeticion_01.mp3",
+          "texto": "¿Cómo dice, joven? Es que se oye bien cortado, repítamelo más despacito."
+        },
+        {
+          "archivo": "pedir_repeticion_02.mp3",
+          "texto": "Perdone usted, es que ya no oigo bien del oído izquierdo, ¿me lo vuelve a decir?"
+        },
+        {
+          "archivo": "pedir_repeticion_03.mp3",
+          "texto": "Ay, habló muy rápido y no alcancé a apuntar nada, ¿me lo repite desde el principio?"
+        },
+        {
+          "archivo": "pedir_repeticion_04.mp3",
+          "texto": "¿Qué número dijo? Se escuchó como un ruido raro en la línea."
+        },
+        {
+          "archivo": "pedir_repeticion_05.mp3",
+          "texto": "Espere, joven, que me quedé en el tercer número y ya me perdí, dígamelo otra vez."
+        },
+        {
+          "archivo": "pedir_repeticion_06.mp3",
+          "texto": "¿Me lo puede deletrear o decir de uno por uno? Es que me pongo nerviosa y me revuelvo."
+        },
+        {
+          "archivo": "pedir_repeticion_07.mp3",
+          "texto": "No le entendí bien esa última parte, ¿cómo dijo que se llamaba usted?"
+        },
+        {
+          "archivo": "pedir_repeticion_08.mp3",
+          "texto": "¿Puede hablar un poquito más fuerte, por favor? Es que se oye muy lejos."
+        },
+        {
+          "archivo": "pedir_repeticion_09.mp3",
+          "texto": "Ay, perdóneme la molestia, pero se me borró lo que apunté, ¿me lo repite de nuevo?"
+        },
+        {
+          "archivo": "pedir_repeticion_10.mp3",
+          "texto": "¿Dijo siete o dijo seis? Es que con el aire no se distinguió bien."
+        },
+        {
+          "archivo": "pedir_repeticion_11.mp3",
+          "texto": "Vuelva a decírmelo, joven, pero más calmado, como si le explicara a su abuelita."
+        },
+        {
+          "archivo": "pedir_repeticion_12.mp3",
+          "texto": "¿Qué fue lo que me pidió? Se cortó justo cuando iba a decir lo más importante."
+        },
+        {
+          "archivo": "pedir_repeticion_13.mp3",
+          "texto": "Ay, me hice bolas con tantos números, ¿me los dicta de dos en dos?"
+        },
+        {
+          "archivo": "pedir_repeticion_14.mp3",
+          "texto": "¿Cómo? No le escuché nada porque pasó un camión bien ruidoso por la calle."
+        },
+        {
+          "archivo": "pedir_repeticion_15.mp3",
+          "texto": "Repítame ese pedacito, por favor, que no quiero equivocarme ni en una letra."
+        },
+        {
+          "archivo": "pedir_repeticion_16.mp3",
+          "texto": "¿Me dijo quince o cincuenta? Es que aquí en la bocina se oye medio gangoso."
+        },
+        {
+          "archivo": "pedir_repeticion_17.mp3",
+          "texto": "Perdón, joven, me distraje buscando el lápiz, ¿qué me estaba diciendo?"
+        },
+        {
+          "archivo": "pedir_repeticion_18.mp3",
+          "texto": "¿Otra vez me lo puede decir? Es que quiero estar bien segura de lo que anoté."
+        },
+        {
+          "archivo": "pedir_repeticion_19.mp3",
+          "texto": "Hable más despacio, por favor, que mi mano ya no escribe tan rápido como antes."
+        },
+        {
+          "archivo": "pedir_repeticion_20.mp3",
+          "texto": "¿Qué número iba después de ese? Ya me perdí en el renglón."
+        }
+      ]
+    },
+    "preguntar_cuenta_deposito": {
+      "fragmentos": [
+        {
+          "archivo": "preguntar_cuenta_deposito_01.mp3",
+          "texto": "Y entonces, ¿a qué número de cuenta o tarjeta dice que se tiene que hacer el movimiento?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_02.mp3",
+          "texto": "Oiga, joven, ¿y cuál es la cuenta esa donde según usted se resguarda el dinero?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_03.mp3",
+          "texto": "Bueno, si es tan urgente, dígame pues a qué CLABE o cuenta se manda eso."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_04.mp3",
+          "texto": "¿Y a nombre de quién va a salir esa cuenta de respaldo que me menciona?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_05.mp3",
+          "texto": "Dígame el número de cuenta completo para irlo anotando aquí en mi libreta."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_06.mp3",
+          "texto": "¿Es cuenta de banco normal o es de esas tarjetas de tienda? Dígame los números."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_07.mp3",
+          "texto": "A ver, dícteme la CLABE interbancaria de esa cuenta segura para tenerla aquí a la mano."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_08.mp3",
+          "texto": "¿Y a qué banco pertenece esa cuenta donde dice que se va a proteger mi pensión?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_09.mp3",
+          "texto": "Pásame los dieciocho números de la CLABE, joven, pero dígamelos claritos."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_10.mp3",
+          "texto": "¿Y cómo sé yo a qué cuenta depositar si usted no me ha dado los números?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_11.mp3",
+          "texto": "A ver, ¿cuál es el número de tarjeta al que se supone que debo transferir?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_12.mp3",
+          "texto": "Dígame los datos de la cuenta destino, joven, porque yo de memoria no adivino nada."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_13.mp3",
+          "texto": "¿Tiene usted ahí a la mano la CLABE para que yo la apunte antes de ir al banco?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_14.mp3",
+          "texto": "Y si voy a la ventanilla, ¿qué número de cuenta le doy a la señorita del banco?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_15.mp3",
+          "texto": "Dícteme bien los números de la cuenta esa, no vaya a ser que se vayan a otro lado."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_16.mp3",
+          "texto": "¿Es número de cuenta o número de teléfono lo que me va a dar para el depósito?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_17.mp3",
+          "texto": "Pásame primero los dígitos de esa cuenta, joven, para que los revise con calma."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_18.mp3",
+          "texto": "¿Y esa cuenta de protección tiene CLABE? Dígamela para anotarla de una vez."
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_19.mp3",
+          "texto": "A ver, ¿a qué número exactamente es adonde dice que hay que hacer el traspaso?"
+        },
+        {
+          "archivo": "preguntar_cuenta_deposito_20.mp3",
+          "texto": "Dígame la cuenta completa y de qué banco es, porque luego en el cajero me piden todo eso."
+        }
+      ]
+    },
+    "repetir_digitos": {
+      "fragmentos": [],
+      "nota": "TTS dinamico"
+    },
+    "despedirse": {
+      "fragmentos": [
+        {
+          "archivo": "despedirse_01.mp3",
+          "texto": "Bueno, joven, muchas gracias por avisarme, ya llegó mi hijo y él me va a ayudar. Que Dios lo bendiga."
+        },
+        {
+          "archivo": "despedirse_02.mp3",
+          "texto": "Mire, mejor voy a colgar y voy a ir directo a la sucursal de aquí a la vuelta. Hasta luego."
+        },
+        {
+          "archivo": "despedirse_03.mp3",
+          "texto": "Ay, ya me cansé de estar en el teléfono, joven, mejor luego le marco yo al banco. Adiós."
+        },
+        {
+          "archivo": "despedirse_04.mp3",
+          "texto": "Muchas gracias por su tiempo, pero ya me tengo que ir a tomar mi medicina. Buenas tardes."
+        },
+        {
+          "archivo": "despedirse_05.mp3",
+          "texto": "¿Sabe qué? Ya llegó mi nuera y dice que ella se encarga de esto. Que le vaya muy bien."
+        },
+        {
+          "archivo": "despedirse_06.mp3",
+          "texto": "Bueno, ya apunté todo, ahorita le enseño el papel a mi sobrino cuando llegue. Adiós, joven."
+        },
+        {
+          "archivo": "despedirse_07.mp3",
+          "texto": "Discúlpeme, pero ya se me está acabando la batería del teléfono y no tengo el cargador aquí. Hasta luego."
+        },
+        {
+          "archivo": "despedirse_08.mp3",
+          "texto": "Muchas gracias por la llamada, joven, que tenga muy bonito día y Dios me lo cuide."
+        },
+        {
+          "archivo": "despedirse_09.mp3",
+          "texto": "Mejor ahí le dejamos porque ya me dolió la cabeza de tanto número. Buenas tardes."
+        },
+        {
+          "archivo": "despedirse_10.mp3",
+          "texto": "Ya me están tocando la puerta y es mi hija, así que ya me voy. Gracias por todo, adiós."
+        },
+        {
+          "archivo": "despedirse_11.mp3",
+          "texto": "Bueno, pues voy a revisar esto con calma en persona allá en el banco. Que esté muy bien."
+        },
+        {
+          "archivo": "despedirse_12.mp3",
+          "texto": "Ay, joven, ya me voy porque dejé la estufa prendida y se me va a quemar la comida. Adiós."
+        },
+        {
+          "archivo": "despedirse_13.mp3",
+          "texto": "Gracias por llamarme, pero yo sin mi hijo presente no hago ningún movimiento. Hasta luego."
+        },
+        {
+          "archivo": "despedirse_14.mp3",
+          "texto": "Bueno, ya tengo todo anotado, muchas gracias por su paciencia conmigo. Buenas tardes."
+        },
+        {
+          "archivo": "despedirse_15.mp3",
+          "texto": "Ya me tengo que despedir porque viene el doctor a revisarme la presión. Que Dios lo acompañe."
+        },
+        {
+          "archivo": "despedirse_16.mp3",
+          "texto": "Mejor cuelgo ya, joven, no quiero quitarle más su tiempo. Que tenga buena tarde."
+        },
+        {
+          "archivo": "despedirse_17.mp3",
+          "texto": "Muchas gracias por el aviso, yo luego paso a preguntar allá a la ventanilla. Adiós."
+        },
+        {
+          "archivo": "despedirse_18.mp3",
+          "texto": "Bueno, joven, ya me voy a descansar un rato porque me quedé muy agitada. Hasta luego."
+        },
+        {
+          "archivo": "despedirse_19.mp3",
+          "texto": "Gracias por explicarme, ya con esto me doy una idea. Que le vaya bonito, adiós."
+        },
+        {
+          "archivo": "despedirse_20.mp3",
+          "texto": "Bueno, pues ya quedó anotado, muchas gracias y que pase muy buena noche."
+        }
+      ]
+    }
+  },
+  "espera_relleno": [
+    {
+      "archivo": "espera_01.mp3",
+      "texto": "A ver, espéreme tantito, joven..."
+    },
+    {
+      "archivo": "espera_02.mp3",
+      "texto": "Déjeme ver cómo le hago aquí..."
+    },
+    {
+      "archivo": "espera_03.mp3",
+      "texto": "Ay, permítame un segundito..."
+    },
+    {
+      "archivo": "espera_04.mp3",
+      "texto": "A ver, déjeme anotar eso bien..."
+    }
+  ],
+  "saludo": [
+    {
+      "archivo": "saludo_01.mp3",
+      "texto": "¡Bueno! ¿Quién habla? Aquí es casa de Doña Lupita..."
+    }
+  ]
+}
