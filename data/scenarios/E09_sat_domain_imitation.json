@@ -1,0 +1,20 @@
+{
+  "scenario_id": "E09",
+  "title": "Imitacion de dominio del SAT y enlace desactivado",
+  "owner": "Integrante 5",
+  "type": "sms",
+  "input": {
+    "message_id": "E09-SMS",
+    "sender": "5589012345",
+    "municipality": "Guadalajara",
+    "body": "SAT URGENTE: Tiene una multa fiscal y bloqueo de buzon tributario hoy. Regularice en https://sat-gob-mx-buzon.xyz/multa antes de 2 horas."
+  },
+  "expected": {
+    "impersonated_entity": "SAT",
+    "is_suspicious": true,
+    "domain_imitation_detected": true,
+    "campaign_created_or_updated": true,
+    "defanged_urls": ["hxxps://sat-gob-mx-buzon.xyz/multa"],
+    "links_disabled": true
+  }
+}

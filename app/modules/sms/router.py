@@ -1,0 +1,149 @@
+"""Router FastAPI para la bandeja de SMS sinteticos y analizador sin navegacion."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from fastapi import APIRouter, Body, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+from app.modules.sms.dataset_classifier import get_default_dataset_classifier
+from app.modules.sms.service import (
+    analyze_sms,
+    get_default_circular_store,
+    get_default_live_inbox,
+    ingest_device_sms,
+    load_sms_inbox,
+)
+
+_TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates"
+templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+
+router = APIRouter(prefix="/sms", tags=["sms"])
+
+
+def _combined_inbox_items() -> list[dict[str, Any]]:
+    live_items = get_default_live_inbox().list_items()
+    fixture_items = [
+        {
+            "source": "fixture",
+            "raw": item,
+            "analysis": analyze_sms(item).to_dict(),
+        }
+        for item in load_sms_inbox()
+    ]
+    return live_items + fixture_items
+
+
+@router.get("", response_class=HTMLResponse)
+def sms_inbox_page(request: Request) -> HTMLResponse:
+    """Vista de bandeja de SMS sinteticos y recibidos (nunca abre enlaces ni responde SMS)."""
+    precomputed = _combined_inbox_items()
+    alerts = get_default_circular_store().list_recent_alerts()
+    dataset_stats = get_default_dataset_classifier().stats()
+    return templates.TemplateResponse(
+        request,
+        "sms/inbox.html",
+        {
+            "items": precomputed,
+            "circular_alerts": alerts,
+            "dataset_stats": dataset_stats,
+        },
+    )
+
+
+@router.get("/api/alerts")
+def get_circular_alerts_api() -> dict[str, Any]:
+    """Devuelve alertas circulares anonimas aprendidas de la ciudadania y estadisticas del dataset."""
+    return {
+        "alerts": get_default_circular_store().list_recent_alerts(),
+        "dataset_stats": get_default_dataset_classifier().stats(),
+        "links_disabled": True,
+    }
+
+
+@router.get("/api/inbox")
+def get_sms_inbox_api() -> dict[str, Any]:
+    """Devuelve SMS recibidos en vivo y fixtures con analisis y enlaces ya desactivados."""
+    return {
+        "items": _combined_inbox_items(),
+        "links_disabled": True,
+    }
+
+
+_BODY_KEYS = ("body", "message", "mensaje", "text", "texto", "sms")
+_SENDER_KEYS = ("sender", "from", "number", "numero", "remitente", "phone")
+
+
+def _pick(data: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        val = data.get(key)
+        if val is not None and str(val).strip():
+            return str(val)
+    return ""
+
+
+async def _parse_device_payload(request: Request) -> dict[str, Any]:
+    """Acepta JSON, formulario, query string o texto plano (MacroDroid puede mandar cualquiera)."""
+    data: dict[str, Any] = dict(request.query_params)
+    content_type = request.headers.get("content-type", "").lower()
+    raw = await request.body()
+    text = raw.decode("utf-8", errors="replace").strip()
+
+    if "form" in content_type:
+        form = await request.form()
+        data.update({k: str(v) for k, v in form.items()})
+    elif text:
+        try:
+            parsed = json.loads(text, strict=False)
+            if isinstance(parsed, dict):
+                data.update(parsed)
+            else:
+                data.setdefault("body", str(parsed))
+        except json.JSONDecodeError:
+            # JSON roto (comillas o saltos de linea en el SMS) o texto plano
+            data.setdefault("body", text)
+
+    return {
+        "body": _pick(data, _BODY_KEYS),
+        "sender": _pick(data, _SENDER_KEYS),
+        "municipality": _pick(data, ("municipality", "municipio")),
+    }
+
+
+@router.post("/api/device-webhook")
+async def receive_device_sms_api(request: Request) -> dict[str, Any]:
+    """Endpoint para recibir SMS desde automatizacion del telefono (MacroDroid / iOS Atajos)."""
+    payload = await _parse_device_payload(request)
+    if not payload["body"].strip():
+        return {"status": "ignored", "reason": "SMS vacio", "links_disabled": True}
+    entry = ingest_device_sms(payload)
+    analysis = entry["analysis"]
+    return {
+        "status": "received",
+        "message_id": entry["raw"]["message_id"],
+        "is_suspicious": analysis["is_suspicious"],
+        "impersonated_entity": analysis["impersonated_entity"],
+        "scam_type": analysis["scam_type"],
+        "verification_status": analysis["verification_status"],
+        "preventive_warning": analysis["preventive_warning"],
+        "defanged_urls": analysis["indicators"]["defanged_urls"],
+        "links_disabled": True,
+    }
+
+
+@router.post("/api/analyze")
+def analyze_sms_api(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    """Analiza un SMS pegado por la persona sin abrir enlaces."""
+    result = analyze_sms(
+        {
+            "body": str(payload.get("body", "")),
+            "sender": payload.get("sender"),
+            "message_id": payload.get("message_id"),
+            "municipality": payload.get("municipality"),
+        }
+    )
+    return result.to_dict()

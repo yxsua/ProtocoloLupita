@@ -1,0 +1,84 @@
+{
+  "official_entities": {
+    "SAT": {
+      "label": "Servicio de Administracion Tributaria (SAT)",
+      "domains": ["sat.gob.mx", "www.sat.gob.mx", "cita.sat.gob.mx", "portalcfdi.facturaelectronica.sat.gob.mx"],
+      "brand_tokens": ["sat", "gob", "buzon", "tributario", "factura", "devolucion"]
+    },
+    "IMSS": {
+      "label": "Instituto Mexicano del Seguro Social (IMSS)",
+      "domains": ["imss.gob.mx", "www.imss.gob.mx", "serviciosdigitales.imss.gob.mx"],
+      "brand_tokens": ["imss", "semanas", "vigencia", "nss", "incapacidad"]
+    },
+    "CFE": {
+      "label": "Comision Federal de Electricidad (CFE)",
+      "domains": ["cfe.mx", "www.cfe.mx", "app.cfe.mx"],
+      "brand_tokens": ["cfe", "recibo", "medidor", "luz", "corte"]
+    },
+    "banco": {
+      "label": "Instituciones bancarias",
+      "domains": [
+        "bbva.mx",
+        "banorte.com",
+        "santander.com.mx",
+        "banamex.com",
+        "citibanamex.com",
+        "hsbc.com.mx",
+        "scotiabank.com.mx",
+        "bancoazteca.com.mx",
+        "nu.com.mx",
+        "banregio.com"
+      ],
+      "brand_tokens": ["bbva", "bancomer", "banorte", "santander", "citibanamex", "banamex", "hsbc", "scotiabank", "azteca", "nubank", "spei"]
+    },
+    "paqueteria": {
+      "label": "Paqueteria y mensajeria",
+      "domains": [
+        "estafeta.com",
+        "dhl.com",
+        "fedex.com",
+        "ups.com",
+        "correosdemexico.gob.mx",
+        "99minutos.com",
+        "amazon.com.mx",
+        "mercadolibre.com.mx"
+      ],
+      "brand_tokens": ["estafeta", "dhl", "fedex", "ups", "correos", "paquete", "envio", "aduana"]
+    },
+    "telefonica": {
+      "label": "Empresas telefonicas",
+      "domains": ["telcel.com", "mitelcel.com", "att.com.mx", "movistar.com.mx", "bait.com.mx"],
+      "brand_tokens": ["telcel", "mitelcel", "att", "movistar", "bait", "recarga", "linea"]
+    }
+  },
+  "shorteners": [
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "cutt.ly",
+    "rb.gy",
+    "is.gd",
+    "ow.ly",
+    "goo.gl",
+    "shorturl.at",
+    "tiny.cc",
+    "t.ly",
+    "rebrand.ly",
+    "acortar.link",
+    "wa.me"
+  ],
+  "suspicious_tlds": [
+    "xyz",
+    "top",
+    "click",
+    "online",
+    "site",
+    "club",
+    "icu",
+    "buzz",
+    "cfd",
+    "tk",
+    "ml",
+    "ga"
+  ]
+}
