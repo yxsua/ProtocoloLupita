@@ -1,0 +1,137 @@
+{% extends base_template %}
+
+{% block content %}
+<section class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+  <div>
+    <h1 style="margin:0 0 4px;">Tablero de Trazabilidad y Mapa de Querétaro</h1>
+    <p id="synthetic-notice" class="muted" style="margin:0;">
+      {{ initial_data.summary.synthetic_notice }} · Las notificaciones a bancos, telefónica, UIF y Fiscalía son simuladas (prototipo).
+    </p>
+  </div>
+  <span class="badge badge-synthetic">MODO OFFLINE · SINTÉTICO</span>
+</section>
+
+<section class="grid-kpis">
+  <div class="kpi">
+    <div class="kpi-label">Eventos filtrados</div>
+    <div id="kpi-total-events" class="kpi-value">{{ initial_data.summary.total_events }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Fugas atribuidas</div>
+    <div id="kpi-attributed" class="kpi-value">{{ initial_data.summary.attributed_events }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Campañas activas</div>
+    <div id="kpi-campaigns" class="kpi-value">{{ initial_data.summary.active_campaigns }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Copias sembradas</div>
+    <div id="kpi-copies" class="kpi-value">{{ initial_data.summary.seeded_copies }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Ventaja de tiempo (trampa vs reporte)</div>
+    <div id="kpi-lead-time" class="kpi-value">
+      {% if initial_data.summary.best_lead_time_hours is not none %}
+        {{ initial_data.summary.best_lead_time_hours }} h
+      {% else %}
+        —
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <form id="dashboard-filters" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label class="muted" for="filter-channel" style="display:block;">Canal</label>
+      <select id="filter-channel" name="channel">
+        <option value="">Todos</option>
+        <option value="call">Llamada</option>
+        <option value="sms">SMS</option>
+        <option value="portal">Portal ciudadano</option>
+      </select>
+    </div>
+    <div>
+      <label class="muted" for="filter-status" style="display:block;">Estado (motor)</label>
+      <select id="filter-status" name="status">
+        <option value="">Todos</option>
+        <option value="indicio">indicio</option>
+        <option value="corroborado">corroborado</option>
+        <option value="sin_verificar">sin_verificar</option>
+      </select>
+    </div>
+    <div>
+      <label class="muted" for="filter-confidence" style="display:block;">Confianza</label>
+      <select id="filter-confidence" name="confidence">
+        <option value="">Todas</option>
+        <option value="baja">baja</option>
+        <option value="media">media</option>
+        <option value="alta">alta</option>
+      </select>
+    </div>
+    <button class="btn" type="submit">Aplicar filtros</button>
+    <button id="btn-clear-filters" class="btn btn-secondary" type="button">Limpiar</button>
+  </form>
+  <div style="margin-top:10px;">
+    <span class="muted">Hash de manifiesto de siembra:</span>
+    <span id="dashboard-manifest-hash" class="mono">{{ initial_data.summary.seed_manifest_hash }}</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2 style="margin-top:0;">Atribución de fugas (Contraloría) y eventos recibidos</h2>
+  <div id="attributions-empty" class="muted" style="display:none; padding:12px; background:#f8fafc; border-radius:6px;"></div>
+  <table id="attributions-table">
+    <thead>
+      <tr>
+        <th>Evento / Canal</th>
+        <th>Trampa receptora</th>
+        <th>Copia atribuida</th>
+        <th>Indicadores (enmascarados)</th>
+        <th>Estado y confianza</th>
+        <th>Explicación</th>
+      </tr>
+    </thead>
+    <tbody id="attributions-tbody"></tbody>
+  </table>
+</section>
+
+<div class="split-2">
+  <section class="card">
+    <h2 style="margin-top:0;">Boletín epidemiológico de campañas</h2>
+    <p class="muted">Campañas y niveles de confianza recibidos del motor de inteligencia (sin reclasificación).</p>
+    <div id="campaigns-list"></div>
+  </section>
+
+  <section class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin:0;">Mapa offline: 18 municipios de Querétaro</h2>
+      <span class="badge">Umbral mínimo: <span id="map-threshold">5</span> reportes</span>
+    </div>
+    <div style="display:flex; gap:16px; margin:10px 0; flex-wrap:wrap;">
+      <div><span class="muted">Agregado estatal total:</span> <strong id="map-state-total">0</strong> reportes</div>
+      <div><span class="muted">Suprimidos (&lt;5):</span> <strong id="map-suppressed-count">0</strong> municipios</div>
+      <div><span class="muted">Excluidos por límite de tasa:</span> <strong id="map-rate-limited">0</strong></div>
+    </div>
+    <div id="map-tooltip" class="muted" style="min-height:22px; margin-bottom:6px;">Pasa el cursor sobre un municipio para ver su estado de publicación.</div>
+    <svg id="qro-map-svg" viewBox="0 0 640 520" style="width:100%; height:auto; background:#f8fafc; border:1px solid #d8e0ea; border-radius:8px;"></svg>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:0.8rem;">
+      <span><span class="badge badge-corroborado">&ge; 5 reportes</span> Publicado por municipio</span>
+      <span><span class="badge badge-indicio">1–4 reportes</span> Suprimido por umbral (sí suma al estado)</span>
+      <span><span class="badge">0 reportes</span> Sin reportes</span>
+    </div>
+    <div style="max-height:220px; overflow:auto; margin-top:10px;">
+      <table>
+        <thead>
+          <tr><th>Clave</th><th>Municipio</th><th>Publicación</th></tr>
+        </thead>
+        <tbody id="map-municipalities-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/dashboard.js"></script>
+{% endblock %}

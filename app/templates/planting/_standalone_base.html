@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title | default("Mosca Estéril") }}</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --ink: #162231;
+      --muted: #526173;
+      --border: #d8e0ea;
+      --primary: #144d8a;
+      --primary-soft: #e6eff9;
+      --warn-bg: #fff6e0;
+      --warn-ink: #7a4f01;
+      --ok-bg: #e5f5ec;
+      --ok-ink: #13653b;
+      --danger-bg: #fdebec;
+      --danger-ink: #921f29;
+      --neutral-bg: #eef2f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .top-banner {
+      background: #162231;
+      color: #fff;
+      padding: 8px 20px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .navbar a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 16px;
+    }
+    .container { max-width: 1220px; margin: 20px auto; padding: 0 16px 40px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .grid-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .kpi-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .kpi-value { font-size: 1.45rem; font-weight: 700; margin-top: 4px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--neutral-bg);
+      color: var(--ink);
+    }
+    .badge-synthetic { background: #ede9fe; color: #5b21b6; }
+    .badge-indicio { background: var(--warn-bg); color: var(--warn-ink); }
+    .badge-corroborado { background: var(--ok-bg); color: var(--ok-ink); }
+    .badge-sin_verificar { background: var(--danger-bg); color: var(--danger-ink); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary { background: var(--neutral-bg); color: var(--ink); border: 1px solid var(--border); }
+    input, select {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.82rem; word-break: break-all; }
+    .split-2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .split-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="top-banner">
+    <span><strong>Mosca Estéril</strong> · Prototipo 100% offline (Querétaro)</span>
+    <span>Todos los números, cuentas y reportes son <strong>SINTÉTICOS / FICTICIOS</strong> · Terceros simulados</span>
+  </div>
+  <nav class="navbar">
+    <div><strong>Mosca Estéril</strong> <span class="badge badge-synthetic">SINTÉTICO</span></div>
+    <div>
+      <a href="/planting">Siembra y Atribución</a>
+      <a href="/dashboard">Tablero y Mapa</a>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

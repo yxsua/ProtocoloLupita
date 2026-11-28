@@ -1,0 +1,96 @@
+{
+  "type": "FeatureCollection",
+  "name": "queretaro_18_municipios",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22003", "municipality_name": "Arroyo Seco"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.84, 21.33], [-99.80, 21.56], [-99.62, 21.67], [-99.44, 21.58], [-99.45, 21.34], [-99.64, 21.28], [-99.84, 21.33]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22009", "municipality_name": "Jalpan de Serra"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.45, 21.34], [-99.44, 21.58], [-99.26, 21.62], [-99.20, 21.38], [-99.24, 21.12], [-99.42, 21.12], [-99.45, 21.34]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22010", "municipality_name": "Landa de Matamoros"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.24, 21.12], [-99.20, 21.38], [-99.04, 21.36], [-99.05, 21.14], [-99.18, 21.08], [-99.24, 21.12]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22002", "municipality_name": "Pinal de Amoles"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.78, 21.04], [-99.84, 21.33], [-99.64, 21.28], [-99.45, 21.34], [-99.42, 21.12], [-99.44, 21.02], [-99.66, 21.00], [-99.78, 21.04]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22013", "municipality_name": "Peñamiller"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.06, 20.96], [-100.02, 21.24], [-99.84, 21.33], [-99.78, 21.04], [-99.66, 21.00], [-99.72, 20.90], [-100.06, 20.96]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22015", "municipality_name": "San Joaquín"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.66, 21.00], [-99.44, 21.02], [-99.38, 20.90], [-99.54, 20.84], [-99.68, 20.90], [-99.66, 21.00]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22018", "municipality_name": "Tolimán"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.06, 20.96], [-99.72, 20.90], [-99.74, 20.76], [-99.98, 20.76], [-100.06, 20.96]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22004", "municipality_name": "Cadereyta de Montes"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.74, 20.76], [-99.72, 20.90], [-99.54, 20.84], [-99.38, 20.90], [-99.30, 20.66], [-99.50, 20.52], [-99.78, 20.56], [-99.74, 20.76]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22005", "municipality_name": "Colón"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.22, 20.88], [-100.06, 20.96], [-99.98, 20.76], [-99.88, 20.62], [-100.14, 20.62], [-100.22, 20.88]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22007", "municipality_name": "Ezequiel Montes"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-99.98, 20.76], [-99.74, 20.76], [-99.78, 20.56], [-99.88, 20.62], [-99.98, 20.76]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22014", "municipality_name": "Querétaro"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.59, 20.56], [-100.56, 20.88], [-100.34, 20.95], [-100.28, 20.72], [-100.34, 20.54], [-100.59, 20.56]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22011", "municipality_name": "El Marqués"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.34, 20.54], [-100.28, 20.72], [-100.22, 20.88], [-100.14, 20.62], [-100.08, 20.48], [-100.24, 20.46], [-100.34, 20.54]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22006", "municipality_name": "Corregidora"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.56, 20.42], [-100.59, 20.56], [-100.34, 20.54], [-100.36, 20.40], [-100.56, 20.42]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22008", "municipality_name": "Huimilpan"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.42, 20.26], [-100.36, 20.40], [-100.34, 20.54], [-100.24, 20.46], [-100.16, 20.28], [-100.30, 20.22], [-100.42, 20.26]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22012", "municipality_name": "Pedro Escobedo"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.24, 20.46], [-100.08, 20.48], [-100.00, 20.58], [-99.96, 20.42], [-100.16, 20.38], [-100.24, 20.46]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22017", "municipality_name": "Tequisquiapan"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.00, 20.58], [-99.88, 20.62], [-99.78, 20.56], [-99.80, 20.42], [-99.96, 20.42], [-100.00, 20.58]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22016", "municipality_name": "San Juan del Río"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.16, 20.38], [-99.96, 20.42], [-99.80, 20.42], [-99.82, 20.22], [-100.06, 20.20], [-100.16, 20.28], [-100.16, 20.38]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"municipality_code": "22001", "municipality_name": "Amealco de Bonfil"},
+      "geometry": {"type": "Polygon", "coordinates": [[[-100.30, 20.22], [-100.16, 20.28], [-100.06, 20.20], [-99.90, 20.14], [-100.04, 20.02], [-100.28, 20.06], [-100.30, 20.22]]]}
+    }
+  ]
+}

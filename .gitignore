@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .venv/
 __pycache__/
 *.py[cod]
@@ -7,3 +8,14 @@ data/*.sqlite3-shm
 data/*.sqlite3-wal
 *.log
 
+=======
+# Entornos virtuales y artefactos locales
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite
+*.sqlite3
+.pytest_cache/
+>>>>>>> origin/Meli
