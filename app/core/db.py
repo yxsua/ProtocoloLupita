@@ -238,6 +238,36 @@ def list_government_reports(
     ]
 
 
+def get_government_report(
+    report_id: str,
+    *,
+    database_path: Path | str = DATABASE_PATH,
+) -> dict | None:
+    """Busca un reporte gubernamental guardado sin depender del bus en memoria."""
+    with database(database_path) as connection:
+        row = connection.execute(
+            """SELECT report_id, report_type, created_at, channel, status, confidence,
+                      threat_category, campaign_id, municipality, details_json, synthetic
+               FROM government_reports WHERE report_id = ?""",
+            (report_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        "report_id": row["report_id"],
+        "report_type": row["report_type"],
+        "created_at": row["created_at"],
+        "channel": row["channel"],
+        "status": row["status"],
+        "confidence": row["confidence"],
+        "threat_category": row["threat_category"],
+        "campaign_id": row["campaign_id"],
+        "municipality": row["municipality"],
+        "details": json.loads(row["details_json"]),
+        "synthetic": bool(row["synthetic"]),
+    }
+
+
 def get_government_report_analytics(
     *,
     days: int = 30,

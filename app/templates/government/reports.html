@@ -65,11 +65,19 @@
       <div class="table-heading"><div><h2 id="recent-title">Reportes recientes</h2><p>Historial local · hasta 50 registros más recientes</p></div><span id="recent-count" class="table-count">0 registros</span></div>
       <div class="table-scroll">
         <table class="reports-table">
-          <thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Municipio</th><th scope="col">Confianza</th><th scope="col">Origen</th></tr></thead>
-          <tbody id="reports-list"><tr><td colspan="6" class="table-empty">Cargando historial…</td></tr></tbody>
+          <thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Municipio</th><th scope="col">Confianza</th><th scope="col">Origen</th><th scope="col">Reporte</th></tr></thead>
+          <tbody id="reports-list"><tr><td colspan="7" class="table-empty">Cargando historial…</td></tr></tbody>
         </table>
       </div>
     </section>
+    <dialog id="report-detail-dialog" class="report-detail-dialog" aria-labelledby="report-detail-title">
+      <div class="report-detail-heading">
+        <div><h2 id="report-detail-title">Reporte guardado</h2><p id="report-detail-notice">SIMULADO — sin validez oficial.</p></div>
+        <button id="report-detail-close" type="button" class="secondary-button">Cerrar</button>
+      </div>
+      <pre id="report-detail-content" class="report-detail-content"></pre>
+      <button id="report-detail-download" type="button">Descargar JSON</button>
+    </dialog>
     <p class="gov-footnote">El historial se conserva en la base local del prototipo. Las llamadas son simuladas; los borradores se descargan para revisión y no se envían automáticamente a una autoridad.</p>
   </main>
   <script src="/static/government-reports.js" defer></script>

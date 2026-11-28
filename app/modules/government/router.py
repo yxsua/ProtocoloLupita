@@ -11,11 +11,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from app.core.config import PROJECT_ROOT
-from app.core.db import get_government_report_analytics, list_government_reports, list_scenario_results, record_government_report
+from app.core.db import get_government_report, get_government_report_analytics, list_government_reports, list_scenario_results, record_government_report
 from app.core.scenario_runner import list_scenarios, run_scenario
 from app.core.schemas import Channel
 from app.modules.government.auth import require_government_user
-from app.modules.government.events import events_after, latest_event_for_report, publish_event, snapshot
+from app.modules.government.events import events_after, publish_event, snapshot
 
 router = APIRouter(tags=["government"])
 templates = Jinja2Templates(directory=str(PROJECT_ROOT / "app" / "templates"))
@@ -194,44 +194,53 @@ def run_call_scenario(
 
 
 @router.get("/api/gobierno/reportes/{event_id}")
-def government_report_draft(
+def government_saved_report_detail(
     event_id: str,
     _: str = Depends(require_government_user),
 ) -> dict[str, Any]:
-    event = latest_event_for_report(event_id)
-    if event is None:
-        raise HTTPException(status_code=404, detail="No hay un resultado reciente para preparar.")
-    if event.get("kind") != "call.ended":
-        raise HTTPException(status_code=409, detail="La simulación debe terminar antes de preparar el borrador.")
-    call_campaign = event.get("campaign") or {}
-    existing = next(
-        (row for row in list_government_reports(limit=200) if row["report_id"] == event_id),
-        None,
-    )
-    existing_details = (existing or {}).get("details") or {}
+    report = get_government_report(event_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="No se encontró un reporte guardado con ese identificador.")
+    return {
+        "report_version": "demo-1",
+        "status": "borrador_no_enviado",
+        "synthetic_demo": True,
+        "notice": "SIMULADO — sin validez oficial. No se envió a terceros.",
+        "report": report,
+    }
+
+
+@router.post("/api/gobierno/reportes/{event_id}/borrador")
+def government_prepare_report_draft(
+    event_id: str,
+    _: str = Depends(require_government_user),
+) -> dict[str, Any]:
+    report = get_government_report(event_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="No se encontró un reporte guardado con ese identificador.")
+    if report["report_type"] != "call":
+        raise HTTPException(status_code=409, detail="Solo se puede preparar el borrador de una llamada guardada.")
+    details = dict(report.get("details") or {})
+    if details.get("call_status") == "active":
+        raise HTTPException(status_code=409, detail="La llamada debe terminar antes de preparar el borrador.")
+    details["draft_status"] = "borrador_exportado"
     record_government_report(
-        report_id=event_id,
-        report_type="call",
-        created_at=str(event.get("occurred_at") or ""),
-        channel="llamada",
-        status=str(call_campaign.get("status") or "sin_verificar"),
-        confidence=float(call_campaign.get("confidence") or 0),
-        threat_category=call_campaign.get("threat_category"),
-        campaign_id=call_campaign.get("campaign_id"),
-        details={**existing_details, "draft_status": "borrador_exportado"},
-        synthetic=True,
+        report_id=report["report_id"],
+        report_type=report["report_type"],
+        created_at=report["created_at"],
+        channel=report["channel"],
+        status=report["status"],
+        confidence=report["confidence"],
+        threat_category=report["threat_category"],
+        campaign_id=report["campaign_id"],
+        municipality=report["municipality"],
+        details=details,
+        synthetic=report["synthetic"],
     )
     return {
         "report_version": "demo-1",
         "status": "borrador_no_enviado",
         "synthetic_demo": True,
         "notice": "Borrador de demostración. No se envió a una autoridad.",
-        "generated_at": event.get("occurred_at"),
-        "source_mode": event.get("source_mode"),
-        "call_id": event.get("call_id"),
-        "scenario_id": event.get("scenario_id"),
-        "attribution": event.get("attribution"),
-        "indicators": event.get("indicators", []),
-        "campaign": event.get("campaign"),
-        "evidence_hash": event.get("evidence_hash"),
+        "report": {**report, "details": details},
     }

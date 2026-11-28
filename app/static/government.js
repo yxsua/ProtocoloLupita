@@ -166,7 +166,9 @@
     reportButton.disabled = true;
     reportButton.textContent = "Preparando…";
     try {
-      const response = await fetch(`/api/gobierno/reportes/${encodeURIComponent(latestCallId)}`, { credentials: "same-origin" });
+      const response = await fetch(`/api/gobierno/reportes/${encodeURIComponent(latestCallId)}/borrador`, {
+        method: "POST", credentials: "same-origin",
+      });
       if (!response.ok) throw new Error("Todavía no hay un resultado para preparar.");
       const report = await response.json();
       const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });

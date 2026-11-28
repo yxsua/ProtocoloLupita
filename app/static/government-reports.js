@@ -1,6 +1,8 @@
 (() => {
   const byId = (id) => document.getElementById(id);
   const status = byId("reports-status");
+  const reportDialog = byId("report-detail-dialog");
+  let activeReport = null;
   const typeNames = { call: "Llamada", sms_analysis: "Análisis SMS", citizen_report: "Reporte ciudadano" };
   const channelNames = { llamada: "Voz", sms: "SMS" };
   const statusNames = {
@@ -73,7 +75,7 @@
       const row = document.createElement("div"); row.className = "type-row";
       const name = document.createElement("span"); name.textContent = label;
       const track = document.createElement("span"); track.className = "type-track";
-      const bar = document.createElement("span"); bar.className = "type-bar"; bar.style.display = "block"; bar.style.width = `${total ? count / total * 100 : 0}%`; track.appendChild(bar);
+      const bar = document.createElement("span"); bar.className = "type-bar"; bar.style.display = "block"; bar.style.transform = `scaleX(${total ? count / total : 0})`; track.appendChild(bar);
       const value = document.createElement("span"); value.className = "type-count"; value.textContent = number(count);
       row.append(name, track, value); host.appendChild(row);
     });
@@ -88,7 +90,7 @@
     const body = byId("reports-list"); body.replaceChildren();
     byId("recent-count").textContent = `${number(rows.length)} ${rows.length === 1 ? "registro" : "registros"}`;
     if (!rows.length) {
-      const tr = document.createElement("tr"); const td = document.createElement("td"); td.colSpan = 6; td.className = "table-empty"; td.textContent = "Todavía no hay reportes guardados. Analiza un SMS, envía un reporte ciudadano o termina una llamada simulada."; tr.appendChild(td); body.appendChild(tr); return;
+      const tr = document.createElement("tr"); const td = document.createElement("td"); td.colSpan = 7; td.className = "table-empty"; td.textContent = "Todavía no hay reportes guardados. Analiza un SMS, envía un reporte ciudadano o termina una llamada simulada."; tr.appendChild(td); body.appendChild(tr); return;
     }
     rows.forEach((row) => {
       const tr = document.createElement("tr");
@@ -102,9 +104,40 @@
       const origin = document.createElement("td"); origin.className = "record-origin";
       const draft = row.details?.draft_status === "borrador_exportado" ? " · Borrador exportado" : "";
       origin.textContent = `${row.synthetic ? "Simulación local" : safeText(channelNames[row.channel], "Ciudadanía")}${draft}`;
-      tr.append(date, type, result, municipality, confidence, origin); body.appendChild(tr);
+      const detail = document.createElement("td");
+      const view = document.createElement("button"); view.type = "button"; view.className = "report-view-button";
+      view.dataset.reportId = row.report_id; view.textContent = "Consultar"; view.setAttribute("aria-label", `Consultar reporte ${row.report_id}`);
+      detail.appendChild(view);
+      tr.append(date, type, result, municipality, confidence, origin, detail); body.appendChild(tr);
     });
   }
+
+  async function showReport(reportId) {
+    setStatus("Consultando reporte guardado…");
+    try {
+      const response = await fetch(`/api/gobierno/reportes/${encodeURIComponent(reportId)}`, { credentials: "same-origin" });
+      if (!response.ok) throw new Error(`No se pudo consultar el reporte (${response.status}).`);
+      activeReport = await response.json();
+      byId("report-detail-content").textContent = JSON.stringify(activeReport, null, 2);
+      reportDialog.showModal();
+      setStatus("Reporte consultado desde el historial local.");
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  }
+
+  byId("reports-list").addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-report-id]");
+    if (button) showReport(button.dataset.reportId);
+  });
+  byId("report-detail-close").addEventListener("click", () => reportDialog.close());
+  byId("report-detail-download").addEventListener("click", () => {
+    if (!activeReport) return;
+    const id = activeReport.report?.report_id || "reporte";
+    const url = URL.createObjectURL(new Blob([JSON.stringify(activeReport, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = `reporte-demo-${id}.json`; link.click();
+    URL.revokeObjectURL(url);
+  });
 
   async function load() {
     setStatus("Actualizando métricas e historial…");
@@ -125,7 +158,7 @@
       setStatus(`Historial local actualizado · últimos ${data.days} días.`);
     } catch (error) {
       setStatus(error.message, true);
-      byId("reports-list").innerHTML = '<tr><td colspan="6" class="table-empty">No se pudo cargar el historial. Revisa la conexión y vuelve a intentarlo.</td></tr>';
+      byId("reports-list").innerHTML = '<tr><td colspan="7" class="table-empty">No se pudo cargar el historial. Revisa la conexión y vuelve a intentarlo.</td></tr>';
     }
   }
 

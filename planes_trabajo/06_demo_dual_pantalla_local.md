@@ -19,16 +19,16 @@ Todo número, cuenta, persona, ubicación, llamada, mensaje y atribución de la 
 
 | Área | Estado | Evidencia o brecha |
 |---|---|---|
-| Sección pública | Implementada | Portada, portal ciudadano, análisis SMS y avisos/mapa agregados. Los datos personales se saneen antes de guardar. |
-| Sección privada | Implementada | Gobierno usa credenciales locales; simulator, escenarios, dashboard e historial de reportes están dentro del área protegida. |
+| Sección pública | Implementada | Portada, portal ciudadano, análisis SMS y avisos/mapa agregados. Los datos personales se sanean antes de guardar. |
+| Sección privada | Implementada | Gobierno usa credenciales locales; simulador, escenarios, dashboard e historial de reportes están dentro del área protegida. |
 | Simulación de llamada | Implementada | Escenarios de voz precargados ejecutan ambos parlamentos con voz del navegador. Hay controles para contestar, rechazar y cancelar. No se usa telefonía real, micrófono ni mensajes libres. |
-| Transcripción en vivo | Implementada | Los turnos saneados se publican al simulador y al dashboard por eventos locales/SSE. La sesión y el bus de eventos dependen de memoria. |
+| Transcripción en vivo | Implementada | Los turnos saneados se publican al simulador y al dashboard por eventos locales/SSE. La sesión activa y el bus son en memoria; al terminar, el resumen y la transcripción saneada pasan a SQLite. |
 | Inteligencia y atribución | Implementada | Siembra sintética, atribución por receptor, extracción/validación de indicadores, campañas, confianza y cadena de hashes. |
-| Historial y métricas | Implementado | La sección de reportes gubernamentales consulta registros guardados y presenta métricas/gráficas. La persistencia no conserva el estado completo de la sesión de voz para reconstruirla después de reiniciar. |
+| Historial y métricas | Implementado | La sección de reportes gubernamentales muestra métricas/gráficas y permite consultar/descargar el detalle guardado de una llamada, incluida su transcripción saneada. La prueba automatizada consulta el reporte tras limpiar el bus en memoria; falta ensayar reinicio real del contenedor en la LAN. |
 | SMS y portal | Implementados | Análisis con fixtures, reglas de clasificación, dominios y reportes ciudadanos saneados. No hay recepción real de SMS. |
 | Contenedorización | Implementada | Dockerfile y Compose con almacenamiento persistente local; imagen construida y configuración revisada en la iteración de contenedorización. |
-| Ensayo y evidencia de demo | Pendiente de verificación | Falta registrar un recorrido integral de dos pantallas, latencia observada y resultados medidos de los escenarios; no se debe inventar una tasa de éxito. |
-| Artefactos de presentación | Pendiente | Preparar diapositivas, guion de pitch y video de respaldo de la demo, si aún no existen fuera del repositorio. |
+| Ensayo y evidencia de demo | Parcial | La prueba automatizada de dos clientes pasó; falta registrar el recorrido en laptop/celular sobre la LAN y las medidas reales de latencia. |
+| Artefactos de presentación | Parcial | El guion y plan de respaldo están en `docs/guion_respaldo_demo.md`; la grabación de video queda pendiente. |
 
 La revisión anterior de este plan proponía el simulador en Ciudadanía, micrófono/texto libre, un QR de sesión móvil y rutas de polling aún inexistentes. Esos puntos quedan **obsoletos** frente al alcance vigente. La arquitectura de dos secciones se conserva, pero tanto la simulación como sus resultados son privados de Gobierno.
 
@@ -70,9 +70,9 @@ La revisión anterior de este plan proponía el simulador en Ciudadanía, micró
 
 | Trabajo | Resultado revisable |
 |---|---|
-| Persistir metadatos y turnos ya saneados de la llamada, vinculados a un `session_id`/`event_id`; no guardar audio ni texto crudo. | Una llamada terminada sigue consultable después de recargar o reiniciar el servidor. |
-| Hacer que el reporte guardado incluya la cronología, escenario, duración, número trampa ficticio, atribución, indicadores enmascarados, estado/confianza y hashes disponibles. | El detalle del reporte coincide con los eventos mostrados en vivo y está rotulado como simulado. |
-| Asegurar estados de finalización coherentes para rechazada, cancelada y completada; liberar cualquier candado de llamada aunque ocurra una excepción. | No quedan sesiones activas huérfanas ni se bloquean ejecuciones siguientes. |
+| Persistido en SQLite: metadatos y turnos saneados vinculados al identificador del reporte; no se guarda audio ni texto crudo. | Implementado; aceptación automatizada aprobada. Falta comprobar un reinicio real de Docker sobre la instalación de demo. |
+| Reporte privado con cronología, escenario, duración, número trampa ficticio, atribución, indicadores enmascarados, estado/confianza y hashes disponibles; detalle consultable desde historial y JSON descargable. | Implementado; comprobado por la aceptación automatizada después de vaciar el bus en memoria. |
+| Asegurar estados coherentes para llamada rechazada, cancelada, completada y error de turno; liberar cualquier candado aunque ocurra una excepción. | La ruta de recuperación existe; falta completar la comprobación manual en navegador y LAN. |
 
 ### Prioridad 2 — Métricas, experiencia y entrega
 

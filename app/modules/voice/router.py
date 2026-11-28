@@ -138,6 +138,8 @@ async def _begin_scenario_call(scenario_id: str) -> tuple[str, dict]:
         "campaign": None,
         "evidence_hash": None,
         "scenario_id": scenario_id,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "transcript": [],
     }
 
     service = VoiceService(
@@ -147,6 +149,12 @@ async def _begin_scenario_call(scenario_id: str) -> tuple[str, dict]:
     )
     result = service.iniciar_llamada()
     _sessions[session_id] = service
+    greeting = _sanitize_agent_response(result.respuesta_texto)
+    _call_metadata[session_id]["transcript"].append({
+        "speaker": "victima",
+        "text": greeting,
+        "occurred_at": _call_metadata[session_id]["started_at"],
+    })
 
     publish_event(
         "call.started",
@@ -158,7 +166,7 @@ async def _begin_scenario_call(scenario_id: str) -> tuple[str, dict]:
             "called_number_masked": attribution.get("trap_display") or "Número trampa ficticio",
             "attribution": attribution,
             "agent": "Doña Lupita",
-            "agent_response": _sanitize_agent_response(result.respuesta_texto),
+            "agent_response": greeting,
             "scenario_id": scenario_id,
             "synthetic_demo": True,
         },
@@ -250,10 +258,17 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
         {"channel": "llamada", "municipality": "No especificado", "description": input_text}
     ).sanitized_summary
     safe_transcript = _sanitize_demo_text(input_text)
+    safe_agent_response = _sanitize_agent_response(result.respuesta_texto)
+    occurred_at = datetime.now(timezone.utc).isoformat()
+    transcript = _call_metadata[session_id].setdefault("transcript", [])
+    transcript.extend((
+        {"speaker": "atacante", "text": safe_transcript, "occurred_at": occurred_at},
+        {"speaker": "victima", "text": safe_agent_response, "occurred_at": occurred_at},
+    ))
     intel_result = get_default_engine().process_event(
         EventInput(
             event_id=result.id,
-            occurred_at=datetime.now(timezone.utc).isoformat(),
+            occurred_at=occurred_at,
             channel="call",
             text_sanitized=sanitized_input,
             source_fingerprint=f"voice-sim:{session_id}",
@@ -306,7 +321,7 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
             "event_id": result.id,
             "transcript": safe_transcript,
             "intent": result.ultima_intencion.value if result.ultima_intencion else None,
-            "agent_response": _sanitize_agent_response(result.respuesta_texto),
+            "agent_response": safe_agent_response,
             "indicators": published_indicators,
             "campaign": {
                 "campaign_id": intel_result.campaign_id,
@@ -342,7 +357,7 @@ async def _process_scenario_turn(session_id: str, input_text: str) -> JSONRespon
         _sessions.pop(session_id, None)
 
     serialized_result = _serialize_result(result)
-    serialized_result["respuesta_texto"] = _sanitize_agent_response(result.respuesta_texto)
+    serialized_result["respuesta_texto"] = safe_agent_response
     response_data = {
         "result": serialized_result,
         "transcripcion_usuario": safe_transcript,
@@ -532,10 +547,11 @@ def _save_call_report(session_id: str, result: CallResult, metadata: dict) -> No
     campaign = metadata.get("campaign") or {}
     attribution = metadata.get("attribution") or {}
     indicators = metadata.get("indicators") or []
+    ended_at = datetime.now(timezone.utc).isoformat()
     record_government_report(
         report_id=session_id,
         report_type="call",
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=ended_at,
         channel="llamada",
         status=str(campaign.get("status") or "sin_verificar"),
         confidence=float(campaign.get("confidence") or 0),
@@ -551,6 +567,15 @@ def _save_call_report(session_id: str, result: CallResult, metadata: dict) -> No
             "evidence_hash": metadata.get("evidence_hash"),
             "draft_status": "pendiente",
             "scenario_id": metadata.get("scenario_id"),
+            "session_id": session_id,
+            "started_at": metadata.get("started_at"),
+            "ended_at": ended_at,
+            "attribution": attribution,
+            "indicators": indicators,
+            "campaign": campaign,
+            "transcript": list(metadata.get("transcript") or []),
+            "synthetic_demo": True,
+            "notice": "SIMULADO — sin validez oficial. No se envió a terceros.",
         },
         synthetic=True,
     )
