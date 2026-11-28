@@ -7,4 +7,6 @@ data class MonitorConfig(
     val allowedPackages: Set<String> = emptySet(),
     val consentAccepted: Boolean = false,
     val monitoringEnabled: Boolean = false,
+    val consentText: String = "",
+    val trustedContactPhone: String = "",
 )

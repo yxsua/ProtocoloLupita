@@ -12,6 +12,10 @@
   <p><strong>Nombre sugerido:</strong> {{ enrollment.nombre_sugerido }}</p>
   <p><strong>Apps sugeridas:</strong> {{ enrollment.apps_sugeridas|join(", ") if enrollment.apps_sugeridas else "Ninguna" }}</p>
   <p><strong>Este código caduca:</strong> <time data-local-time="{{ enrollment.expira_en }}">{{ enrollment.expira_en }}</time></p>
+  <section class="notice">
+    <strong>Información de privacidad antes de vincular:</strong>
+    <p>{{ consent_text }}</p>
+  </section>
   <div class="enrollment-actions">
     <a class="primary-button" href="{{ app_link }}">Abrir en la app</a>
     {% if download_url %}

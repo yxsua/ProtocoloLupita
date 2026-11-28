@@ -1,64 +1,65 @@
 # Aviso de privacidad del Monitor de teléfono
 
-> **Borrador para revisión.** Este documento es informativo, no constituye asesoría legal ni acredita por sí mismo el cumplimiento de la LFPDPPP u otra normativa. Antes de usar el sistema con datos personales, el responsable debe completar los datos de contacto, definir las condiciones del tratamiento y obtener asesoría legal aplicable.
+> **Borrador sujeto a revisión legal.** No constituye asesoría legal ni acredita por sí mismo el cumplimiento de la LFPDPPP u otra normativa. Antes de usar el sistema con datos personales, el responsable debe completar la información pendiente, determinar la base legal aplicable y publicar este aviso actualizado.
 
-**Responsable del tratamiento:** [indicar persona o entidad responsable y domicilio/contacto].  
+**Responsable del tratamiento:** [indicar persona o entidad, domicilio y contacto].  
 **Fecha y versión:** [completar antes de publicar].
 
-## Datos que pueden tratarse
+## Datos tratados
 
-Cuando un dispositivo autorizado envía un evento, el servidor puede recibir y almacenar los campos de su API:
+Cuando la persona propietaria de un teléfono acepta y activa el monitoreo, el servidor puede tratar:
 
-- UUID del evento, identificador y nombre/etiqueta del dispositivo.
-- Tipo de evento, nombre de paquete de la aplicación de origen y fecha/hora.
-- Remitente y texto de una notificación o mensaje.
-- Si otro cliente envía un evento de llamada: dirección y duración. La app Android incluida en este proyecto no recopila registros ni metadatos de llamadas.
-- Fecha de recepción, último contacto, estado del dispositivo y hash del token de dispositivo.
-- Durante la vinculación: hash del código temporal, nombre sugerido, aplicaciones sugeridas, estado y vencimiento del enrolamiento. El código temporal vence en 15 minutos; el token del dispositivo se entrega una sola vez y el servidor conserva solo su hash.
+- UUID del evento, tipo, aplicación de origen, remitente, texto y fecha/hora.
+- Para eventos recibidos de otras integraciones: dirección y duración de una llamada. La app Android de este proyecto no recopila SMS, registros de llamadas, contactos ni audio.
+- Nombre/etiqueta, aplicaciones autorizadas, estado y último contacto del dispositivo.
+- Nivel de riesgo, puntaje, reglas y razones del análisis, estado de revisión y fecha de revisión.
+- Hash del token de dispositivo, hash/caducidad del código temporal de enrolamiento y metadatos de operación.
 
-La etiqueta del dispositivo puede contener un número telefónico, pero no se verifica su titularidad. El token original se muestra al registrarlo; el servidor conserva su hash. La app Android almacena localmente la configuración cifrada y una cola de los eventos autorizados pendientes de envío. Su sistema operativo entrega notificaciones a un servicio con acceso especial; la app aplica la selección explícita de aplicaciones antes de guardar y enviar eventos.
+Los textos pueden contener datos personales que el remitente incluya en la notificación. La persona dueña decide qué aplicaciones autoriza. La app no realiza llamadas ni envía mensajes.
 
-Los mensajes podrían contener datos personales o información sensible que sus remitentes incluyan en la notificación. El usuario del teléfono debe considerar esto al decidir qué aplicaciones compartir. No se graban llamadas, no se captura audio y la app no solicita acceso a contactos, base de SMS o registros de llamadas.
+## Finalidades y análisis antifraude
 
-## Finalidades
+Los datos se usan para recibir eventos consentidos, detectar señales de fraude o suplantación, presentar advertencias al teléfono, habilitar revisión humana de alertas, proteger la cuenta/dispositivo, y permitir solicitudes de acceso, exportación, rectificación o borrado.
 
-Los datos se tratan para:
+El detector asigna un puntaje de 0 a 100 y razones explicables mediante reglas y heurísticas. Un resultado no determina que exista fraude ni se usa por sí solo para tomar decisiones con efectos legales sobre una persona. Las alertas medias y altas se envían a una cola de revisión humana.
 
-1. Recibir y mostrar en tiempo real notificaciones compartidas voluntariamente por teléfonos autorizados.
-2. Mantener una cola local cuando no hay conexión y reintentar su entrega.
-3. Autenticar dispositivos, identificar su origen, evitar duplicados, limitar abuso y mantener el servicio.
-4. Permitir al administrador buscar, filtrar, revocar dispositivos y borrar eventos.
+## Quién puede ver los datos
 
-No se deben utilizar los eventos para contactar a remitentes, tomar decisiones automatizadas sobre personas ni integrarlos con otros sistemas sin definir una finalidad, consentimiento y controles separados.
+- **Administradores:** gestionan dispositivos, cuentas, enrolamientos, reglas y configuración; pueden consultar el feed, exportar o borrar datos y acceder a la bitácora.
+- **Revisores:** por defecto ven solo mensajes marcados como posibles alertas y hasta tres mensajes previos del mismo remitente, con contexto mínimo. No tienen acceso al feed general ni a la lista de teléfonos.
+- **Configuración ampliada:** si `REVISORES_VEN_TODO=true`, los revisores pueden consultar los textos de todos los eventos únicamente de teléfonos que aceptaron la versión de consentimiento que informa esa opción. Los demás dispositivos conservan el acceso limitado a alertas. La app muestra esta condición antes del consentimiento y cada consulta se registra en la bitácora.
+- **Persona propietaria del teléfono:** puede consultar y exportar exclusivamente los eventos vinculados a su token de dispositivo y solicitar su borrado desde la app.
 
-## Consentimiento, acceso y revocación
+Las acciones de consulta de alertas, marcado, exportación y borrado quedan registradas en una bitácora de solo anexado. La bitácora identifica la cuenta o dispositivo que realizó la acción, la acción, los identificadores afectados y la fecha; no almacena el texto del mensaje.
 
-El uso se limita a teléfonos propios o a aquellos cuyos usuarios hayan recibido información clara y dado consentimiento expreso antes de activar la captura. La persona puede desactivar el monitoreo o revocar el consentimiento desde la app, retirar el acceso a notificaciones en Android y pedir al administrador que revoque el dispositivo y borre los eventos correspondientes.
+## Consentimiento, retiro y desinstalación
 
-El acceso web requiere la contraseña local del monitor. Quien administra el servidor puede consultar los mensajes almacenados; debe restringir el acceso a personas autorizadas y proteger las credenciales.
+El monitoreo solo debe activarse en teléfonos propios o con autorización expresa de su propietario. Antes de vincular, la app informa quién revisa, qué puede consultar, la retención y cómo retirar el consentimiento. No se envían notificaciones hasta que la persona acepta y habilita el monitoreo.
 
-## Conservación, respaldo y eliminación
+La persona puede pausar el monitoreo, revocar el acceso a notificaciones de Android, desvincular el dispositivo o desinstalar la app desde los ajustes del sistema. Desvincular detiene nuevos envíos y borra la configuración/cola local si el servidor confirma la revocación; no elimina automáticamente los datos que ya están en el servidor. La opción **Solicitar borrado de mis datos del servidor** borra y desvincula los datos de ese teléfono.
 
-El servidor conserva los mensajes y demás eventos hasta que el administrador los borre manualmente o venza `RETENCION_DIAS` (30 días por defecto). La limpieza automática se ejecuta al arrancar y cada 24 horas. El administrador puede eliminar eventos de un dispositivo al eliminar su registro o borrar todos los eventos desde el panel.
+## Conservación, cifrado y respaldos
 
-El botón **Desvincular este teléfono** revoca el token para impedir nuevos envíos y elimina el token cifrado, la cola y el historial local del teléfono. **No borra los mensajes que ya llegaron al servidor**: se mantienen hasta el borrado administrativo o la retención automática. Para ejercer una solicitud de borrado, contacta al responsable y solicita que elimine los eventos del dispositivo o todos los eventos que correspondan.
+- Los textos de eventos de riesgo bajo se eliminan después de `RETENCION_TEXTO_NORMAL_HORAS` (24 horas por defecto); sus metadatos se conservan hasta `RETENCION_DIAS` (30 días por defecto).
+- Los textos y datos de eventos clasificados como riesgo medio o alto se conservan hasta `RETENCION_ALERTAS_DIAS` (90 días por defecto), salvo que se eliminen antes por solicitud.
+- Los códigos de enrolamiento vencen en 15 minutos, solo se pueden canjear una vez y el servidor conserva su hash, no el código.
+- La app mantiene eventos pendientes en una cola local hasta su envío o borrado local. Borrar la copia local no borra los eventos ya recibidos por el servidor.
+- La limpieza automática se ejecuta al arrancar y cada 24 horas. Los respaldos pueden conservar copias cifradas hasta `BACKUP_RETENTION_DAYS` (30 días por defecto), y deben incluirse en el proceso de borrado y rotación definido por el responsable.
 
-El despliegue Docker crea respaldos diarios consistentes de SQLite en `backups/` y conserva `BACKUP_RETENTION_DAYS` días (30 por defecto); después, los archivos locales vencidos se eliminan automáticamente. El responsable debe proteger ese directorio como datos personales, definir si existe una copia externa, cuánto tiempo se conserva y cómo se elimina de forma segura. Un respaldo externo no se borra al eliminar la base activa, salvo que el operador aplique también su política de rotación.
+El servidor cifra los textos de eventos en SQLite mediante Fernet. `DATA_ENCRYPTION_KEY` se guarda fuera del repositorio y debe respaldarse bajo controles separados. Perderla impide descifrar los datos existentes. El cifrado en reposo no protege frente a una cuenta de servidor comprometida mientras la clave está disponible en el proceso.
 
-La cola del Android conserva los eventos pendientes mientras no se entreguen o se borren desde la app. Eliminar datos del servidor no borra automáticamente la cola del teléfono; borrar la cola del teléfono no elimina eventos ya recibidos por el servidor. Los códigos de enrolamiento expiran a los 15 minutos y solo se canjean una vez; sus hashes y metadatos se eliminan al vencer `RETENCION_DIAS`.
+## Proveedor, transmisión y seguridad
 
-## Encargados, transmisión y seguridad
+En despliegues en la nube, los datos se alojan en el VPS y proveedor elegidos por quien administra el servicio. El tráfico Android y web debe usar HTTPS; Caddy termina TLS y reenvía al servidor por una red privada de Docker. El responsable debe identificar al proveedor, ubicación, encargados y condiciones aplicables.
 
-En el despliegue de nube descrito en este proyecto, los mensajes se transmiten por HTTPS y quedan almacenados en una base SQLite persistente en el VPS que elija quien administra. El proveedor de VPS puede procesar datos técnicos de conexión y almacenamiento según su contrato, ubicación y configuración. Caddy termina TLS y reenvía tráfico al servidor por una red privada de Docker. El administrador debe identificar al proveedor y la ubicación del servicio antes de publicar este aviso.
+El panel utiliza cuentas individuales, contraseñas con hash Argon2, bloqueo temporal por intentos fallidos, sesiones `HttpOnly`/`SameSite=Strict`, protección CSRF, cookies `Secure` bajo HTTPS y cabeceras CSP/HSTS. La app almacena su token protegido con Android Keystore. Ningún proxy o sistema de observabilidad debe registrar cuerpos HTTP, tokens, cookies, cabeceras de autorización, códigos de enrolamiento ni textos de mensajes.
 
-En el despliegue Docker, solo Caddy publica puertos; agrega TLS automático, HSTS y cookies `Secure`. El panel limita los intentos de contraseña y el enrolamiento limita intentos fallidos por IP. La interfaz envía búsquedas de texto en un cuerpo POST y el middleware redacta `texto`, `key` y `code` de las URL antes del log de acceso de Uvicorn. Cualquier proxy debe configurarse para omitir cuerpos de solicitudes, tokens, cabeceras de autorización y parámetros sensibles. No se deben incluir tokens, códigos de enrolamiento ni textos de mensajes en logs, capturas, tickets o repositorios.
+La seguridad no elimina todos los riesgos. Un teléfono desbloqueado, una cuenta comprometida, una clave de cifrado expuesta o un respaldo accesible podrían revelar datos.
 
-Ninguna medida elimina todos los riesgos: la pérdida de un teléfono, una contraseña comprometida, permisos concedidos por error o respaldos expuestos podrían revelar mensajes.
+## Derechos ARCO y solicitudes
 
-## Derechos y contacto
-
-Para solicitudes de acceso, rectificación, cancelación u oposición (ARCO), revocación del consentimiento o dudas sobre los datos, contacta a **[completar nombre, correo y procedimiento del responsable]**. El responsable debe verificar la identidad del solicitante y responder conforme a la legislación aplicable. No se debe publicar el contenido de mensajes al presentar una solicitud.
+Para solicitar acceso, exportación, rectificación, cancelación, oposición, revocación del consentimiento o eliminación, contacta a **[completar nombre, correo y procedimiento del responsable]**. La persona propietaria puede exportar y borrar los datos asociados a su teléfono desde la app. Admin puede exportar o borrar los datos de un dispositivo desde el panel. El responsable debe verificar la identidad del solicitante y atender la solicitud conforme a la legislación aplicable, incluyendo el tratamiento de respaldos y registros de auditoría.
 
 ## Cambios
 
-Este borrador debe actualizarse cuando cambien los campos, las finalidades, la infraestructura, la retención o las personas con acceso. Publica una versión fechada antes de habilitar el tratamiento real.
+Este borrador debe actualizarse cuando cambien los datos, finalidades, roles, retención, infraestructura o personas con acceso. Publica una versión fechada antes de recolectar mensajes reales.

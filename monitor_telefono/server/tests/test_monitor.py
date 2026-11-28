@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import uuid
 from dataclasses import replace
@@ -19,7 +20,7 @@ from app.middleware import (
     SessionCookieSecurityMiddleware,
 )
 from app.settings import Settings
-from conftest import csrf_from, login, register_device
+from conftest import TEST_PASSWORD, TEST_USERNAME, csrf_from, login, register_device
 
 
 def _event(
@@ -49,7 +50,11 @@ def test_login_is_required_and_session_and_security_headers_work(client: TestCli
     login_page = client.get("/login")
     bad_login = client.post(
         "/login",
-        data={"csrf_token": csrf_from(login_page.text), "password": "wrong"},
+        data={
+            "csrf_token": csrf_from(login_page.text),
+            "username": TEST_USERNAME,
+            "password": "wrong",
+        },
         follow_redirects=False,
     )
     assert bad_login.status_code == 401
@@ -59,7 +64,8 @@ def test_login_is_required_and_session_and_security_headers_work(client: TestCli
         "/login",
         data={
             "csrf_token": csrf_from(bad_login.text),
-            "password": "test-monitor-password",
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD,
         },
         follow_redirects=False,
     )
@@ -305,8 +311,8 @@ def test_websocket_origin_accepts_public_base_url_host() -> None:
 
 
 def test_settings_load_and_validate_public_base_url(monkeypatch) -> None:
-    monkeypatch.setenv("MONITOR_PASSWORD", "strong-enough-test-password")
     monkeypatch.setenv("SECRET_KEY", "test-signing-key-that-is-at-least-32-characters")
+    monkeypatch.setenv("DATA_ENCRYPTION_KEY", os.environ["DATA_ENCRYPTION_KEY"])
     monkeypatch.setenv("BASE_URL_PUBLICA", "https://monitor.example.ts.net/")
     assert Settings.from_env().base_url_publica == "https://monitor.example.ts.net/"
 
@@ -430,6 +436,8 @@ def test_revoke_delete_and_retention_remove_data(client: TestClient) -> None:
         active_device["id"],
         old_event,
         old_event["id_evento"],
+        {"riesgo": 0, "nivel": "bajo", "razones": [], "reglas": []},
+        settings.data_encryption_key,
     )
     assert inserted
     assert db.cleanup_retention(settings.database_path, 30) == 1

@@ -6,26 +6,38 @@ from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
+from cryptography.fernet import Fernet
 
-os.environ.setdefault("MONITOR_PASSWORD", "test-monitor-password")
 os.environ.setdefault("SECRET_KEY", "test-signing-key-that-is-at-least-32-characters")
+os.environ.setdefault("DATA_ENCRYPTION_KEY", Fernet.generate_key().decode("ascii"))
 
 from app.main import create_app
+from app.auth import hash_password
+from app import db
 from app.settings import Settings
+
+TEST_PASSWORD = "test-monitor-password"
+TEST_USERNAME = "test-admin"
 
 
 @pytest.fixture
 def client(tmp_path) -> Iterator[TestClient]:
     settings = Settings(
-        monitor_password="test-monitor-password",
         secret_key="test-signing-key-that-is-at-least-32-characters",
         database_path=tmp_path / "monitor.sqlite3",
         retention_days=30,
         port=8100,
         cookie_secure=False,
         events_per_minute=120,
+        data_encryption_key=os.environ["DATA_ENCRYPTION_KEY"],
     )
     with TestClient(create_app(settings)) as test_client:
+        db.create_account(
+            settings.database_path,
+            TEST_USERNAME,
+            hash_password(TEST_PASSWORD),
+            "admin",
+        )
         yield test_client
 
 
@@ -41,7 +53,8 @@ def login(client: TestClient) -> None:
         "/login",
         data={
             "csrf_token": csrf_from(page.text),
-            "password": "test-monitor-password",
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD,
         },
         follow_redirects=False,
     )

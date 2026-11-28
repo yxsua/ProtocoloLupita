@@ -107,6 +107,8 @@ class SecureConfigStore(context: Context) {
             .put("allowed_packages", JSONArray(config.allowedPackages.sorted()))
             .put("consent_accepted", config.consentAccepted)
             .put("monitoring_enabled", config.monitoringEnabled)
+            .put("consent_text", config.consentText)
+            .put("trusted_contact_phone", config.trustedContactPhone)
 
     private fun fromJson(json: JSONObject): MonitorConfig {
         val packages = json.optJSONArray("allowed_packages") ?: JSONArray()
@@ -122,6 +124,8 @@ class SecureConfigStore(context: Context) {
             allowedPackages = allowedPackages,
             consentAccepted = json.optBoolean("consent_accepted"),
             monitoringEnabled = json.optBoolean("monitoring_enabled"),
+            consentText = json.optString("consent_text"),
+            trustedContactPhone = json.optString("trusted_contact_phone"),
         )
     }
 

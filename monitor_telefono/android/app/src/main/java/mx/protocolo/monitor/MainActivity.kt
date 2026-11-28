@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var queueStatus: TextView
     private lateinit var eventHistory: TextView
     private lateinit var connectionTestStatus: TextView
+    private lateinit var trustedContactInput: EditText
     private lateinit var enrollmentCodeInput: EditText
     private lateinit var enrollmentNameInput: EditText
     private lateinit var enrollmentAppsLayout: LinearLayout
@@ -320,13 +321,13 @@ class MainActivity : ComponentActivity() {
         }
         details.addView(enrollmentAppsLayout)
         enrollmentConsent = CheckBox(this).apply {
-            text = "Leí y acepto compartir solo las notificaciones de las aplicaciones seleccionadas."
+            text = "Leí y acepto: ${preview.consentText}"
             setTextColor(COLOR_DARK)
         }
         details.addView(enrollmentConsent)
         addText(
             details,
-            "Los mensajes se guardan en el servidor en la nube del administrador hasta el borrado manual o el vencimiento de la retención configurada (30 días por defecto). Puedes desvincular este teléfono después.",
+            preview.consentText,
             13,
             color = COLOR_MUTED,
             bottom = 8,
@@ -439,7 +440,8 @@ class MainActivity : ComponentActivity() {
             return
         }
         val code = enrollmentCode
-        if (code.isBlank() || enrollmentPreview == null) {
+        val preview = enrollmentPreview
+        if (code.isBlank() || preview == null) {
             enrollmentMessageView.text = "Primero valida un código de enrolamiento vigente."
             return
         }
@@ -447,7 +449,13 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val enrolled = withContext(Dispatchers.IO) {
-                    EnrollmentApi().enroll(baseUrl, code, name, selectedPackages.toSet())
+                    EnrollmentApi().enroll(
+                        baseUrl,
+                        code,
+                        name,
+                        selectedPackages.toSet(),
+                        preview.consentVersion,
+                    )
                 }
                 config = MonitorConfig(
                     serverUrl = baseUrl,
@@ -456,6 +464,7 @@ class MainActivity : ComponentActivity() {
                     allowedPackages = selectedPackages.toSet(),
                     consentAccepted = true,
                     monitoringEnabled = false,
+                    consentText = preview.consentText,
                 )
                 if (!saveConfigOrShowError("Teléfono vinculado. La clave quedó guardada de forma cifrada.")) {
                     val revokeError = withContext(Dispatchers.IO) {
@@ -502,14 +511,16 @@ class MainActivity : ComponentActivity() {
         )
         addText(
             card,
-            "Cuando actives el monitoreo se compartirán solo las notificaciones de las apps que selecciones: paquete de origen, remitente, texto y fecha. No se graban llamadas ni audio, no se leen contactos ni SMS desde la base del teléfono. Las notificaciones pueden incluir mensajes privados.",
+            config.consentText.ifBlank {
+                "Cuando actives el monitoreo se compartirán solo las notificaciones de las apps que selecciones. Los revisores solo ven alertas y contexto mínimo, salvo que el consentimiento indique expresamente lo contrario. No se graban llamadas ni audio."
+            },
             14,
             color = COLOR_DARK,
             bottom = 12,
         )
         addText(
             card,
-            "El contenido se envía al servidor que configures y queda en la cola local hasta entregarse o hasta que borres los datos. Comparte únicamente teléfonos propios y con autorización de sus usuarios.",
+            "El contenido se cifra en el servidor. Comparte únicamente teléfonos propios y con autorización de sus usuarios. Puedes retirar el consentimiento pausando o desvinculando el teléfono, o desinstalar la app desde Ajustes de Android.",
             14,
             color = COLOR_MUTED,
             bottom = 12,
@@ -572,6 +583,20 @@ class MainActivity : ComponentActivity() {
         addText(
             card,
             "El nombre es una etiqueta administrativa. No se envía con cada notificación.",
+            13,
+            color = COLOR_MUTED,
+            bottom = 8,
+        )
+        trustedContactInput = addInput(
+            card,
+            label = "Teléfono de contacto de confianza (opcional)",
+            value = config.trustedContactPhone,
+            hint = "+52 442 123 4567",
+            inputType = InputType.TYPE_CLASS_PHONE,
+        )
+        addText(
+            card,
+            "Las alertas ofrecerán abrir el marcador con este número; no se realiza ninguna llamada automáticamente.",
             13,
             color = COLOR_MUTED,
             bottom = 8,
@@ -707,12 +732,15 @@ class MainActivity : ComponentActivity() {
         runtimeStatus = addText(card, "Consultando estado…", 14, color = COLOR_DARK, bottom = 6)
         queueStatus = addText(card, "Cola pendiente: …", 14, color = COLOR_DARK, bottom = 8)
         eventHistory = addText(card, "Todavía no hay eventos guardados.", 13, color = COLOR_MUTED)
+        addButton(card, "Mis mensajes y alertas") {
+            startActivity(Intent(this, MyMessagesActivity::class.java))
+        }
     }
 
     private fun renderPrivacyActions() {
         val card = section(
             "Desvincular este teléfono",
-            "La app solicita revocar el token al servidor y, si confirma, borra el token cifrado, la cola y el historial local. Los eventos ya enviados se conservan en la nube hasta su borrado administrativo o la retención configurada.",
+            "Puedes retirar el consentimiento en cualquier momento. Desvincular detiene nuevos envíos; el borrado definitivo elimina los datos de este teléfono del servidor.",
         )
         addButton(card, "Desvincular teléfono y borrar datos locales") {
             AlertDialog.Builder(this)
@@ -720,6 +748,14 @@ class MainActivity : ComponentActivity() {
                 .setMessage("Se avisará al servidor para revocar este teléfono. Después se borrarán el token y la cola local. Los eventos ya recibidos por el servidor no se eliminan automáticamente.")
                 .setNegativeButton("Cancelar", null)
                 .setPositiveButton("Borrar") { _, _ -> clearConfigurationAndQueue() }
+                .show()
+        }
+        addButton(card, "Solicitar borrado de mis datos del servidor") {
+            AlertDialog.Builder(this)
+                .setTitle("Borrar mis datos del servidor")
+                .setMessage("Se borrarán permanentemente los eventos de este teléfono y se revocará su vínculo. No se puede deshacer.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Borrar definitivamente") { _, _ -> deleteMyServerData() }
                 .show()
         }
     }
@@ -737,6 +773,7 @@ class MainActivity : ComponentActivity() {
         }
         val token = if (BuildConfig.DEBUG) tokenInput.text.toString().trim() else config.deviceToken
         val deviceName = deviceNameInput.text.toString().trim()
+        val trustedContact = trustedContactInput.text.toString().trim()
         if (token.isBlank()) {
             connectionTestStatus.text = "Pega la clave de dispositivo generada por el servidor."
             return false
@@ -753,12 +790,17 @@ class MainActivity : ComponentActivity() {
             connectionTestStatus.text = "La etiqueta local puede tener hasta 80 caracteres."
             return false
         }
+        if (trustedContact.isNotBlank() && !isValidTrustedContact(trustedContact)) {
+            connectionTestStatus.text = "El contacto de confianza debe ser un teléfono válido de 7 a 15 dígitos."
+            return false
+        }
 
         config = config.copy(
             serverUrl = baseUrl,
             deviceToken = token,
             deviceName = deviceName,
             allowedPackages = selectedPackages.toSet(),
+            trustedContactPhone = trustedContact,
         )
         return saveConfigOrShowError("Configuración guardada cifrada en este dispositivo.")
     }
@@ -910,6 +952,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun deleteMyServerData() {
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    if (config.deviceToken.isNotBlank()) {
+                        EnrollmentApi().deleteMyServerData(config.serverUrl, config.deviceToken)
+                    }
+                    repository.clearQueueAndHistory()
+                    secureStore.clear()
+                }
+                WorkScheduler.cancelHeartbeat(this@MainActivity)
+                config = MonitorConfig(serverUrl = BuildConfig.DEFAULT_SERVER_URL)
+                selectedPackages.clear()
+                RuntimeStatus.clear(this@MainActivity)
+                MonitoringNotification.cancel(this@MainActivity)
+                render()
+                showToast("Se borraron los datos del servidor y los datos locales de este teléfono.")
+            } catch (error: IOException) {
+                showToast(error.message ?: "No se pudo confirmar el borrado del servidor.")
+            } catch (error: ConfigStoreException) {
+                showToast(error.message ?: "No se pudieron borrar los datos locales.")
+            }
+        }
+    }
+
     private fun saveConfigOrShowError(successMessage: String? = null): Boolean {
         return try {
             secureStore.save(config)
@@ -958,8 +1025,15 @@ class MainActivity : ComponentActivity() {
             append(event.app)
             append(" · ")
             append(event.tipo)
+            append(" · Riesgo ")
+            append(event.riskLevel)
+            append(" (${event.fraudScore}/100)")
             append(" · ")
             append(stateLabel)
+            event.reviewState?.let {
+                append(" · Revisión: ")
+                append(it)
+            }
             event.remitente?.let {
                 append("\n")
                 append(it)
@@ -1154,6 +1228,11 @@ class MainActivity : ComponentActivity() {
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    private fun isValidTrustedContact(value: String): Boolean {
+        if (!TRUSTED_PHONE.matches(value)) return false
+        return value.count(Char::isDigit) in 7..15
+    }
+
     private data class AppOption(val packageName: String, val label: String)
 
     private object WorkManagerCancellation {
@@ -1174,6 +1253,7 @@ class MainActivity : ComponentActivity() {
         val COLOR_ERROR = Color.rgb(166, 45, 50)
         val PACKAGE_NAME = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
         val DEVICE_TOKEN = Regex("[A-Za-z0-9_-]{32,256}")
+        val TRUSTED_PHONE = Regex("^\\+?[0-9][0-9\\s().-]{5,24}$")
         val APP_OPTIONS = listOf(
             AppOption("com.whatsapp", "WhatsApp"),
             AppOption("org.telegram.messenger", "Telegram"),

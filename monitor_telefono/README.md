@@ -26,19 +26,21 @@ Copy-Item .env.example .env
 notepad .env
 ```
 
-Configura `MONITOR_PASSWORD` con una contraseña fuerte y `SECRET_KEY` con un valor aleatorio de al menos 32 caracteres. Puedes generar la clave con:
+Configura `SECRET_KEY` (clave de sesión aleatoria) y `DATA_ENCRYPTION_KEY` (clave Fernet para cifrar textos) en `.env`. Genéralas localmente:
 
 ```powershell
 py -c "import secrets; print(secrets.token_hex(32))"
+py -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
 ```
 
-No uses valores de ejemplo ni compartas o subas `.env`. Inicia el servidor:
+Guarda la primera salida en `SECRET_KEY` y la segunda en `DATA_ENCRYPTION_KEY`. No cambies la clave de cifrado mientras haya datos cifrados. No uses valores de ejemplo ni compartas o subas `.env`. Crea la primera cuenta admin desde consola y luego inicia el servidor:
 
 ```powershell
+.\server\run.ps1 -CreateAdmin
 .\server\run.ps1
 ```
 
-El script crea `server\.venv` si hace falta, instala `server\requirements.txt` y ejecuta Uvicorn en `127.0.0.1:8100` por defecto. Abre `http://127.0.0.1:8100` en el mismo equipo e inicia sesión. Para probar localmente usa el simulador; para vincular teléfonos desde Internet despliega primero HTTPS y usa **Dispositivos > Agregar teléfono** para generar el QR o enlace de un solo uso.
+El script crea `server\.venv` si hace falta, instala `server\requirements.txt` y ejecuta Uvicorn en `127.0.0.1:8100` por defecto. El comando de creación pide usuario y contraseña; Argon2 almacena únicamente el hash. Los admins pueden crear cuentas revisoras desde el panel. Abre `http://127.0.0.1:8100` e inicia sesión. Para probar localmente usa el simulador; para vincular teléfonos desde Internet despliega primero HTTPS y usa **Dispositivos > Agregar teléfono** para generar el QR o enlace de un solo uso.
 
 Ejecuta las pruebas del servidor desde la raíz de este proyecto:
 
@@ -48,9 +50,10 @@ Ejecuta las pruebas del servidor desde la raíz de este proyecto:
 
 ## Inicio rápido: Linux/macOS
 
-Desde esta carpeta, crea `.env` a partir de `.env.example`, configura los dos secretos obligatorios y ejecuta:
+Desde esta carpeta, crea `.env` a partir de `.env.example`, configura `SECRET_KEY` y `DATA_ENCRYPTION_KEY`, crea la cuenta admin y ejecuta:
 
 ```sh
+sh server/run.sh --create-admin
 sh server/run.sh
 ```
 
@@ -76,19 +79,24 @@ El simulador envía notificaciones, SMS y una llamada ficticios, incluidos comil
 
 | Variable | Descripción | Valor predeterminado |
 |---|---|---|
-| `MONITOR_PASSWORD` | Contraseña de inicio de sesión web. Obligatoria. | Sin valor; el servidor no arranca. |
 | `SECRET_KEY` | Clave de firma de sesiones, aleatoria y de al menos 32 caracteres. Obligatoria. | Sin valor; el servidor no arranca. |
-| `RETENCION_DIAS` | Días que se conservan los eventos antes de su limpieza. | `30` |
+| `DATA_ENCRYPTION_KEY` | Clave Fernet para cifrar textos de eventos en SQLite. Obligatoria; respáldala de forma segura. | Sin valor; el servidor no arranca. |
+| `RETENCION_TEXTO_NORMAL_HORAS` | Horas hasta borrar el texto de eventos de riesgo bajo. | `24` |
+| `RETENCION_ALERTAS_DIAS` | Días hasta borrar eventos de riesgo medio/alto. | `90` |
+| `RETENCION_DIAS` | Días que se conservan los metadatos de eventos de riesgo bajo. | `30` |
 | `PUERTO` | Puerto de escucha de Uvicorn. | `8100` |
 | `DATABASE_PATH` | Ruta del archivo SQLite. | `server/data/monitor.sqlite3` |
 | `EVENTOS_POR_MINUTO` | Límite de ingesta por dispositivo. | `120` |
 | `BASE_URL_PUBLICA` | Origen HTTPS público admitido para WebSocket, sin ruta. | Vacío |
 | `COOKIE_SECURE` | Fuerza `Secure` en la cookie; también se marca automáticamente bajo HTTPS. | `false` |
 | `ANDROID_DOWNLOAD_URL` | URL HTTPS del APK release firmado ofrecido en la página de enrolamiento. | Vacío |
+| `REVISORES_VEN_TODO` | Si es `true`, revisores pueden ver texto de todos los eventos; cada consulta se audita. | `false` |
+| `RIESGO_UMBRAL_MEDIO` / `RIESGO_UMBRAL_ALTO` | Umbrales de riesgo para cola de revisión y alerta alta. | `40` / `70` |
+| `REGLAS_FRAUDE_CSV` | Ruta del archivo CSV de reglas antifraude. | `server/data/reglas_fraude.csv` |
 | `DOMAIN` | Dominio DNS publicado por Caddy en Docker. | Sin valor |
 | `BACKUP_RETENTION_DAYS` | Días que se conservan respaldos diarios SQLite. | `30` |
 
-El archivo `.env.example` contiene valores vacíos para los secretos. Define los valores reales solamente en el `.env` local, que está excluido por `.gitignore`. Detrás de un proxy HTTPS, define también `BASE_URL_PUBLICA` y `COOKIE_SECURE=true`; restringe Uvicorn para que solo confíe en el proxy que controlas.
+El archivo `.env.example` contiene valores vacíos para los secretos. Define los valores reales solamente en el `.env` local, que está excluido por `.gitignore`. Protege y respalda `DATA_ENCRYPTION_KEY`: si se pierde o cambia, no será posible descifrar mensajes existentes. Detrás de un proxy HTTPS, define también `BASE_URL_PUBLICA` y `COOKIE_SECURE=true`; restringe Uvicorn para que solo confíe en el proxy que controlas.
 
 ## Android
 
@@ -117,7 +125,7 @@ El panel marca **En línea** cuando el contacto ocurrió en los últimos 35 minu
 
 Se incluye Docker, Caddy para HTTPS automático, SQLite persistente y una tarea de respaldo diario. Sigue [docs/DESPLIEGUE_VPS.md](docs/DESPLIEGUE_VPS.md); la alternativa de piloto con Tailscale Funnel y sus riesgos está en [docs/PRUEBA_RAPIDA_FUNNEL.md](docs/PRUEBA_RAPIDA_FUNNEL.md).
 
-En Ubuntu, prepara `.env` con el dominio, `BASE_URL_PUBLICA=https://tu-dominio`, una contraseña fuerte y una clave `SECRET_KEY` aleatoria. Después:
+En Ubuntu, prepara `.env` con el dominio, `BASE_URL_PUBLICA=https://tu-dominio`, `SECRET_KEY` y `DATA_ENCRYPTION_KEY` aleatorias. Crea la primera cuenta con `docker compose exec -it monitor python -m app.cli create-admin --username admin`; el comando solicita la contraseña. Después:
 
 ```sh
 docker compose up -d --build
@@ -132,7 +140,7 @@ Para compilar release con el dominio ya fijado, configura `MONITOR_SERVER_URL=ht
 
 Los scripts limitan Uvicorn a loopback. Para otros equipos, usa una VPN privada con salida HTTPS (por ejemplo, Tailscale Serve) o un proxy inverso TLS que reenvíe a `127.0.0.1:8100`; activa `COOKIE_SECURE=true`. No expongas el puerto HTTP directamente a la red. El Android release requiere HTTPS; HTTP debug se limita a loopback y al puente del emulador.
 
-El servidor persiste los campos del evento definidos por la API en SQLite y elimina datos vencidos según `RETENCION_DIAS`. La búsqueda de texto de la interfaz envía el filtro en un cuerpo POST; los filtros `texto` y `key` de compatibilidad por URL se redactan antes del registro de acceso de Uvicorn. Configura también el proxy para no registrar cuerpos, credenciales, parámetros sensibles ni textos de mensajes. La cola Android permite reintentar entregas sin red y se puede borrar desde la app. Protege el equipo servidor, las copias de seguridad y las credenciales. Revisa el [aviso de privacidad](docs/AVISO_PRIVACIDAD.md) antes de usar datos reales.
+El detector analiza cada evento, devuelve riesgo de 0 a 100 y razones breves, y envía los niveles medio/alto a la cola revisora. Las reglas editables usan CSV con columnas `rule_id,kind,value,entity,score,reason,enabled`; `kind` admite `sender`, `domain`, `phrase`, `regex` y `entity`. Las cuentas revisoras solo ven alertas y hasta tres mensajes previos del mismo remitente, salvo que `REVISORES_VEN_TODO=true` se haya informado en el consentimiento; el acceso ampliado solo aplica a teléfonos que aceptaron esa versión del consentimiento. Los demás conservan la revisión limitada. El servidor cifra los textos en SQLite; limpia el texto normal después de 24 horas y elimina alertas después de 90 días por defecto. La búsqueda de texto de la interfaz envía el filtro en un cuerpo POST; configura también el proxy para no registrar cuerpos, credenciales, parámetros sensibles ni textos de mensajes. Protege el equipo servidor, las copias de seguridad y la clave de cifrado. Revisa el [aviso de privacidad](docs/AVISO_PRIVACIDAD.md) antes de usar datos reales.
 
 ## Aislamiento e integración
 

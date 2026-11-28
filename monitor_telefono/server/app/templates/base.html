@@ -12,8 +12,16 @@
     <a class="brand" href="/">Monitor de teléfono</a>
     {% if authenticated %}
     <nav aria-label="Navegación principal">
+      {% if role == "admin" %}
       <a href="/eventos">Eventos</a>
       <a href="/dispositivos">Dispositivos</a>
+      <a href="/revisiones">Alertas</a>
+      <a href="/cuentas">Revisores</a>
+      <a href="/reglas">Reglas</a>
+      <a href="/auditoria">Bitácora</a>
+      {% elif role == "revisor" %}
+      <a href="/revisiones">Cola de alertas</a>
+      {% endif %}
       <form method="post" action="/logout" class="inline-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="nav-button" type="submit">Cerrar sesión</button>

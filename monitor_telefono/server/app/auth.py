@@ -2,14 +2,22 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import struct
+import base64
 import secrets
+import time
 from typing import Any
 from urllib.parse import urlsplit
 
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 from fastapi import HTTPException, Request, WebSocket
 from starlette.concurrency import run_in_threadpool
 
 from app import db
+from app.crypto import decrypt_text
+
+_PASSWORDS = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1)
 
 
 def ensure_csrf_token(request: Request) -> str:
@@ -27,12 +35,74 @@ def verify_csrf(request: Request, submitted: str | None) -> None:
 
 
 def session_active(request: Request | WebSocket) -> bool:
-    return bool(request.session.get("authenticated"))
+    return bool(request.session.get("user_id") and request.session.get("role"))
+
+
+def session_role(request: Request | WebSocket) -> str | None:
+    role = request.session.get("role")
+    return role if role in {"admin", "revisor"} else None
 
 
 def require_api_session(request: Request) -> None:
     if not session_active(request):
         raise HTTPException(status_code=401, detail="Inicia sesión para continuar.")
+
+
+def require_admin(request: Request) -> None:
+    require_api_session(request)
+    if session_role(request) != "admin":
+        raise HTTPException(status_code=403, detail="Esta acción requiere una cuenta administradora.")
+
+
+def require_reviewer_or_admin(request: Request) -> None:
+    require_api_session(request)
+    if session_role(request) not in {"admin", "revisor"}:
+        raise HTTPException(status_code=403, detail="No tienes permiso para revisar alertas.")
+
+
+def hash_password(password: str) -> str:
+    if len(password) < 12 or len(password) > 1024:
+        raise ValueError("La contraseña debe tener entre 12 y 1024 caracteres.")
+    return _PASSWORDS.hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    try:
+        return _PASSWORDS.verify(password_hash, password)
+    except (VerifyMismatchError, VerificationError, InvalidHashError):
+        return False
+
+
+def password_needs_rehash(password_hash: str) -> bool:
+    try:
+        return _PASSWORDS.check_needs_rehash(password_hash)
+    except InvalidHashError:
+        return False
+
+
+def verify_totp(secret: str, submitted: str, *, timestamp: int | None = None) -> bool:
+    if len(submitted) != 6 or not submitted.isdigit():
+        return False
+    try:
+        key = secret.strip().replace(" ", "").upper()
+        decoded = base64.b32decode(
+            key + "=" * ((8 - len(key) % 8) % 8),
+            casefold=True,
+        )
+    except (ValueError, base64.binascii.Error):
+        return False
+    current = int(time.time() if timestamp is None else timestamp) // 30
+    for offset in (-1, 0, 1):
+        digest = hmac.new(decoded, struct.pack(">Q", current + offset), hashlib.sha1).digest()
+        index = digest[-1] & 0x0F
+        code = (struct.unpack(">I", digest[index : index + 4])[0] & 0x7FFFFFFF) % 1_000_000
+        if hmac.compare_digest(f"{code:06d}", submitted):
+            return True
+    return False
+
+
+def account_totp_secret(account: dict[str, Any], encryption_key: str) -> str | None:
+    return decrypt_text(account.get("totp_secret_encrypted"), encryption_key)
 
 
 def verify_websocket_origin(

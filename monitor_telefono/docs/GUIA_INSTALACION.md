@@ -20,17 +20,19 @@ cp .env.example .env
 ${EDITOR:-nano} .env
 ```
 
-Define `MONITOR_PASSWORD` y una clave aleatoria de al menos 32 caracteres en `SECRET_KEY`. Genera esta última localmente:
+Define una clave aleatoria de sesión en `SECRET_KEY` y una clave Fernet en `DATA_ENCRYPTION_KEY`. Genera ambas localmente:
 
 ```powershell
 py -c "import secrets; print(secrets.token_hex(32))"
+py -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
 ```
 
 ```sh
 python3 -c 'import secrets; print(secrets.token_hex(32))'
+python3 -c 'import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())'
 ```
 
-No pongas secretos en el código, en los argumentos de comandos que se guardan en el historial, ni en capturas o repositorios. `.env` está excluido por `.gitignore`; limita también el acceso al equipo donde se almacena.
+Guarda las salidas en `SECRET_KEY` y `DATA_ENCRYPTION_KEY`, respectivamente. Respalda la clave Fernet: perderla impide descifrar los textos existentes. No pongas secretos en código, argumentos que queden en el historial, capturas o repositorios. `.env` está excluido por `.gitignore`; limita el acceso al equipo donde se almacena.
 
 ## 2. Instalar y arrancar el servidor
 
@@ -39,18 +41,20 @@ Python 3.10 o posterior es necesario. Los scripts crean el entorno virtual local
 En PowerShell, desde `monitor_telefono`:
 
 ```powershell
+.\server\run.ps1 -CreateAdmin
 .\server\run.ps1
 ```
 
 En Linux/macOS, desde `monitor_telefono`:
 
 ```sh
+sh server/run.sh --create-admin
 sh server/run.sh
 ```
 
 El puerto predeterminado es `8100`; se puede cambiar con `PUERTO` en `.env`. Los scripts escuchan únicamente en `127.0.0.1`, habilitan `--proxy-headers` y solo confían en cabeceras reenviadas desde ese loopback. No es necesario abrir el puerto 8100 en el firewall. No cambies el host a `0.0.0.0` ni expongas HTTP directamente a otros equipos.
 
-Abre `http://127.0.0.1:8100` en el equipo servidor e inicia sesión con `MONITOR_PASSWORD`. `/api/salud` es un endpoint de salud sin datos de eventos. Para que otros equipos accedan, configura Tailscale Serve o un proxy inverso con TLS que reenvíe a `http://127.0.0.1:8100`; define `BASE_URL_PUBLICA` con el origen HTTPS externo y `COOKIE_SECURE=true` en `.env`. La cookie se marca `Secure` cuando Uvicorn reconoce `X-Forwarded-Proto: https`.
+El primer comando solicita el nombre y la contraseña del admin y guarda el hash Argon2; ejecútalo una sola vez. Luego abre `http://127.0.0.1:8100` e inicia sesión con esa cuenta. Admin puede crear cuentas revisoras desde el panel. `/api/salud` es un endpoint sin datos de eventos. Para que otros equipos accedan, configura Tailscale Serve o un proxy TLS que reenvíe a `http://127.0.0.1:8100`; define `BASE_URL_PUBLICA` con el origen HTTPS externo y `COOKIE_SECURE=true` en `.env`. La cookie se marca `Secure` cuando Uvicorn reconoce `X-Forwarded-Proto: https`.
 
 ## 3. Generar un enrolamiento y probar el servidor
 
@@ -162,6 +166,6 @@ Reinicia el servidor para aplicar el entorno. Configura el proxy para no registr
 
 ## 7. Retención y mantenimiento
 
-La retención de eventos del servidor predeterminada es de 30 días y se configura con `RETENCION_DIAS`. Los metadatos de enrolamientos también se eliminan al vencer ese periodo. En Docker, SQLite persiste en el volumen `monitor_data`; se crean respaldos consistentes diarios en `backups/` y se rotan con `BACKUP_RETENTION_DAYS` (30 días por defecto). Limita el acceso y cifra copias externas.
+Los textos de riesgo bajo se eliminan después de `RETENCION_TEXTO_NORMAL_HORAS` (24 horas por defecto); sus metadatos se conservan hasta `RETENCION_DIAS` (30 días). Alertas medias/altas se conservan hasta `RETENCION_ALERTAS_DIAS` (90 días). En Docker, SQLite persiste en `monitor_data`; se crean respaldos consistentes diarios en `backups/` y se rotan con `BACKUP_RETENTION_DAYS` (30 días por defecto). Los respaldos contienen mensajes cifrados con `DATA_ENCRYPTION_KEY`; limita su acceso y cifra copias externas.
 
-Para revocar un dispositivo, usa **Desvincular** en Android o **Revocar** en el panel. Para borrar sus eventos o todos los eventos, revisa cuidadosamente la confirmación: la eliminación es definitiva. La limpieza del servidor no elimina automáticamente la cola offline, ni viceversa.
+Para retirar consentimiento, pausa o desvincula el teléfono desde Android. La app incluye **Solicitar borrado de mis datos del servidor**, además de exportación propia autenticada. Admin también puede exportar o borrar datos por dispositivo; estas acciones quedan en auditoría. La eliminación es definitiva. La limpieza del servidor no borra automáticamente la cola offline, ni viceversa.

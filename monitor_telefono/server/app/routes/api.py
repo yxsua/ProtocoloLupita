@@ -18,11 +18,16 @@ from starlette.concurrency import run_in_threadpool
 from app import db
 from app.auth import (
     authenticate_device,
+    require_admin,
     require_api_session,
+    require_reviewer_or_admin,
     session_active,
+    session_role,
     verify_csrf,
     verify_websocket_origin,
 )
+from app.fraude.detector import evaluate_event
+from app.privacy import consent_text, consent_version
 
 router = APIRouter()
 MAX_EVENT_BODY_BYTES = 64 * 1024
@@ -81,6 +86,7 @@ class EnrollmentInput(EnrollmentCodeInput):
     nombre: str = Field(min_length=1, max_length=80)
     apps_permitidas: list[str] = Field(default_factory=list, max_length=100)
     consentimiento: bool = False
+    consentimiento_version: str = Field(default="", max_length=64)
 
     @field_validator("nombre")
     @classmethod
@@ -97,6 +103,14 @@ class EnrollmentInput(EnrollmentCodeInput):
         if len(set(normalized)) != len(normalized):
             raise ValueError("La lista de aplicaciones contiene duplicados.")
         return normalized
+
+
+class ReviewInput(BaseModel):
+    estado: Literal["confirmado", "falso_positivo", "necesita_contacto"]
+
+
+class OwnerDeleteInput(BaseModel):
+    confirmar: bool = False
 
 
 class DeviceRateLimiter:
@@ -221,10 +235,19 @@ async def health() -> dict[str, str]:
 
 @router.get("/api/dispositivos/estado")
 async def device_status(request: Request) -> dict[str, Any]:
-    require_api_session(request)
+    require_admin(request)
     devices = await run_in_threadpool(
         db.list_devices,
         request.app.state.settings.database_path,
+    )
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=request.session.get("user_id"),
+        actor=request.session.get("username", "admin"),
+        action="view_devices",
+        entity_type="devices",
+        entity_ids=[device["id"] for device in devices],
     )
     return {"dispositivos": devices}
 
@@ -241,18 +264,36 @@ async def receive_event(request: Request) -> JSONResponse:
     event = await _parse_event(request)
     event_data = event.model_dump(mode="json")
     event_id = _event_identifier(device["id"], event)
+    settings = request.app.state.settings
+    verdict = evaluate_event(
+        event_data,
+        rules_path=settings.fraud_rules_path,
+        medium_threshold=settings.risk_medium_threshold,
+        high_threshold=settings.risk_high_threshold,
+    )
     inserted, stored = await run_in_threadpool(
         db.insert_event,
         request.app.state.settings.database_path,
         device["id"],
         event_data,
         event_id,
+        verdict,
+        settings.data_encryption_key,
     )
-    if not inserted:
-        return JSONResponse(status_code=200, content={"ok": True, "duplicado": True})
-    if stored:
+    if inserted and stored:
         await request.app.state.hub.publish(stored)
-    return JSONResponse(status_code=201, content={"ok": True, "duplicado": False})
+    return JSONResponse(
+        status_code=201 if inserted else 200,
+        content={
+            "ok": True,
+            "duplicado": not inserted,
+            "veredicto": {
+                "riesgo": verdict["riesgo"] if inserted else (stored or {}).get("riesgo", 0),
+                "nivel": verdict["nivel"] if inserted else (stored or {}).get("nivel_riesgo", "bajo"),
+                "razones": verdict["razones"] if inserted else (stored or {}).get("razones_riesgo", []),
+            },
+        },
+    )
 
 
 def _client_attempt_key(request: Request) -> str:
@@ -299,6 +340,8 @@ async def preview_enrollment(
         "nombre_sugerido": enrollment["nombre_sugerido"],
         "apps_sugeridas": enrollment["apps_sugeridas"],
         "expira_en": enrollment["expira_en"],
+        "consentimiento_texto": consent_text(request.app.state.settings),
+        "consentimiento_version": consent_version(request.app.state.settings),
     }
 
 
@@ -313,6 +356,12 @@ async def redeem_enrollment(
             status_code=400,
             detail="Debes aceptar el consentimiento explícito antes de vincular el teléfono.",
         )
+    expected_consent_version = consent_version(request.app.state.settings)
+    if payload.consentimiento_version != expected_consent_version:
+        raise HTTPException(
+            status_code=409,
+            detail="El consentimiento cambió; vuelve a revisar y aceptar el texto actualizado.",
+        )
     if not payload.nombre:
         raise HTTPException(status_code=422, detail="El nombre del teléfono no puede estar vacío.")
 
@@ -322,6 +371,7 @@ async def redeem_enrollment(
         payload.code,
         payload.nombre,
         payload.apps_permitidas,
+        expected_consent_version,
     )
     if status != "ok":
         _record_enrollment_failure(request)
@@ -348,7 +398,16 @@ async def device_heartbeat(request: Request) -> dict[str, Any]:
         request.app.state.settings.database_path,
         device["id"],
     )
-    return {"ok": True, "ultimo_contacto": last_contact}
+    updates = await run_in_threadpool(
+        db.review_updates_for_device,
+        request.app.state.settings.database_path,
+        device["id"],
+    )
+    return {
+        "ok": True,
+        "ultimo_contacto": last_contact,
+        "actualizaciones_revision": updates,
+    }
 
 
 @router.post("/api/desvincular")
@@ -376,7 +435,7 @@ async def get_events(
     cursor: str | None = None,
     limit: int = Query(default=PAGE_SIZE_DEFAULT, ge=1, le=PAGE_SIZE_MAX),
 ) -> dict[str, Any]:
-    require_api_session(request)
+    require_admin(request)
     text_filter = getattr(request.state, "query_text_filter", texto)
     if text_filter is not None and len(text_filter) > 200:
         raise HTTPException(status_code=422, detail="texto no puede exceder 200 caracteres.")
@@ -395,7 +454,7 @@ async def get_events(
 
 @router.post("/api/eventos/buscar")
 async def search_events(request: Request, filters: EventQuery) -> dict[str, Any]:
-    require_api_session(request)
+    require_admin(request)
     verify_csrf(request, request.headers.get("x-csrf-token"))
     return await _query_events(request, filters)
 
@@ -412,6 +471,7 @@ async def _query_events(request: Request, filters: EventQuery) -> dict[str, Any]
     result = await run_in_threadpool(
         db.query_events,
         request.app.state.settings.database_path,
+        request.app.state.settings.data_encryption_key,
         device_id=filters.dispositivo,
         app=filters.app,
         event_type=filters.tipo,
@@ -421,13 +481,184 @@ async def _query_events(request: Request, filters: EventQuery) -> dict[str, Any]
         cursor_id=cursor_id,
         limit=filters.limit,
     )
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=request.session.get("user_id"),
+        actor=request.session.get("username", "admin"),
+        action="view_events",
+        entity_type="events",
+        entity_ids=[item["id_evento"] for item in result["items"]],
+    )
     return result
+
+
+@router.get("/api/revisiones")
+async def review_alerts(request: Request) -> dict[str, Any]:
+    require_reviewer_or_admin(request)
+    entries = await run_in_threadpool(
+        db.query_review_queue,
+        request.app.state.settings.database_path,
+        request.app.state.settings.data_encryption_key,
+        reviewers_see_all=request.app.state.settings.reviewers_see_all,
+        full_access_consent_version=(
+            consent_version(request.app.state.settings)
+            if request.app.state.settings.reviewers_see_all
+            else None
+        ),
+    )
+    audit_ids: list[str] = []
+    for item in entries:
+        audit_ids.append(item["id_evento"])
+        audit_ids.extend(previous["id_evento"] for previous in item["contexto"])
+        item.pop("dispositivo_id", None)
+        item.pop("id", None)
+        for previous in item["contexto"]:
+            previous.pop("id_evento", None)
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=request.session.get("user_id"),
+        actor=request.session.get("username", "revisor"),
+        action="view_review_queue",
+        entity_type="events",
+        entity_ids=audit_ids,
+    )
+    return {"items": entries}
+
+
+@router.post("/api/revisiones/{event_id}/marcar")
+async def mark_review(
+    event_id: str,
+    payload: ReviewInput,
+    request: Request,
+) -> dict[str, Any]:
+    require_reviewer_or_admin(request)
+    verify_csrf(request, request.headers.get("x-csrf-token"))
+    metadata = await run_in_threadpool(
+        db.event_review_metadata,
+        request.app.state.settings.database_path,
+        event_id,
+    )
+    if not metadata:
+        raise HTTPException(status_code=404, detail="Evento no encontrado.")
+    if (
+        session_role(request) == "revisor"
+        and metadata["nivel_riesgo"] == "bajo"
+        and (
+            not request.app.state.settings.reviewers_see_all
+            or metadata["consentimiento_version"]
+            != consent_version(request.app.state.settings)
+        )
+    ):
+        raise HTTPException(status_code=403, detail="Este evento no está disponible para revisión.")
+    changed, rule_ids = await run_in_threadpool(
+        db.mark_event_review,
+        request.app.state.settings.database_path,
+        event_id,
+        int(request.session["user_id"]),
+        payload.estado,
+    )
+    if not changed:
+        raise HTTPException(status_code=404, detail="Evento no encontrado.")
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=request.session.get("user_id"),
+        actor=request.session.get("username", "revisor"),
+        action="mark_event",
+        entity_type="event",
+        entity_ids={"id_evento": event_id, "estado": payload.estado, "reglas": rule_ids},
+    )
+    return {"ok": True, "id_evento": event_id, "revision_estado": payload.estado}
+
+
+@router.get("/api/mis-eventos")
+async def owner_events(request: Request) -> dict[str, Any]:
+    device = await authenticate_device(request)
+    items = await run_in_threadpool(
+        db.owner_event_updates,
+        request.app.state.settings.database_path,
+        device["id"],
+        request.app.state.settings.data_encryption_key,
+        100,
+    )
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=None,
+        actor=f"device:{device['id']}",
+        action="owner_view_events",
+        entity_type="events",
+        entity_ids=[item["id_evento"] for item in items],
+    )
+    return {"items": items}
+
+
+@router.get("/api/mis-eventos/exportar")
+async def owner_export(request: Request) -> JSONResponse:
+    device = await authenticate_device(request)
+    events = await run_in_threadpool(
+        db.export_device_events,
+        request.app.state.settings.database_path,
+        device["id"],
+        request.app.state.settings.data_encryption_key,
+    )
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=None,
+        actor=f"device:{device['id']}",
+        action="owner_export_events",
+        entity_type="events",
+        entity_ids=[item["id_evento"] for item in events],
+    )
+    return JSONResponse(
+        content={"eventos": events},
+        headers={"Content-Disposition": 'attachment; filename="mis-eventos.json"'},
+    )
+
+
+@router.post("/api/mis-datos/borrar")
+async def owner_delete_data(payload: OwnerDeleteInput, request: Request) -> dict[str, Any]:
+    device = await authenticate_device(request)
+    if not payload.confirmar:
+        raise HTTPException(status_code=400, detail="Confirma explícitamente el borrado definitivo.")
+    await run_in_threadpool(
+        db.append_audit,
+        request.app.state.settings.database_path,
+        actor_id=None,
+        actor=f"device:{device['id']}",
+        action="owner_delete_data",
+        entity_type="device_events",
+        entity_ids=[device["id"]],
+    )
+    deleted = await run_in_threadpool(
+        db.delete_device_data,
+        request.app.state.settings.database_path,
+        device["id"],
+    )
+    return {"ok": True, "eventos_borrados": deleted, "dispositivo_desvinculado": True}
+
+
+@router.get("/api/admin/reglas/estadisticas")
+async def fraud_rule_statistics(request: Request) -> dict[str, Any]:
+    require_admin(request)
+    return {
+        "reglas": await run_in_threadpool(
+            db.review_rule_statistics,
+            request.app.state.settings.database_path,
+        )
+    }
 
 
 @router.websocket("/ws/eventos")
 async def event_stream(websocket: WebSocket) -> None:
     if not session_active(websocket):
         await websocket.close(code=4401, reason="Sesión requerida.")
+        return
+    if session_role(websocket) != "admin":
+        await websocket.close(code=4403, reason="Se requiere una cuenta administradora.")
         return
     if not verify_websocket_origin(
         websocket,
@@ -445,6 +676,15 @@ async def event_stream(websocket: WebSocket) -> None:
                 await websocket.close(code=1013, reason="Conexión lenta; vuelve a cargar el feed.")
                 break
             await websocket.send_json(event)
+            await run_in_threadpool(
+                db.append_audit,
+                websocket.app.state.settings.database_path,
+                actor_id=websocket.session.get("user_id"),
+                actor=websocket.session.get("username", "admin"),
+                action="view_event_live",
+                entity_type="event",
+                entity_ids=[event.get("id_evento", "")],
+            )
     except WebSocketDisconnect:
         pass
     finally:

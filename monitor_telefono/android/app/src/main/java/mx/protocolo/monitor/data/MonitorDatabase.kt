@@ -33,6 +33,16 @@ data class StoredEvent(
     val lastError: String? = null,
     @androidx.room.ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
+    @androidx.room.ColumnInfo(name = "fraud_score")
+    val fraudScore: Int = 0,
+    @androidx.room.ColumnInfo(name = "risk_level")
+    val riskLevel: String = "bajo",
+    @androidx.room.ColumnInfo(name = "risk_reasons_json")
+    val riskReasonsJson: String = "",
+    @androidx.room.ColumnInfo(name = "review_state")
+    val reviewState: String? = null,
+    @androidx.room.ColumnInfo(name = "reviewed_at")
+    val reviewedAt: String? = null,
 ) {
     companion object {
         const val STATE_PENDING = "pending"
@@ -73,6 +83,18 @@ interface MonitorDao {
     suspend fun markSent(eventId: String)
 
     @Query(
+        "UPDATE monitor_events SET fraud_score = :score, risk_level = :level, " +
+            "risk_reasons_json = :reasonsJson WHERE event_id = :eventId",
+    )
+    suspend fun updateFraudVerdict(eventId: String, score: Int, level: String, reasonsJson: String)
+
+    @Query(
+        "UPDATE monitor_events SET review_state = :state, reviewed_at = :reviewedAt " +
+            "WHERE event_id = :eventId",
+    )
+    suspend fun updateReviewStatus(eventId: String, state: String, reviewedAt: String?)
+
+    @Query(
         "UPDATE monitor_events SET attempts = attempts + 1, last_error = :error " +
             "WHERE event_id = :eventId",
     )
@@ -105,7 +127,7 @@ interface MonitorDao {
 
 @Database(
     entities = [StoredEvent::class, NotificationCursor::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class MonitorDatabase : RoomDatabase() {
@@ -121,7 +143,19 @@ abstract class MonitorDatabase : RoomDatabase() {
                     context.applicationContext,
                     MonitorDatabase::class.java,
                     "monitor_local.db",
-                ).build().also { instance = it }
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build().also { instance = it }
             }
+
+        private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE monitor_events ADD COLUMN fraud_score INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE monitor_events ADD COLUMN risk_level TEXT NOT NULL DEFAULT 'bajo'")
+                db.execSQL("ALTER TABLE monitor_events ADD COLUMN risk_reasons_json TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE monitor_events ADD COLUMN review_state TEXT")
+                db.execSQL("ALTER TABLE monitor_events ADD COLUMN reviewed_at TEXT")
+            }
+        }
     }
 }

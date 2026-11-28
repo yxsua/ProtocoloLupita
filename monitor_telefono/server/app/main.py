@@ -30,9 +30,11 @@ async def _retention_worker(settings: Settings) -> None:
         await asyncio.sleep(24 * 60 * 60)
         try:
             deleted = await asyncio.to_thread(
-                db.cleanup_retention,
+                db.cleanup_privacy_retention,
                 settings.database_path,
                 settings.retention_days,
+                settings.retention_text_hours,
+                settings.retention_alert_days,
             )
         except sqlite3.Error:
             logger.exception("No se pudo completar la limpieza periódica de eventos.")
@@ -45,11 +47,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        await asyncio.to_thread(db.initialize, configured.database_path)
+        await asyncio.to_thread(
+            db.initialize,
+            configured.database_path,
+            configured.data_encryption_key,
+        )
         deleted = await asyncio.to_thread(
-            db.cleanup_retention,
+            db.cleanup_privacy_retention,
             configured.database_path,
             configured.retention_days,
+            configured.retention_text_hours,
+            configured.retention_alert_days,
         )
         logger.info("Limpieza inicial completada; eventos eliminados: %s", deleted)
         retention_task = asyncio.create_task(_retention_worker(configured))

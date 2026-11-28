@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Bitácora · Monitor de teléfono{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Solo anexado</p><h1>Bitácora de auditoría</h1></div>
+</div>
+<div class="table-wrap card">
+  <table>
+    <thead><tr><th>Fecha UTC</th><th>Actor</th><th>Acción</th><th>Tipo</th><th>Identificadores</th></tr></thead>
+    <tbody>
+    {% for entry in entries %}
+      <tr>
+        <td>{{ entry.creado_en }}</td>
+        <td>{{ entry.actor }}{% if entry.actor_id %} (#{{ entry.actor_id }}){% endif %}</td>
+        <td>{{ entry.accion }}</td>
+        <td>{{ entry.tipo_entidad }}</td>
+        <td><code>{{ entry.entidades|tojson }}</code></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">Aún no hay entradas.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

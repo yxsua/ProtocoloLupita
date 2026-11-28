@@ -1,10 +1,14 @@
+param(
+    [switch]$CreateAdmin
+)
+
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $root ".env"
 
 if (-not (Test-Path -LiteralPath $envFile)) {
     Copy-Item -LiteralPath (Join-Path $root ".env.example") -Destination $envFile
-    throw "Se creó monitor_telefono\.env. Configura MONITOR_PASSWORD y SECRET_KEY y vuelve a ejecutar."
+    throw "Se creó monitor_telefono\.env. Configura SECRET_KEY y DATA_ENCRYPTION_KEY y vuelve a ejecutar."
 }
 
 Get-Content -LiteralPath $envFile | ForEach-Object {
@@ -24,11 +28,11 @@ Get-Content -LiteralPath $envFile | ForEach-Object {
     }
 }
 
-if (-not $env:MONITOR_PASSWORD) {
-    throw "MONITOR_PASSWORD no está configurada en monitor_telefono\.env."
-}
 if (-not $env:SECRET_KEY -or $env:SECRET_KEY.Length -lt 32) {
     throw "SECRET_KEY debe contener al menos 32 caracteres aleatorios."
+}
+if (-not $env:DATA_ENCRYPTION_KEY) {
+    throw "DATA_ENCRYPTION_KEY no está configurada en monitor_telefono\.env."
 }
 if (-not $env:PUERTO) { $env:PUERTO = "8100" }
 
@@ -42,6 +46,11 @@ if ($LASTEXITCODE -ne 0) { throw "No se pudieron instalar las dependencias." }
 $env:PYTHONPATH = $PSScriptRoot
 Push-Location $PSScriptRoot
 try {
+    if ($CreateAdmin) {
+        & $venvPython -m app.cli create-admin
+        if ($LASTEXITCODE -ne 0) { throw "No se pudo crear la cuenta administradora." }
+        exit 0
+    }
     & $venvPython -m uvicorn app.main:app --host 127.0.0.1 --port $env:PUERTO --proxy-headers --forwarded-allow-ips=127.0.0.1
     if ($LASTEXITCODE -ne 0) { throw "Uvicorn terminó con un error." }
 }

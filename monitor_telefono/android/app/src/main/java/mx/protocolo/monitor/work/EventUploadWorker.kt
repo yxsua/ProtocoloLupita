@@ -9,6 +9,7 @@ import mx.protocolo.monitor.MonitorConfig
 import mx.protocolo.monitor.SecureConfigStore
 import mx.protocolo.monitor.data.MonitorDatabase
 import mx.protocolo.monitor.data.StoredEvent
+import mx.protocolo.monitor.service.FraudAlertNotification
 import mx.protocolo.monitor.util.UrlPolicy
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -61,8 +62,10 @@ class EventUploadWorker(
             val request = createRequest(baseUrl, config.deviceToken, event)
             try {
                 httpClient.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string().orEmpty()
                     when (UploadPolicy.forHttpStatus(response.code)) {
                         UploadAction.ACKNOWLEDGE -> {
+                            processVerdict(event, responseBody, config)
                             dao.markSent(event.eventId)
                             RuntimeStatus.record(
                                 applicationContext,
@@ -93,17 +96,45 @@ class EventUploadWorker(
                         }
                     }
                 }
-            } catch (error: IOException) {
-                dao.markAttempt(event.eventId, "Error de red")
+            } catch (_: IOException) {
+                dao.markAttempt(event.eventId, "No se pudo completar la entrega.")
                 RuntimeStatus.record(
                     applicationContext,
-                    "Sin conexión con el servidor; el evento se reintentará.",
+                    "No se pudo completar la entrega al servidor; el evento se reintentará.",
                 )
                 return Result.retry()
             }
         }
 
         return if (dao.pendingCount() > 0) Result.retry() else Result.success()
+    }
+
+    private suspend fun processVerdict(event: StoredEvent, body: String, config: MonitorConfig) {
+        val verdict = try {
+            JSONObject(body).optJSONObject("veredicto")
+        } catch (error: org.json.JSONException) {
+            throw IOException("El servidor respondió con un veredicto inválido.", error)
+        } ?: throw IOException("El servidor no incluyó el veredicto del evento.")
+        val score = verdict.optInt("riesgo").coerceIn(0, 100)
+        val level = verdict.optString("nivel", "bajo")
+        val reasons = verdict.optJSONArray("razones")?.toString().orEmpty()
+        dao.updateFraudVerdict(event.eventId, score, level, reasons)
+        if (level == "medio" || level == "alto") {
+            try {
+                FraudAlertNotification.show(
+                    applicationContext,
+                    event.eventId,
+                    level,
+                    score,
+                    config.trustedContactPhone,
+                )
+            } catch (_: SecurityException) {
+                RuntimeStatus.record(
+                    applicationContext,
+                    "Se detectó una alerta, pero Android no permitió mostrarla. Revisa el permiso de notificaciones.",
+                )
+            }
+        }
     }
 
     private fun createRequest(baseUrl: String, token: String, event: StoredEvent): Request {

@@ -29,6 +29,9 @@
                 <data android:scheme="monitortelefono" android:host="enroll" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MyMessagesActivity"
+            android:exported="false" />
 
         <service
             android:name=".service.MonitorNotificationListener"

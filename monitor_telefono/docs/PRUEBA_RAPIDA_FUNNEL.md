@@ -5,8 +5,8 @@ Esta alternativa sirve para validar el flujo HTTPS de enrolamiento sin contratar
 ## Preparación
 
 1. Instala y autentica Tailscale en el equipo que ejecuta el monitor.
-2. Define una contraseña fuerte y una `SECRET_KEY` aleatoria en `monitor_telefono/.env`.
-3. Arranca el servidor local con `server/run.ps1` o `sh server/run.sh`. Debe escuchar en `127.0.0.1:8100`, no en `0.0.0.0`.
+2. Define `SECRET_KEY` y `DATA_ENCRYPTION_KEY` aleatorias en `monitor_telefono/.env`; respalda la clave de cifrado.
+3. Crea la primera cuenta con `server/run.ps1 -CreateAdmin` en Windows o `sh server/run.sh --create-admin` en Linux/macOS. Luego arranca con `server/run.ps1` o `sh server/run.sh`. Debe escuchar en `127.0.0.1:8100`, no en `0.0.0.0`.
 4. Consulta el nombre HTTPS público que Tailscale asignó al equipo y configúralo exactamente como origen:
 
 ```dotenv

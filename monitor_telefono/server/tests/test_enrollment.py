@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 
 from app import db
-from conftest import csrf_from, login
+from app.privacy import consent_version
+from conftest import TEST_PASSWORD, TEST_USERNAME, csrf_from, login
 
 
 def _create_enrollment(
@@ -45,6 +46,7 @@ def _redeem(client: TestClient, code: str, *, accepted: bool = True):
             "nombre": "Teléfono enrolado",
             "apps_permitidas": ["com.whatsapp"],
             "consentimiento": accepted,
+            "consentimiento_version": consent_version(client.app.state.settings),
         },
     )
 
@@ -171,13 +173,13 @@ def test_login_temporarily_locks_after_five_bad_passwords(client: TestClient) ->
     for _ in range(5):
         failed = client.post(
             "/login",
-            data={"csrf_token": csrf, "password": "wrong"},
+            data={"csrf_token": csrf, "username": TEST_USERNAME, "password": "wrong"},
             follow_redirects=False,
         )
         assert failed.status_code == 401
     locked = client.post(
         "/login",
-        data={"csrf_token": csrf, "password": "test-monitor-password"},
+        data={"csrf_token": csrf, "username": TEST_USERNAME, "password": TEST_PASSWORD},
         follow_redirects=False,
     )
     assert locked.status_code == 429

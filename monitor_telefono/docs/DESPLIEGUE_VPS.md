@@ -48,23 +48,32 @@ No guardes `.env`, claves de firma Android ni respaldos en un repositorio públi
 Genera secretos nuevos en el VPS:
 
 ```sh
-openssl rand -hex 32
-openssl rand -hex 32
+python3 -c 'import secrets; print(secrets.token_hex(32))'
+python3 -c 'import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())'
 ```
 
-Edita `.env` y asigna:
+Guarda la primera salida en `SECRET_KEY` y la segunda en `DATA_ENCRYPTION_KEY`. Respalda esta última fuera del VPS de forma segura: sin ella no se pueden leer los mensajes cifrados. Edita `.env` y asigna:
 
 ```dotenv
-MONITOR_PASSWORD=una-contraseña-larga-y-única
-SECRET_KEY=pega-aquí-el-segundo-valor-aleatorio
+SECRET_KEY=pega-aquí-el-primer-valor-aleatorio
+DATA_ENCRYPTION_KEY=pega-aquí-la-clave-fernet
 DOMAIN=monitor.tudominio.mx
 BASE_URL_PUBLICA=https://monitor.tudominio.mx
 RETENCION_DIAS=30
+RETENCION_TEXTO_NORMAL_HORAS=24
+RETENCION_ALERTAS_DIAS=90
+REVISORES_VEN_TODO=false
 ANDROID_DOWNLOAD_URL=https://monitor.tudominio.mx/downloads/monitor-app.apk
 BACKUP_RETENTION_DAYS=30
 ```
 
-`MONITOR_PASSWORD` protege el panel; cinco errores desde una IP activan un bloqueo temporal de 15 minutos. `SECRET_KEY` debe tener al menos 32 caracteres aleatorios. Caddy solicita y renueva TLS automáticamente cuando DNS y los puertos públicos están correctos. FastAPI marca la cookie `Secure` y HSTS se activa para solicitudes HTTPS.
+`SECRET_KEY` firma las sesiones y debe ser aleatoria. Las contraseñas individuales se guardan con Argon2; cinco errores desde una IP activan un bloqueo temporal de 15 minutos. Después de iniciar los contenedores, crea el primer administrador desde la consola:
+
+```sh
+docker compose exec -it monitor python -m app.cli create-admin --username admin
+```
+
+El comando solicita la contraseña de forma interactiva y opcionalmente admite TOTP. Admin crea cuentas revisoras desde el panel. Caddy solicita y renueva TLS automáticamente cuando DNS y los puertos públicos están correctos. FastAPI marca la cookie `Secure` y HSTS se activa para solicitudes HTTPS.
 
 Si todavía no publicaste el APK firmado, deja `ANDROID_DOWNLOAD_URL` vacío. El enlace de descarga aparecerá cuando configures la variable y publiques el archivo en `downloads/monitor-app.apk`.
 
@@ -90,7 +99,7 @@ docker compose ps
 docker compose logs --tail=100 monitor caddy backup
 ```
 
-Comprueba desde una máquina externa:
+Después de crear el admin, comprueba desde una máquina externa:
 
 ```sh
 curl -fsS https://monitor.tudominio.mx/api/salud
@@ -104,7 +113,7 @@ El contenedor del servidor no publica `8100`. Caddy termina TLS en 80/443 y reen
 
 SQLite se guarda en el volumen persistente `monitor_data`. El servicio `backup` realiza una copia consistente diaria con la API `sqlite3.Connection.backup` y conserva `BACKUP_RETENTION_DAYS` días en `backups/`. Protege ese directorio como datos personales: contiene mensajes legibles.
 
-Comprueba regularmente que hay archivos de respaldo y copia una versión cifrada a un almacenamiento externo separado. El contenedor no ofrece protección contra pérdida total del VPS. Para restaurar una copia concreta:
+Comprueba regularmente que hay archivos de respaldo y copia una versión cifrada a un almacenamiento externo separado. Los mensajes también se cifran en SQLite; los archivos de respaldo requieren conservar `DATA_ENCRYPTION_KEY` para descifrarlos. El contenedor no ofrece protección contra pérdida total del VPS. Para restaurar una copia concreta:
 
 ```sh
 docker compose stop monitor
@@ -130,5 +139,6 @@ El despliegue usa un solo proceso Uvicorn por defecto para que el bloqueo de int
 - La conectividad HTTPS y la renovación de certificados requieren DNS correcto y puertos públicos disponibles.
 - La app usa Google Play Services Code Scanner; en equipos sin esos servicios, puede ingresarse el código corto manualmente.
 - El panel marca un teléfono **En línea** si hubo contacto en los últimos 35 minutos; Android puede retrasar trabajos periódicos por ahorro de batería.
-- Desvincular revoca el token y detiene nuevos envíos, pero no borra los eventos ya guardados. Bórralos desde la administración si la solicitud de la persona lo requiere.
+- Desvincular revoca el token y detiene nuevos envíos, pero no borra eventos ya guardados. La app y admin ofrecen exportación/borrado por dispositivo; estas acciones quedan en auditoría.
+- Los revisores ven únicamente alertas y hasta tres mensajes previos del mismo remitente, salvo que `REVISORES_VEN_TODO=true` se incluya expresamente en el consentimiento.
 - Completa y publica el aviso de privacidad con responsable, contacto y bases legales antes de recolectar mensajes reales.

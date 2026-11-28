@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import mx.protocolo.monitor.BuildConfig
 import mx.protocolo.monitor.ConfigStoreException
 import mx.protocolo.monitor.SecureConfigStore
+import mx.protocolo.monitor.data.MonitorDatabase
 import mx.protocolo.monitor.util.UrlPolicy
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -42,6 +43,7 @@ class HeartbeatWorker(
             httpClient.newCall(request).execute().use { response ->
                 when {
                     response.isSuccessful -> {
+                        syncReviewUpdates(response.body?.string().orEmpty())
                         RuntimeStatus.record(applicationContext, "Latido enviado al servidor.")
                         Result.success()
                     }
@@ -53,7 +55,28 @@ class HeartbeatWorker(
                 }
             }
         } catch (_: IOException) {
+            RuntimeStatus.record(applicationContext, "No se pudo completar el latido; se reintentará.")
             Result.retry()
+        }
+    }
+
+    private suspend fun syncReviewUpdates(body: String) {
+        val updates = try {
+            org.json.JSONObject(body).optJSONArray("actualizaciones_revision")
+        } catch (error: org.json.JSONException) {
+            throw IOException("El servidor respondió con un latido inválido.", error)
+        } ?: throw IOException("El servidor omitió las actualizaciones de revisión.")
+        val dao = MonitorDatabase.get(applicationContext).monitorDao()
+        for (index in 0 until updates.length()) {
+            val update = updates.optJSONObject(index) ?: continue
+            val eventId = update.optString("id_evento")
+            val status = update.optString("revision_estado")
+            if (eventId.isBlank() || status.isBlank() || status == "null") continue
+            dao.updateReviewStatus(
+                eventId,
+                status,
+                update.optString("revisado_en").takeIf { it.isNotBlank() && it != "null" },
+            )
         }
     }
 

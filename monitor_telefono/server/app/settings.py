@@ -11,7 +11,6 @@ SERVER_DIR = APP_DIR.parent
 
 @dataclass(frozen=True)
 class Settings:
-    monitor_password: str
     secret_key: str
     database_path: Path
     retention_days: int
@@ -20,30 +19,50 @@ class Settings:
     events_per_minute: int = 120
     base_url_publica: str | None = None
     android_download_url: str | None = None
+    data_encryption_key: str = ""
+    retention_text_hours: int = 24
+    retention_alert_days: int = 90
+    reviewers_see_all: bool = False
+    risk_medium_threshold: int = 40
+    risk_high_threshold: int = 70
+    fraud_rules_path: Path = SERVER_DIR / "data" / "reglas_fraude.csv"
 
     @classmethod
     def from_env(cls) -> "Settings":
-        password = os.getenv("MONITOR_PASSWORD", "")
         secret_key = os.getenv("SECRET_KEY", "")
-        if not password:
-            raise RuntimeError(
-                "Falta MONITOR_PASSWORD. Configúrala en el entorno antes de arrancar."
-            )
         if len(secret_key) < 32:
             raise RuntimeError(
                 "Falta SECRET_KEY o es demasiado corta; usa al menos 32 caracteres aleatorios."
             )
+        encryption_key = os.getenv("DATA_ENCRYPTION_KEY", "").strip()
+        if not encryption_key:
+            raise RuntimeError(
+                "Falta DATA_ENCRYPTION_KEY. Genera una clave Fernet y configúrala en el entorno."
+            )
+        from app.crypto import _cipher
+
+        _cipher(encryption_key)
 
         try:
             retention_days = int(os.getenv("RETENCION_DIAS", "30"))
             port = int(os.getenv("PUERTO", "8100"))
             events_per_minute = int(os.getenv("EVENTOS_POR_MINUTO", "120"))
+            retention_text_hours = int(os.getenv("RETENCION_TEXTO_NORMAL_HORAS", "24"))
+            retention_alert_days = int(os.getenv("RETENCION_ALERTAS_DIAS", "90"))
+            risk_medium_threshold = int(os.getenv("RIESGO_UMBRAL_MEDIO", "40"))
+            risk_high_threshold = int(os.getenv("RIESGO_UMBRAL_ALTO", "70"))
         except ValueError as exc:
             raise RuntimeError(
-                "RETENCION_DIAS, PUERTO y EVENTOS_POR_MINUTO deben ser enteros."
+                "Los límites de retención, puerto y riesgo deben ser enteros."
             ) from exc
         if retention_days < 1:
             raise RuntimeError("RETENCION_DIAS debe ser al menos 1.")
+        if retention_text_hours < 1 or retention_alert_days < 1:
+            raise RuntimeError("Las retenciones de texto y alertas deben ser positivas.")
+        if not 1 <= risk_medium_threshold < risk_high_threshold <= 100:
+            raise RuntimeError(
+                "RIESGO_UMBRAL_MEDIO y RIESGO_UMBRAL_ALTO deben estar ordenados entre 1 y 100."
+            )
         if not 1 <= port <= 65535:
             raise RuntimeError("PUERTO debe estar entre 1 y 65535.")
         if events_per_minute < 1:
@@ -51,6 +70,10 @@ class Settings:
 
         database_path = Path(
             os.getenv("DATABASE_PATH", str(SERVER_DIR / "data" / "monitor.sqlite3"))
+        ).expanduser()
+        fraud_rules_value = os.getenv("REGLAS_FRAUDE_CSV", "").strip()
+        fraud_rules_path = Path(
+            fraud_rules_value or str(SERVER_DIR / "data" / "reglas_fraude.csv")
         ).expanduser()
         public_base_url = os.getenv("BASE_URL_PUBLICA", "").strip()
         android_download_url = os.getenv("ANDROID_DOWNLOAD_URL", "").strip()
@@ -91,7 +114,6 @@ class Settings:
                     "ANDROID_DOWNLOAD_URL debe ser HTTPS y no incluir credenciales ni fragmentos."
                 )
         return cls(
-            monitor_password=password,
             secret_key=secret_key,
             database_path=database_path,
             retention_days=retention_days,
@@ -100,4 +122,12 @@ class Settings:
             events_per_minute=events_per_minute,
             base_url_publica=public_base_url or None,
             android_download_url=android_download_url or None,
+            data_encryption_key=encryption_key,
+            retention_text_hours=retention_text_hours,
+            retention_alert_days=retention_alert_days,
+            reviewers_see_all=os.getenv("REVISORES_VEN_TODO", "").lower()
+            in {"1", "true", "yes"},
+            risk_medium_threshold=risk_medium_threshold,
+            risk_high_threshold=risk_high_threshold,
+            fraud_rules_path=fraud_rules_path,
         )
